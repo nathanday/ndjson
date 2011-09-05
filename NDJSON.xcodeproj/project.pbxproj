@@ -1,0 +1,294 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		D8D6023A1414FD91007F8A29 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8D602391414FD91007F8A29 /* Cocoa.framework */; };
+		D8D602441414FD91007F8A29 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D8D602421414FD91007F8A29 /* InfoPlist.strings */; };
+		D8D602461414FD91007F8A29 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D602451414FD91007F8A29 /* main.m */; };
+		D8D6024A1414FD91007F8A29 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = D8D602481414FD91007F8A29 /* Credits.rtf */; };
+		D8D6024D1414FD91007F8A29 /* NDAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D6024C1414FD91007F8A29 /* NDAppDelegate.m */; };
+		D8D602501414FD92007F8A29 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8D6024E1414FD92007F8A29 /* MainMenu.xib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		D8D602351414FD91007F8A29 /* NDJSON.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NDJSON.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D8D602391414FD91007F8A29 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		D8D6023C1414FD91007F8A29 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		D8D6023D1414FD91007F8A29 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		D8D6023E1414FD91007F8A29 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		D8D602411414FD91007F8A29 /* NDJSON-Info.plist */ = {isa = PBXFileReference; path = "NDJSON-Info.plist"; sourceTree = "<group>"; };
+		D8D602431414FD91007F8A29 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		D8D602451414FD91007F8A29 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		D8D602471414FD91007F8A29 /* NDJSON-Prefix.pch */ = {isa = PBXFileReference; path = "NDJSON-Prefix.pch"; sourceTree = "<group>"; };
+		D8D602491414FD91007F8A29 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
+		D8D6024B1414FD91007F8A29 /* NDAppDelegate.h */ = {isa = PBXFileReference; path = NDAppDelegate.h; sourceTree = "<group>"; };
+		D8D6024C1414FD91007F8A29 /* NDAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NDAppDelegate.m; sourceTree = "<group>"; };
+		D8D6024F1414FD92007F8A29 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D8D602321414FD91007F8A29 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D8D6023A1414FD91007F8A29 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		D8D6022A1414FD91007F8A29 = {
+			isa = PBXGroup;
+			children = (
+				D8D6023F1414FD91007F8A29 /* NDJSON */,
+				D8D602381414FD91007F8A29 /* Frameworks */,
+				D8D602361414FD91007F8A29 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D8D602361414FD91007F8A29 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D8D602351414FD91007F8A29 /* NDJSON.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D8D602381414FD91007F8A29 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D8D602391414FD91007F8A29 /* Cocoa.framework */,
+				D8D6023B1414FD91007F8A29 /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D8D6023B1414FD91007F8A29 /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D8D6023C1414FD91007F8A29 /* AppKit.framework */,
+				D8D6023D1414FD91007F8A29 /* CoreData.framework */,
+				D8D6023E1414FD91007F8A29 /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		D8D6023F1414FD91007F8A29 /* NDJSON */ = {
+			isa = PBXGroup;
+			children = (
+				D8D6024B1414FD91007F8A29 /* NDAppDelegate.h */,
+				D8D6024C1414FD91007F8A29 /* NDAppDelegate.m */,
+				D8D6024E1414FD92007F8A29 /* MainMenu.xib */,
+				D8D602401414FD91007F8A29 /* Supporting Files */,
+			);
+			path = NDJSON;
+			sourceTree = "<group>";
+		};
+		D8D602401414FD91007F8A29 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				D8D602411414FD91007F8A29 /* NDJSON-Info.plist */,
+				D8D602421414FD91007F8A29 /* InfoPlist.strings */,
+				D8D602451414FD91007F8A29 /* main.m */,
+				D8D602471414FD91007F8A29 /* NDJSON-Prefix.pch */,
+				D8D602481414FD91007F8A29 /* Credits.rtf */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D8D602341414FD91007F8A29 /* NDJSON */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D8D602531414FD92007F8A29 /* Build configuration list for PBXNativeTarget "NDJSON" */;
+			buildPhases = (
+				D8D602311414FD91007F8A29 /* Sources */,
+				D8D602321414FD91007F8A29 /* Frameworks */,
+				D8D602331414FD91007F8A29 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NDJSON;
+			productName = NDJSON;
+			productReference = D8D602351414FD91007F8A29 /* NDJSON.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D8D6022C1414FD91007F8A29 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0420;
+				ORGANIZATIONNAME = "Nathan Day";
+			};
+			buildConfigurationList = D8D6022F1414FD91007F8A29 /* Build configuration list for PBXProject "NDJSON" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = D8D6022A1414FD91007F8A29;
+			productRefGroup = D8D602361414FD91007F8A29 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D8D602341414FD91007F8A29 /* NDJSON */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D8D602331414FD91007F8A29 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D8D602441414FD91007F8A29 /* InfoPlist.strings in Resources */,
+				D8D6024A1414FD91007F8A29 /* Credits.rtf in Resources */,
+				D8D602501414FD92007F8A29 /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D8D602311414FD91007F8A29 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D8D602461414FD91007F8A29 /* main.m in Sources */,
+				D8D6024D1414FD91007F8A29 /* NDAppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		D8D602421414FD91007F8A29 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D8D602431414FD91007F8A29 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		D8D602481414FD91007F8A29 /* Credits.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D8D602491414FD91007F8A29 /* en */,
+			);
+			name = Credits.rtf;
+			sourceTree = "<group>";
+		};
+		D8D6024E1414FD92007F8A29 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				D8D6024F1414FD92007F8A29 /* en */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		D8D602511414FD92007F8A29 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		D8D602521414FD92007F8A29 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		D8D602541414FD92007F8A29 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "NDJSON/NDJSON-Prefix.pch";
+				INFOPLIST_FILE = "NDJSON/NDJSON-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		D8D602551414FD92007F8A29 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "NDJSON/NDJSON-Prefix.pch";
+				INFOPLIST_FILE = "NDJSON/NDJSON-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D8D6022F1414FD91007F8A29 /* Build configuration list for PBXProject "NDJSON" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D8D602511414FD92007F8A29 /* Debug */,
+				D8D602521414FD92007F8A29 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D8D602531414FD92007F8A29 /* Build configuration list for PBXNativeTarget "NDJSON" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D8D602541414FD92007F8A29 /* Debug */,
+				D8D602551414FD92007F8A29 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D8D6022C1414FD91007F8A29 /* Project object */;
+}
