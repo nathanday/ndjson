@@ -3,6 +3,8 @@
 <plist version="1.0">
 <dict>
 	<key>ClassNames</key>
-	<array/>
+	<array>
+		<string>TestStringInput</string>
+	</array>
 </dict>
 </plist>

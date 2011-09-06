@@ -21,17 +21,13 @@
 
 @interface TestGroup : NSObject
 
-@property(readonly)	NSArray		* everyTestName;
-
-- (id<TestProtocol>)testForName:(NSString*)name;
-
-- (void)willLoad;
-
+@property(readonly)	NSString	* name;
 /**
  Methods and protocals to override
  */
 @property(readonly)	NSString	* testDescription;
 @property(readonly)	NSArray		* testInstances;
 
+- (void)willLoad;
 
 @end

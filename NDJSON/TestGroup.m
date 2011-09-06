@@ -11,8 +11,6 @@
 @interface TestGroup ()
 {
 	NSString		* name;
-	NSArray			* everyTestName;
-	NSDictionary	* testGroupByName;
 }
 
 @end
@@ -20,8 +18,6 @@
 
 @implementation TestGroup
 
-@synthesize		everyTestName,
-				testGroupByName;
 
 + (NSRegularExpression *)uncammelCaseRegularExpression
 {
@@ -65,8 +61,6 @@
 - (void)dealloc
 {
 	[name release];
-	[everyTestName release];
-	[testGroupByName release];
     [super dealloc];
 }
 
@@ -83,23 +77,15 @@
 	return nil;
 }
 
+- (void)willLoad
+{
+	
+}
+
 - (NSArray *)testInstances
 {
 	NSAssert(NO, @"The method %@ is abstract", NSStringFromSelector(_cmd));
 	return NULL;
 }
-
-- (void)willLoad
-{
-	NSMutableArray			* theNames = [[NSMutableArray alloc] init];
-	for( id<TestProtocol> theTest in self.testInstances )
-	{
-		[theNames addObject:theTest.name];
-	}
-	everyTestName = theNames;
-}
-
-
-- (NSArray *)testGroupForName:(NSString*)aName { return [self.testGroupByName objectForKey:aName]; }
 
 @end
