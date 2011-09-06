@@ -7,28 +7,42 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D8167700141624E30082CEB6 /* TestStringInput.m in Sources */ = {isa = PBXBuildFile; fileRef = D81676FF141624E30082CEB6 /* TestStringInput.m */; };
+		D81677041416265A0082CEB6 /* TestGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = D81677031416265A0082CEB6 /* TestGroup.m */; };
+		D854B626141508000019D7E2 /* TestClassNames.plist in Resources */ = {isa = PBXBuildFile; fileRef = D854B625141508000019D7E2 /* TestClassNames.plist */; };
 		D8D6023A1414FD91007F8A29 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8D602391414FD91007F8A29 /* Cocoa.framework */; };
 		D8D602441414FD91007F8A29 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D8D602421414FD91007F8A29 /* InfoPlist.strings */; };
 		D8D602461414FD91007F8A29 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D602451414FD91007F8A29 /* main.m */; };
 		D8D6024A1414FD91007F8A29 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = D8D602481414FD91007F8A29 /* Credits.rtf */; };
 		D8D6024D1414FD91007F8A29 /* NDAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D6024C1414FD91007F8A29 /* NDAppDelegate.m */; };
 		D8D602501414FD92007F8A29 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8D6024E1414FD92007F8A29 /* MainMenu.xib */; };
+		D8D6025C1414FDC5007F8A29 /* NDJSON.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D602581414FDC5007F8A29 /* NDJSON.m */; };
+		D8D6025D1414FDC5007F8A29 /* NDJSONCore.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D6025A1414FDC5007F8A29 /* NDJSONCore.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D81676FE141624E30082CEB6 /* TestStringInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestStringInput.h; sourceTree = "<group>"; };
+		D81676FF141624E30082CEB6 /* TestStringInput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestStringInput.m; sourceTree = "<group>"; };
+		D81677021416265A0082CEB6 /* TestGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestGroup.h; sourceTree = "<group>"; };
+		D81677031416265A0082CEB6 /* TestGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestGroup.m; sourceTree = "<group>"; };
+		D854B625141508000019D7E2 /* TestClassNames.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = TestClassNames.plist; sourceTree = "<group>"; };
 		D8D602351414FD91007F8A29 /* NDJSON.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NDJSON.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8D602391414FD91007F8A29 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		D8D6023C1414FD91007F8A29 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		D8D6023D1414FD91007F8A29 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		D8D6023E1414FD91007F8A29 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		D8D602411414FD91007F8A29 /* NDJSON-Info.plist */ = {isa = PBXFileReference; path = "NDJSON-Info.plist"; sourceTree = "<group>"; };
+		D8D602411414FD91007F8A29 /* NDJSON-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "NDJSON-Info.plist"; sourceTree = "<group>"; };
 		D8D602431414FD91007F8A29 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		D8D602451414FD91007F8A29 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		D8D602471414FD91007F8A29 /* NDJSON-Prefix.pch */ = {isa = PBXFileReference; path = "NDJSON-Prefix.pch"; sourceTree = "<group>"; };
+		D8D602471414FD91007F8A29 /* NDJSON-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NDJSON-Prefix.pch"; sourceTree = "<group>"; };
 		D8D602491414FD91007F8A29 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
-		D8D6024B1414FD91007F8A29 /* NDAppDelegate.h */ = {isa = PBXFileReference; path = NDAppDelegate.h; sourceTree = "<group>"; };
+		D8D6024B1414FD91007F8A29 /* NDAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NDAppDelegate.h; sourceTree = "<group>"; };
 		D8D6024C1414FD91007F8A29 /* NDAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NDAppDelegate.m; sourceTree = "<group>"; };
 		D8D6024F1414FD92007F8A29 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		D8D602571414FDC5007F8A29 /* NDJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSON.h; sourceTree = "<group>"; };
+		D8D602581414FDC5007F8A29 /* NDJSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSON.m; sourceTree = "<group>"; };
+		D8D602591414FDC5007F8A29 /* NDJSONCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONCore.h; sourceTree = "<group>"; };
+		D8D6025A1414FDC5007F8A29 /* NDJSONCore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONCore.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,8 +98,13 @@
 			children = (
 				D8D6024B1414FD91007F8A29 /* NDAppDelegate.h */,
 				D8D6024C1414FD91007F8A29 /* NDAppDelegate.m */,
+				D81677021416265A0082CEB6 /* TestGroup.h */,
+				D81677031416265A0082CEB6 /* TestGroup.m */,
 				D8D6024E1414FD92007F8A29 /* MainMenu.xib */,
+				D8D602561414FDC5007F8A29 /* Classes */,
+				D8D6025B1414FDC5007F8A29 /* Tests */,
 				D8D602401414FD91007F8A29 /* Supporting Files */,
+				D854B625141508000019D7E2 /* TestClassNames.plist */,
 			);
 			path = NDJSON;
 			sourceTree = "<group>";
@@ -100,6 +119,26 @@
 				D8D602481414FD91007F8A29 /* Credits.rtf */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		D8D602561414FDC5007F8A29 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				D8D602571414FDC5007F8A29 /* NDJSON.h */,
+				D8D602581414FDC5007F8A29 /* NDJSON.m */,
+				D8D602591414FDC5007F8A29 /* NDJSONCore.h */,
+				D8D6025A1414FDC5007F8A29 /* NDJSONCore.m */,
+			);
+			path = Classes;
+			sourceTree = "<group>";
+		};
+		D8D6025B1414FDC5007F8A29 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				D81676FE141624E30082CEB6 /* TestStringInput.h */,
+				D81676FF141624E30082CEB6 /* TestStringInput.m */,
+			);
+			path = Tests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -156,6 +195,7 @@
 				D8D602441414FD91007F8A29 /* InfoPlist.strings in Resources */,
 				D8D6024A1414FD91007F8A29 /* Credits.rtf in Resources */,
 				D8D602501414FD92007F8A29 /* MainMenu.xib in Resources */,
+				D854B626141508000019D7E2 /* TestClassNames.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -168,6 +208,10 @@
 			files = (
 				D8D602461414FD91007F8A29 /* main.m in Sources */,
 				D8D6024D1414FD91007F8A29 /* NDAppDelegate.m in Sources */,
+				D8D6025C1414FDC5007F8A29 /* NDJSON.m in Sources */,
+				D8D6025D1414FDC5007F8A29 /* NDJSONCore.m in Sources */,
+				D8167700141624E30082CEB6 /* TestStringInput.m in Sources */,
+				D81677041416265A0082CEB6 /* TestGroup.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -287,6 +331,7 @@
 				D8D602551414FD92007F8A29 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
