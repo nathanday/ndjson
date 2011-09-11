@@ -10,14 +10,14 @@
 
 @interface TestGroup ()
 {
-	NSString		* name;
+	NSString				* name;
+	NSMutableDictionary		* testsByName;
 }
 
+@property(readonly)		NSMutableDictionary		* testsByName;
 @end
 
-
 @implementation TestGroup
-
 
 + (NSRegularExpression *)uncammelCaseRegularExpression
 {
@@ -50,6 +50,15 @@
 	return theResult;
 }
 
+#pragma mark - manually implemented properties
+
+- (NSMutableDictionary *)testsByName
+{
+	if( testsByName == nil )
+		testsByName = [[NSMutableDictionary alloc] init];
+	return testsByName;
+}
+
 #pragma mark - creation and destruction
 
 - (id)init
@@ -60,6 +69,7 @@
 
 - (void)dealloc
 {
+	[testsByName release];
 	[name release];
     [super dealloc];
 }
@@ -79,10 +89,16 @@
 
 - (void)willLoad
 {
-	
+	for( id<TestProtocol> theTest in self.everyTest )
+		[self.testsByName setObject: theTest forKey:theTest.name];
 }
 
-- (NSArray *)testInstances
+- (enum TestOperationState)operationStateForTestNamed:(NSString *)aName
+{
+	return [[self.testsByName objectForKey:aName] operationState];
+}
+
+- (NSArray *)everyTest
 {
 	NSAssert(NO, @"The method %@ is abstract", NSStringFromSelector(_cmd));
 	return NULL;

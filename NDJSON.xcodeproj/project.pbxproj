@@ -7,9 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D80E19BA141A7E3000ED0747 /* NDPair.m in Sources */ = {isa = PBXBuildFile; fileRef = D80E19B9141A7E3000ED0747 /* NDPair.m */; };
 		D8167700141624E30082CEB6 /* TestStringInput.m in Sources */ = {isa = PBXBuildFile; fileRef = D81676FF141624E30082CEB6 /* TestStringInput.m */; };
 		D81677041416265A0082CEB6 /* TestGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = D81677031416265A0082CEB6 /* TestGroup.m */; };
 		D854B626141508000019D7E2 /* TestClassNames.plist in Resources */ = {isa = PBXBuildFile; fileRef = D854B625141508000019D7E2 /* TestClassNames.plist */; };
+		D8CDB115141CF0D000201D81 /* InProgress.png in Resources */ = {isa = PBXBuildFile; fileRef = D8CDB112141CF0D000201D81 /* InProgress.png */; };
+		D8CDB116141CF0D000201D81 /* Error.png in Resources */ = {isa = PBXBuildFile; fileRef = D8CDB113141CF0D000201D81 /* Error.png */; };
+		D8CDB117141CF0D000201D81 /* Complete.png in Resources */ = {isa = PBXBuildFile; fileRef = D8CDB114141CF0D000201D81 /* Complete.png */; };
+		D8CDB11A141CF14D00201D81 /* Initial.png in Resources */ = {isa = PBXBuildFile; fileRef = D8CDB119141CF14D00201D81 /* Initial.png */; };
 		D8D6023A1414FD91007F8A29 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8D602391414FD91007F8A29 /* Cocoa.framework */; };
 		D8D602441414FD91007F8A29 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D8D602421414FD91007F8A29 /* InfoPlist.strings */; };
 		D8D602461414FD91007F8A29 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D602451414FD91007F8A29 /* main.m */; };
@@ -18,14 +23,21 @@
 		D8D602501414FD92007F8A29 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8D6024E1414FD92007F8A29 /* MainMenu.xib */; };
 		D8D6025C1414FDC5007F8A29 /* NDJSON.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D602581414FDC5007F8A29 /* NDJSON.m */; };
 		D8D6025D1414FDC5007F8A29 /* NDJSONCore.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D6025A1414FDC5007F8A29 /* NDJSONCore.m */; };
+		D8FFDFBA1418CDD900F24E54 /* TestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = D8FFDFB91418CDD900F24E54 /* TestOperation.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D80E19B8141A7E3000ED0747 /* NDPair.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDPair.h; sourceTree = "<group>"; };
+		D80E19B9141A7E3000ED0747 /* NDPair.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDPair.m; sourceTree = "<group>"; };
 		D81676FE141624E30082CEB6 /* TestStringInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestStringInput.h; sourceTree = "<group>"; };
 		D81676FF141624E30082CEB6 /* TestStringInput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestStringInput.m; sourceTree = "<group>"; };
 		D81677021416265A0082CEB6 /* TestGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestGroup.h; sourceTree = "<group>"; };
 		D81677031416265A0082CEB6 /* TestGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestGroup.m; sourceTree = "<group>"; };
 		D854B625141508000019D7E2 /* TestClassNames.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = TestClassNames.plist; sourceTree = "<group>"; };
+		D8CDB112141CF0D000201D81 /* InProgress.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = InProgress.png; sourceTree = "<group>"; };
+		D8CDB113141CF0D000201D81 /* Error.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Error.png; sourceTree = "<group>"; };
+		D8CDB114141CF0D000201D81 /* Complete.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Complete.png; sourceTree = "<group>"; };
+		D8CDB119141CF14D00201D81 /* Initial.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Initial.png; sourceTree = "<group>"; };
 		D8D602351414FD91007F8A29 /* NDJSON.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NDJSON.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8D602391414FD91007F8A29 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		D8D6023C1414FD91007F8A29 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -43,6 +55,8 @@
 		D8D602581414FDC5007F8A29 /* NDJSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSON.m; sourceTree = "<group>"; };
 		D8D602591414FDC5007F8A29 /* NDJSONCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONCore.h; sourceTree = "<group>"; };
 		D8D6025A1414FDC5007F8A29 /* NDJSONCore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONCore.m; sourceTree = "<group>"; };
+		D8FFDFB81418CDD900F24E54 /* TestOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestOperation.h; sourceTree = "<group>"; };
+		D8FFDFB91418CDD900F24E54 /* TestOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestOperation.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +71,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D8CDB111141CF0D000201D81 /* Images */ = {
+			isa = PBXGroup;
+			children = (
+				D8CDB119141CF14D00201D81 /* Initial.png */,
+				D8CDB112141CF0D000201D81 /* InProgress.png */,
+				D8CDB113141CF0D000201D81 /* Error.png */,
+				D8CDB114141CF0D000201D81 /* Complete.png */,
+			);
+			path = Images;
+			sourceTree = "<group>";
+		};
 		D8D6022A1414FD91007F8A29 = {
 			isa = PBXGroup;
 			children = (
@@ -101,10 +126,15 @@
 				D81677021416265A0082CEB6 /* TestGroup.h */,
 				D81677031416265A0082CEB6 /* TestGroup.m */,
 				D8D6024E1414FD92007F8A29 /* MainMenu.xib */,
+				D8CDB111141CF0D000201D81 /* Images */,
 				D8D602561414FDC5007F8A29 /* Classes */,
 				D8D6025B1414FDC5007F8A29 /* Tests */,
 				D8D602401414FD91007F8A29 /* Supporting Files */,
 				D854B625141508000019D7E2 /* TestClassNames.plist */,
+				D8FFDFB81418CDD900F24E54 /* TestOperation.h */,
+				D8FFDFB91418CDD900F24E54 /* TestOperation.m */,
+				D80E19B8141A7E3000ED0747 /* NDPair.h */,
+				D80E19B9141A7E3000ED0747 /* NDPair.m */,
 			);
 			path = NDJSON;
 			sourceTree = "<group>";
@@ -196,6 +226,10 @@
 				D8D6024A1414FD91007F8A29 /* Credits.rtf in Resources */,
 				D8D602501414FD92007F8A29 /* MainMenu.xib in Resources */,
 				D854B626141508000019D7E2 /* TestClassNames.plist in Resources */,
+				D8CDB115141CF0D000201D81 /* InProgress.png in Resources */,
+				D8CDB116141CF0D000201D81 /* Error.png in Resources */,
+				D8CDB117141CF0D000201D81 /* Complete.png in Resources */,
+				D8CDB11A141CF14D00201D81 /* Initial.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -212,6 +246,8 @@
 				D8D6025D1414FDC5007F8A29 /* NDJSONCore.m in Sources */,
 				D8167700141624E30082CEB6 /* TestStringInput.m in Sources */,
 				D81677041416265A0082CEB6 /* TestGroup.m in Sources */,
+				D8FFDFBA1418CDD900F24E54 /* TestOperation.m in Sources */,
+				D80E19BA141A7E3000ED0747 /* NDPair.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

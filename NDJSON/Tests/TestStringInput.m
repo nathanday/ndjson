@@ -15,26 +15,30 @@
 
 @interface TestStringInput ()
 {
-	NSMutableArray		* tests;
+	NSMutableArray				* tests;
 }
 - (void)addName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)result;
 @end
 
 @interface TestString : NSObject <TestProtocol>
 {
-	NSString	* jsonString;
-	id			result;
-	NSError		* error;
+	NSString					* jsonString;
+	id							result;
+	NSError						* error;
+	TestGroup					* testGroup;
+	enum TestOperationState		operationState;
 }
 + (id)testStringWithName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)result;
 - (id)initWithName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)result;
 
-@property(readonly) NSString * jsonString;
+@property(readonly)			NSString	* jsonString;
+@property(readwrite,assign)	TestGroup	* testGroup;
+@property(assign)	enum TestOperationState		operationState;
 @end
 
 @implementation TestStringInput
 
-- (NSArray *)testInstances { return tests; }
+- (NSArray *)everyTest { return tests; }
 - (NSString *)testDescription { return @"Test input with string, all bytes are available, tests ability to recongnize all kinds of JSON"; }
 
 - (void)addName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult
@@ -43,6 +47,7 @@
 		tests = [[NSMutableArray alloc] init];
 	TestString		* theTestString = [TestString testStringWithName:aName jsonString:aJSON expectedResult:aResult];
 	[tests addObject:theTestString];
+	theTestString.testGroup = self;
 }
 
 - (void)dealloc
@@ -83,7 +88,9 @@
 @synthesize		jsonString,
 				expectedResult,
 				name,
-				error;
+				error,
+				testGroup,
+				operationState;
 
 + (id)testStringWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult
 {
@@ -96,6 +103,7 @@
 		name = [aName copy];
 		jsonString = [aJSON copy];
 		expectedResult = [aResult retain];
+		operationState = kTestOperationStateInited;
 	}
 	return self;
 }

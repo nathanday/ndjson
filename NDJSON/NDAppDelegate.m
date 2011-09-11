@@ -8,26 +8,68 @@
 
 #import "NDAppDelegate.h"
 #import "TestGroup.h"
+#import "TestOperation.h"
 
 static NSString		* const kTestClassNamesFileName = @"TestClassNames",
 					* const kClassNamesKey = @"ClassNames";
+
+static NSString		* const kInitedStateImageName = @"Initial",
+					* const kExecutingStateImageName = @"InProgress",
+					* const kFinishedStateImageName = @"Complete",
+					* const kErrorStateImageName = @"Error";
+
+static NSString		* const kNameColumnIdentifier = @"Name",
+					* const kStateColumnIdentifier = @"State",
+					* const kCheckBoxColumnIdentifier = @"CheckBox";
+
+@interface TestGroupChecks : NSObject
+{
+@private
+	NSMutableDictionary		* checkForTest;
+	NSMutableDictionary		* stateForTest;
+	BOOL					groupCheck;
+}
+
+@property(readonly)	NSMutableDictionary		* checkForTest;
+@property(readonly)	NSMutableDictionary		* stateForTest;
+@property(assign)	NSNumber				* value;
+@property (assign)		BOOL				running;
+
++ (TestGroupChecks *)testGroupChecksWithBool:(BOOL)value;
+- (TestGroupChecks *)initWithBool:(BOOL)value;
+- (NSNumber *)valueForTestName:(NSString *)name;
+- (void)setValue:(NSNumber *)value forTestName:(NSString *)name;
+- (enum TestOperationState)stateForTestName:(NSString *)name;
+- (void)setState:(enum TestOperationState)aValue forTestName:(NSString *)name;
+
+@end
 
 @interface NDAppDelegate ()
 {
 	NSMutableData			* onOffFlags;
 	NSArray					* everyTestGroup;
 	NSMutableDictionary		* checkForTestGroups;
+	NSOperationQueue		* queue;
+	NSUInteger				testsToComplete;
+	BOOL					showErrorsOnly;
 }
 
 @property(readonly)		NSArray					* everyTestGroup;
-@property(readonly)		NSMutableDictionary		* checkForTestGroups;
+@property(retain)		NSMutableDictionary		* checkForTestGroups;
+@property(readonly)		NSOperationQueue		* queue;
+
+- (void)startedTest:(id<TestProtocol>)test;
+- (void)finshedTest:(id<TestProtocol>)test;
+- (void)finishedAllTests;
+- (void)updateStateColumn;
 
 @end
 
 @implementation NDAppDelegate
 
 @synthesize		window,
-				checkForTestGroups;
+				checkForTestGroups,
+				showErrorsOnly;
 
 #pragma mark - manually implemented properties
 
@@ -41,11 +83,10 @@ static NSString		* const kTestClassNamesFileName = @"TestClassNames",
 		NSDictionary		* theTestProps = [[NSDictionary alloc] initWithContentsOfFile:thePath];
 		
 		NSArray				* theClassNames = [theTestProps objectForKey:kClassNamesKey];
+		NSMutableDictionary	* theCheckForTestGroups = [[NSMutableDictionary alloc] initWithCapacity:theEveryTest.count];
 		NSParameterAssert( theClassNames != nil );
 		
-		onOffFlags = [[NSMutableData alloc] initWithCapacity:everyTestGroup.count];
-
-		checkForTestGroups = [[NSMutableDictionary alloc] initWithCapacity:theEveryTest.count];
+		onOffFlags = [[NSMutableData alloc] initWithCapacity:theEveryTest.count];
 
 		for( NSString * theClassName in theClassNames )
 		{
@@ -53,19 +94,54 @@ static NSString		* const kTestClassNamesFileName = @"TestClassNames",
 			[theTest willLoad];
 			[theEveryTest addObject:theTest];
 			[theTest release];
-			[checkForTestGroups setObject:[NSNumber numberWithBool:YES] forKey:theTest.name];
+			[theCheckForTestGroups setObject:[TestGroupChecks testGroupChecksWithBool:YES] forKey:theTest.name];
 		}
+		self.checkForTestGroups = theCheckForTestGroups;
+		[theCheckForTestGroups release];
 		everyTestGroup = theEveryTest;
 	}
 	return everyTestGroup;
 		
 }
 
+- (NSArray *)everyCheckedTest
+{
+	__block NSMutableArray		* theResult = [NSMutableArray array];
+	[self.everyTestGroup enumerateObjectsUsingBlock:^(id anObject, NSUInteger anIndex, BOOL *aStop )
+	 {
+		 TestGroup		* theGroup = (TestGroup*)anObject;
+		 [theGroup.everyTest enumerateObjectsUsingBlock:^(id anObject, NSUInteger anIndex, BOOL *aStop)
+		  {
+			  if( [[[self.checkForTestGroups objectForKey:[theGroup name]] valueForTestName:[anObject name]] boolValue] )
+				  [theResult addObject:anObject];
+		  }];
+
+	 }];
+	return [[theResult copy] autorelease];
+}
+
+- (NSOperationQueue *)queue
+{
+	if( queue == nil )
+		queue = [[NSOperationQueue alloc] init];
+	return queue;
+}
+
+- (void)setShowErrorsOnly:(BOOL)aFlag
+{
+	showErrorsOnly = aFlag;
+	errorsOnlyCheckBoxButton.state = showErrorsOnly ? NSOnState : NSOffState;
+}
+
+#pragma mark - creation destruction
+
 - (void)dealloc
 {
 	[everyTestGroup release];
     [super dealloc];
 }
+
+#pragma mark - NSApplicationDelegate methods
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
@@ -76,10 +152,25 @@ static NSString		* const kTestClassNamesFileName = @"TestClassNames",
 
 - (IBAction)clearLogs:(NSButton *)aSender
 {
+	[logTextView setString:@""];
 }
 
 - (IBAction)runTests:(NSButton *)aSender
 {
+	NSCalendar			* theGregorian = [[NSCalendar alloc]
+							 initWithCalendarIdentifier:NSGregorianCalendar];
+	NSDateComponents	* theHourComps = [theGregorian components:NSWeekdayCalendarUnit fromDate:[NSDate date]];
+	[self logMessage:[NSString stringWithFormat:@"%02d:%02d:%02d\n-----------------------------------------------------------", theHourComps.hour, theHourComps.minute, theHourComps.second]];
+	[runStopButton setTitle:NSLocalizedString(@"Stop", @"Text for run/stop button when tests are running")];
+	[self.queue setMaxConcurrentOperationCount:NSOperationQueueDefaultMaxConcurrentOperationCount];
+	for( id<TestProtocol> theTest in self.everyCheckedTest )
+	{
+		TestOperation	* theTestOpp = [[TestOperation alloc] initWithTestProtocol:theTest];
+		[theTestOpp setBeginningBlock:^{[self startedTest:theTest];}];
+		[theTestOpp setCompletionBlock:^{[self finshedTest:theTest];}];
+		[self.queue addOperation:theTestOpp];
+		[theTestOpp release];		
+	}
 }
 
 - (IBAction)checkAllTests:(NSButton *)aSender
@@ -90,6 +181,17 @@ static NSString		* const kTestClassNamesFileName = @"TestClassNames",
 {
 }
 
+- (IBAction)errorsOnlyAction:(NSButton *)aSender
+{
+	self.showErrorsOnly = aSender.state == NSOnState;
+}
+
+- (void)logMessage:(NSString *)aMessage
+{
+	logTextView.string = [logTextView.string stringByAppendingFormat:@"%@\n", aMessage];
+}
+
+
 #pragma mark - NSOutlineViewDataSource protocol methods
 
 - (id)outlineView:(NSOutlineView *)anOutlineView child:(NSInteger)anIndex ofItem:(id)anItem
@@ -98,7 +200,7 @@ static NSString		* const kTestClassNamesFileName = @"TestClassNames",
 	if( anItem == nil )
 		theResult = [self.everyTestGroup objectAtIndex:anIndex];
 	else if( [anItem isKindOfClass:[TestGroup class]] )
-		theResult = [[anItem testInstances] objectAtIndex:anIndex];
+		theResult = [[anItem everyTest] objectAtIndex:anIndex];
 	else
 		NSLog( @"Unexpected item %@", anItem );
 	return theResult;
@@ -110,7 +212,7 @@ static NSString		* const kTestClassNamesFileName = @"TestClassNames",
 	if( anItem == nil )
 		theCount =  self.everyTestGroup.count;
 	else if( [anItem isKindOfClass:[TestGroup class]] )
-		theCount = [[anItem testInstances] count];
+		theCount = [[anItem everyTest] count];
 	return theCount;
 }
 
@@ -119,31 +221,174 @@ static NSString		* const kTestClassNamesFileName = @"TestClassNames",
 	return [anItem isKindOfClass:[TestGroup class]];
 }
 
-- (id)outlineView:(NSOutlineView *)aOutlineView objectValueForTableColumn:(NSTableColumn *)aTableColumn byItem:(id)anItem
+- (id)outlineView:(NSOutlineView *)anOutlineView objectValueForTableColumn:(NSTableColumn *)aTableColumn byItem:(id)anItem
 {
 	id	theResult = nil;
-	if( [aTableColumn.identifier isEqual:@"Name"] )
+	if( [aTableColumn.identifier isEqual:kNameColumnIdentifier] )
 		theResult = [anItem name];
-	else if( [aTableColumn.identifier isEqual:@"CheckBox"] )
-		theResult = [self.checkForTestGroups objectForKey:[anItem name]];
+	else if( [aTableColumn.identifier isEqual:kStateColumnIdentifier] )
+	{
+		if( [anItem conformsToProtocol:@protocol(TestProtocol)] )
+		{
+			switch ([anItem operationState])
+			{
+				case kTestOperationStateInited:
+					theResult = [NSImage imageNamed:kInitedStateImageName];
+					break;
+				case kTestOperationStateExecuting:
+					theResult = [NSImage imageNamed:kExecutingStateImageName];
+					break;
+				case kTestOperationStateFinished:
+					theResult = [NSImage imageNamed:kFinishedStateImageName];
+					break;
+				case kTestOperationStateError:
+					theResult = [NSImage imageNamed:kErrorStateImageName];
+					break;
+			}
+		}
+	}
+	else if( [aTableColumn.identifier isEqual:kCheckBoxColumnIdentifier] )
+	{
+		if( [anItem conformsToProtocol:@protocol(TestProtocol)] )
+			theResult = [[self.checkForTestGroups objectForKey:[[anItem testGroup] name]] valueForTestName:[anItem name]];
+		else
+			theResult = [[self.checkForTestGroups objectForKey:[anItem name]] value];
+	}
 	return theResult;
 }
 
-- (void)outlineView:(NSOutlineView *)aOutlineView setObjectValue:(id)anObject forTableColumn:(NSTableColumn *)aTableColumn byItem:(id)anItem
+- (void)outlineView:(NSOutlineView *)anOutlineView setObjectValue:(id)anObject forTableColumn:(NSTableColumn *)aTableColumn byItem:(id)anItem
 {
-	if( [aTableColumn.identifier isEqual:@"CheckBox"] )
-		[self.checkForTestGroups setObject:anObject forKey:[anItem name]];
+	if( [aTableColumn.identifier isEqual:kCheckBoxColumnIdentifier] )
+	{
+		if( [anItem conformsToProtocol:@protocol(TestProtocol)] )
+		{
+			[[self.checkForTestGroups objectForKey:[[anItem testGroup] name]] setValue:anObject forTestName:[anItem name]];
+		}
+		else
+		{
+			[[self.checkForTestGroups objectForKey:[anItem name]] setValue:anObject];
+			[anOutlineView setNeedsDisplay];
+		}
+	}
 }
 
 #pragma mark - NSOutlineViewDelegate protocol methods
-- (void)outlineView:(NSOutlineView *)aOutlineView willDisplayCell:(id)aCell forTableColumn:(NSTableColumn *)aTableColumn item:(id)anItem
+- (void)outlineView:(NSOutlineView *)anOutlineView willDisplayCell:(id)aCell forTableColumn:(NSTableColumn *)aTableColumn item:(id)anItem
 {
-	if( [aTableColumn.identifier isEqual:@"Name"] )
+	if( [aTableColumn.identifier isEqual:kNameColumnIdentifier] )
 	{
 		if( [anItem isKindOfClass:[TestGroup class]] )
 			[aCell setFont:[NSFont fontWithDescriptor:[[aCell font] fontDescriptor] size:12.0]];
 		else
 			[aCell setFont:[NSFont fontWithDescriptor:[[aCell font] fontDescriptor] size:10.0]];
+	}
+}
+
+- (NSString *)outlineView:(NSOutlineView *)anOutlineView toolTipForCell:(NSCell *)aCell rect:(NSRectPointer)rect tableColumn:(NSTableColumn *)aTableColumn item:(id)anItem mouseLocation:(NSPoint)mouseLocation
+{
+	NSString	* theResult = @"Turn test on or off";;
+	if( [aTableColumn.identifier isEqual:kNameColumnIdentifier] )
+		theResult = [self outlineView:anOutlineView objectValueForTableColumn:aTableColumn byItem:anItem];
+	return theResult;
+}
+
+#pragma mark - Private
+
+- (void)startedTest:(id<TestProtocol>)aTest
+{
+	@synchronized(self.queue)
+	{
+		testsToComplete++;
+	}
+	[[self.checkForTestGroups objectForKey:[[aTest testGroup] name]] setState:aTest.operationState forTestName:aTest.name];
+	[self performSelectorOnMainThread:@selector(updateStateColumn) withObject:nil waitUntilDone:NO];
+}
+
+- (void)finshedTest:(id<TestProtocol>)aTest
+{
+	@synchronized(self.queue)
+	{
+		testsToComplete--;
+		NSLog( @"Test %@ finshed", aTest.name );
+		if( aTest.hasError )
+			NSLog(@"%@", aTest.error );
+		if( testsToComplete == 0 )
+			[self finishedAllTests];
+	}
+	[[self.checkForTestGroups objectForKey:[[aTest testGroup] name]]  setState:aTest.operationState forTestName:aTest.name];
+	[self performSelectorOnMainThread:@selector(updateStateColumn) withObject:nil waitUntilDone:NO];
+}
+
+- (void)finishedAllTests
+{
+	[runStopButton setTitle:NSLocalizedString(@"Run", @"Text for run/stop button when tests are NOT running")];
+}
+
+- (void)updateStateColumn
+{
+	NSParameterAssert( [NSThread mainThread] == [NSThread currentThread] );
+/*
+	NSRect	theColumnRect = [testsOutlineView rectOfColumn:[testsOutlineView columnWithIdentifier:kStateColumnIdentifier]];
+	[testsOutlineView setNeedsDisplayInRect:theColumnRect];
+*/
+	[testsOutlineView setNeedsDisplay:YES];
+}
+
+@end
+
+@implementation TestGroupChecks
+@synthesize		checkForTest,
+				stateForTest,
+				running;
++ (TestGroupChecks *)testGroupChecksWithBool:(BOOL)aValue { return [[[self alloc] initWithBool:aValue] autorelease]; }
+- (TestGroupChecks *)initWithBool:(BOOL)aValue
+{
+	if( (self = [super init]) != nil )
+	{
+		checkForTest = [[NSMutableDictionary alloc] init];
+		stateForTest = [[NSMutableDictionary alloc] init];
+		groupCheck = aValue;
+	}
+	return self;
+}
+- (void)dealloc
+{
+    [checkForTest release];
+	[stateForTest release];
+    [super dealloc];
+}
+- (NSNumber *)value { return [NSNumber numberWithBool:groupCheck]; }
+- (void)setValue:(NSNumber *)aValue
+{
+	groupCheck = [aValue boolValue];
+	[self.checkForTest removeAllObjects];
+	
+}
+- (NSNumber *)valueForTestName:(NSString *)aName
+{
+	NSNumber		* theResult = [self.checkForTest objectForKey:aName];
+	return theResult != nil ? theResult : self.value;
+}
+- (void)setValue:(NSNumber *)aValue forTestName:(NSString *)aName
+{
+	[self.checkForTest setObject:aValue forKey:aName];
+}
+
+- (enum TestOperationState)stateForTestName:(NSString *)aName
+{
+	@synchronized(self.stateForTest)
+	{
+		NSNumber		* theResult = [self.stateForTest objectForKey:aName];
+		return theResult != nil ? (enum TestOperationState)theResult.integerValue : kTestOperationStateInited;
+	}
+}
+
+- (void)setState:(enum TestOperationState)aValue forTestName:(NSString *)aName
+{
+	@synchronized(self.stateForTest)
+	{
+		[self.stateForTest setObject:[NSNumber numberWithUnsignedInteger:aValue] forKey:aName];
 	}
 }
 

@@ -8,13 +8,24 @@
 
 #import <Foundation/Foundation.h>
 
+@class		TestGroup;
+
+enum TestOperationState
+{
+    kTestOperationStateInited, 
+    kTestOperationStateExecuting, 
+    kTestOperationStateFinished,
+	kTestOperationStateError
+};
+
 @protocol TestProtocol <NSObject>
 
-@property(readonly)	NSString	* name;
-@property(readonly)	id			expectedResult;
-@property(readonly)	BOOL		hasError;
-@property(readonly)	NSError		* error;
-
+@property(readonly)	TestGroup					* testGroup;
+@property(readonly)	NSString					* name;
+@property(readonly)	id							expectedResult;
+@property(readonly)	BOOL						hasError;
+@property(readonly)	NSError						* error;
+@property(assign) enum TestOperationState		operationState;
 - (id)run;
 
 @end
@@ -26,8 +37,9 @@
  Methods and protocals to override
  */
 @property(readonly)	NSString	* testDescription;
-@property(readonly)	NSArray		* testInstances;
+@property(readonly)	NSArray		* everyTest;
 
 - (void)willLoad;
+- (enum TestOperationState)operationStateForTestNamed:(NSString *)name;
 
 @end
