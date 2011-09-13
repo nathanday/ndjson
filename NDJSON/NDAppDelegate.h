@@ -15,6 +15,7 @@
 	IBOutlet	NSTextView	* logTextView;
 	IBOutlet NSOutlineView	* testsOutlineView;
 	IBOutlet	NSButton	* runStopButton;
+	IBOutlet	NSButton	* detailsButton;
 	IBOutlet	NSButton	* errorsOnlyCheckBoxButton;
 }
 
@@ -23,9 +24,11 @@
 @property(nonatomic,assign,getter=isShowErrorsOnly)	BOOL	showErrorsOnly;
 
 - (IBAction)clearLogs:(NSButton *)sender;
+- (IBAction)detailsForSelectedTest:(NSButton *)sender;
 - (IBAction)runTests:(NSButton *)sender;
 - (IBAction)checkAllTests:(NSButton *)sender;
 - (IBAction)uncheckAllTests:(NSButton *)sender;
+- (IBAction)clearAll:(id)sender;
 - (IBAction)errorsOnlyAction:(NSButton *)sender;
 
 - (void)logMessage:(NSString *)message;

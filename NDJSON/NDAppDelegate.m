@@ -155,6 +155,11 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 	[logTextView setString:@""];
 }
 
+- (IBAction)detailsForSelectedTest:(NSButton *)aSender
+{
+	
+}
+
 - (IBAction)runTests:(NSButton *)aSender
 {
 	NSCalendar			* theGregorian = [[NSCalendar alloc]
@@ -175,15 +180,45 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 
 - (IBAction)checkAllTests:(NSButton *)aSender
 {
+	for( TestGroup * theGroup in self.everyTestGroup )
+	{
+		[[self.checkForTestGroups objectForKey:[theGroup name]] setValue:[NSNumber numberWithBool:YES]];
+		 for( id<TestProtocol> theTest in theGroup.everyTest )
+			  [[self.checkForTestGroups objectForKey:[theGroup name]] setValue:[NSNumber numberWithBool:YES] forTestName:[theTest name]];
+		 
+	}
+	[testsOutlineView setNeedsDisplay:YES];
 }
 
 - (IBAction)uncheckAllTests:(NSButton *)aSender
 {
+	for( TestGroup * theGroup in self.everyTestGroup )
+	{
+		[[self.checkForTestGroups objectForKey:[theGroup name]] setValue:[NSNumber numberWithBool:NO]];
+		for( id<TestProtocol> theTest in theGroup.everyTest )
+			[[self.checkForTestGroups objectForKey:[theGroup name]] setValue:[NSNumber numberWithBool:NO] forTestName:[theTest name]];
+		
+	}
+	[testsOutlineView setNeedsDisplay:YES];
+}
+
+- (IBAction)clearAll:(id)aSender
+{
+	for( TestGroup * theGroup in self.everyTestGroup )
+	{
+		for( id<TestProtocol> theTest in theGroup.everyTest )
+			[theTest setOperationState:kTestOperationStateInited];
+		
+	}
+	[testsOutlineView setNeedsDisplay:YES];
 }
 
 - (IBAction)errorsOnlyAction:(NSButton *)aSender
 {
 	self.showErrorsOnly = aSender.state == NSOnState;
+}
+
+- (IBAction)detailsForSelectedTestAction:(NSButton *)sender {
 }
 
 - (void)logMessage:(NSString *)aMessage
@@ -232,18 +267,21 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 		{
 			switch ([anItem operationState])
 			{
-				case kTestOperationStateInited:
-					theResult = [NSImage imageNamed:kInitedStateImageName];
-					break;
-				case kTestOperationStateExecuting:
-					theResult = [NSImage imageNamed:kExecutingStateImageName];
-					break;
-				case kTestOperationStateFinished:
-					theResult = [NSImage imageNamed:kFinishedStateImageName];
-					break;
-				case kTestOperationStateError:
-					theResult = [NSImage imageNamed:kErrorStateImageName];
-					break;
+			case kTestOperationStateInited:
+				theResult = @"I";
+				break;
+			case kTestOperationStateExecuting:
+				theResult = @"E";
+				break;
+			case kTestOperationStateFinished:
+				theResult = @"C";
+				break;
+			case kTestOperationStateError:
+				theResult = @"E";
+				break;
+			case kTestOperationStateException:
+				theResult = @"X";
+				break;
 			}
 		}
 	}
@@ -291,6 +329,11 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 	if( [aTableColumn.identifier isEqual:kNameColumnIdentifier] )
 		theResult = [self outlineView:anOutlineView objectValueForTableColumn:aTableColumn byItem:anItem];
 	return theResult;
+}
+
+- (void)outlineViewSelectionDidChange:(NSNotification *)aNotification
+{
+	detailsButton.enabled = testsOutlineView.selectedRow > -1;
 }
 
 #pragma mark - Private

@@ -114,6 +114,7 @@
 	[expectedResult release];
 	[name release];
 	[error release];
+	[result release];
 	[super dealloc];
 }
 
@@ -123,9 +124,17 @@
 {
 	NDJSON		* theJSON = [[NDJSON alloc] init];
 	id			theResult = [theJSON asynchronousParseJSONString:self.jsonString error:&error];
+	result = [theResult retain];
+	[error retain];
 	[theJSON release];
-	return theResult;
+	return result;
 }
+
+- (NSString *)description
+{
+	return [NSString stringWithFormat:@"%@, name: %@", [self class], self.name];
+}
+
 
 @end
 

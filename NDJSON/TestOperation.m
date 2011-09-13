@@ -42,6 +42,7 @@
 - (void)dealloc
 {
     [test release];
+	[beginningBlock release];
     [super dealloc];
 }
 
@@ -52,17 +53,27 @@
 {
 	if( !self.isCancelled )
 	{
+		id		theResult = nil;
 		self.test.operationState = kTestOperationStateExecuting;
 		self.beginningBlock();
-		id		theResult = [self.test run];
-		
-		if( self.test.hasError )
+		@try
 		{
-			if( !self.isCancelled )
-				succeeded = [theResult isEqual:[self.test expectedResult]];
+			theResult = [self.test run];
+			if( !self.test.hasError )
+			{
+				if( !self.isCancelled )
+					succeeded = [theResult isEqual:[self.test expectedResult]];
+			}
+			self.test.operationState = self.test.hasError ? kTestOperationStateError : kTestOperationStateFinished;
 		}
+		@catch (NSException *exception)
+		{
+			succeeded = NO;
+			self.test.operationState = kTestOperationStateException;
+		}		
 	}
-	self.test.operationState = self.test.hasError ? kTestOperationStateError : kTestOperationStateFinished;
+	else
+		self.test.operationState = kTestOperationStateFinished;
 }
 
 - (BOOL)isConcurrent { return NO; }
