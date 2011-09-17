@@ -63,6 +63,8 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 - (void)finishedAllTests;
 - (void)updateStateColumn;
 
+- (void)runTest:(id<TestProtocol>)aTest waitUntilFinished:(BOOL)aFlag;
+
 @end
 
 @implementation NDAppDelegate
@@ -157,7 +159,16 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 
 - (IBAction)detailsForSelectedTest:(NSButton *)aSender
 {
-	
+	[testsOutlineView.selectedRowIndexes enumerateIndexesUsingBlock:^(NSUInteger anIndex, BOOL * aStop )
+	{
+		id<TestProtocol>		theItem = [testsOutlineView itemAtRow:anIndex];
+		if( [theItem conformsToProtocol:@protocol(TestProtocol)] )
+		{
+			if( theItem.operationState == kTestOperationStateInitial )
+				[self runTest:theItem waitUntilFinished:YES];
+			[self logMessage:[NSString stringWithFormat:@"details for '%@'\n\n%@", theItem.name, theItem.details]];
+		}
+	}];
 }
 
 - (IBAction)runTests:(NSButton *)aSender
@@ -169,13 +180,7 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 	[runStopButton setTitle:NSLocalizedString(@"Stop", @"Text for run/stop button when tests are running")];
 	[self.queue setMaxConcurrentOperationCount:NSOperationQueueDefaultMaxConcurrentOperationCount];
 	for( id<TestProtocol> theTest in self.everyCheckedTest )
-	{
-		TestOperation	* theTestOpp = [[TestOperation alloc] initWithTestProtocol:theTest];
-		[theTestOpp setBeginningBlock:^{[self startedTest:theTest];}];
-		[theTestOpp setCompletionBlock:^{[self finshedTest:theTest];}];
-		[self.queue addOperation:theTestOpp];
-		[theTestOpp release];		
-	}
+		[self runTest:theTest waitUntilFinished:NO];
 }
 
 - (IBAction)checkAllTests:(NSButton *)aSender
@@ -207,7 +212,7 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 	for( TestGroup * theGroup in self.everyTestGroup )
 	{
 		for( id<TestProtocol> theTest in theGroup.everyTest )
-			[theTest setOperationState:kTestOperationStateInited];
+			[theTest setOperationState:kTestOperationStateInitial];
 		
 	}
 	[testsOutlineView setNeedsDisplay:YES];
@@ -218,14 +223,21 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 	self.showErrorsOnly = aSender.state == NSOnState;
 }
 
-- (IBAction)detailsForSelectedTestAction:(NSButton *)sender {
-}
-
 - (void)logMessage:(NSString *)aMessage
 {
 	logTextView.string = [logTextView.string stringByAppendingFormat:@"%@\n", aMessage];
 }
 
+- (void)runTest:(id<TestProtocol>)aTest waitUntilFinished:(BOOL)aFlag
+{
+	TestOperation	* theTestOpp = [[TestOperation alloc] initWithTestProtocol:aTest];
+	[theTestOpp setBeginningBlock:^{[self startedTest:aTest];}];
+	[theTestOpp setCompletionBlock:^{[self finshedTest:aTest];}];
+	[self.queue addOperation:theTestOpp];
+	[theTestOpp release];
+	if( aFlag )
+		[self.queue waitUntilAllOperationsAreFinished];
+}
 
 #pragma mark - NSOutlineViewDataSource protocol methods
 
@@ -263,24 +275,24 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 		theResult = [anItem name];
 	else if( [aTableColumn.identifier isEqual:kStateColumnIdentifier] )
 	{
-		if( [anItem conformsToProtocol:@protocol(TestProtocol)] )
+		if( [anItem respondsToSelector:@selector(operationState)] )
 		{
-			switch ([anItem operationState])
+			switch( [anItem operationState] )
 			{
-			case kTestOperationStateInited:
-				theResult = @"I";
+			case kTestOperationStateInitial:
+				theResult = NSLocalizedString(@"Initial", @"State displayed for kTestOperationStateInitial, showing that the test has not run yet." );
 				break;
 			case kTestOperationStateExecuting:
-				theResult = @"E";
+				theResult = NSLocalizedString(@"Executing", @"State displayed for kTestOperationStateExecuting, showing that the test is currently in progress" );
 				break;
 			case kTestOperationStateFinished:
-				theResult = @"C";
+				theResult = NSLocalizedString(@"Complete", @"State displayed for kTestOperationStateFinished, showing that the test was completed error free." );
 				break;
 			case kTestOperationStateError:
-				theResult = @"E";
+				theResult = NSLocalizedString(@"Error", @"State displayed for kTestOperationStateError, showing that the test was completed with and error result" );
 				break;
 			case kTestOperationStateException:
-				theResult = @"X";
+				theResult = NSLocalizedString(@"Exception", @"State displayed for kTestOperationStateException, showing that the test was not completed because an exception was thrown." );
 				break;
 			}
 		}
@@ -321,6 +333,31 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 		else
 			[aCell setFont:[NSFont fontWithDescriptor:[[aCell font] fontDescriptor] size:10.0]];
 	}
+	else if( [aTableColumn.identifier isEqual:kStateColumnIdentifier] )
+	{
+		if( [anItem respondsToSelector:@selector(operationState)] )
+		{
+			NSColor		* theTextColor = nil;
+			switch( [anItem operationState] )
+			{
+				default:
+				case kTestOperationStateInitial:
+					theTextColor = [NSColor blackColor];
+					break;
+				case kTestOperationStateExecuting:
+					theTextColor = [NSColor blueColor];
+					break;
+				case kTestOperationStateFinished:
+					theTextColor = [NSColor colorWithDeviceHue:0.3333 saturation:1.0 brightness:0.75 alpha:1.0];
+					break;
+				case kTestOperationStateError:
+				case kTestOperationStateException:
+					theTextColor = [NSColor redColor];
+					break;
+			}
+			[aCell setTextColor:theTextColor];
+		}
+	}
 }
 
 - (NSString *)outlineView:(NSOutlineView *)anOutlineView toolTipForCell:(NSCell *)aCell rect:(NSRectPointer)rect tableColumn:(NSTableColumn *)aTableColumn item:(id)anItem mouseLocation:(NSPoint)mouseLocation
@@ -335,6 +372,23 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 {
 	detailsButton.enabled = testsOutlineView.selectedRow > -1;
 }
+
+#pragma mark - NSSplitViewDelegate methods
+
+- (BOOL)splitView:(NSSplitView *)aSplitView shouldAdjustSizeOfSubview:(NSView *)aSubview
+{
+	BOOL		theResult = YES;
+	if( [self.window inLiveResize] && [testsOutlineView isDescendantOf:aSubview] )
+		theResult = NO;
+	return theResult;
+}
+
+- (CGFloat)splitView:(NSSplitView *)aSplitView constrainMinCoordinate:(CGFloat)aProposedMin ofSubviewAt:(NSInteger)aDividerIndex
+{
+	return 239;
+}
+
+- (BOOL)splitView:(NSSplitView *)aSplitView canCollapseSubview:(NSView *)aSubview { return NO; }
 
 #pragma mark - Private
 
@@ -423,7 +477,7 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 	@synchronized(self.stateForTest)
 	{
 		NSNumber		* theResult = [self.stateForTest objectForKey:aName];
-		return theResult != nil ? (enum TestOperationState)theResult.integerValue : kTestOperationStateInited;
+		return theResult != nil ? (enum TestOperationState)theResult.integerValue : kTestOperationStateInitial;
 	}
 }
 

@@ -17,23 +17,25 @@
 {
 	NSMutableArray				* tests;
 }
-- (void)addName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)result;
+- (void)addName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)lastResult;
 @end
 
 @interface TestString : NSObject <TestProtocol>
 {
 	NSString					* jsonString;
-	id							result;
+	id							expectedResult,
+								lastResult;
 	NSError						* error;
 	TestGroup					* testGroup;
 	enum TestOperationState		operationState;
 }
-+ (id)testStringWithName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)result;
++ (id)testStringWithName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)lastResult;
 - (id)initWithName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)result;
 
-@property(readonly)			NSString	* jsonString;
-@property(readwrite,assign)	TestGroup	* testGroup;
+@property(readonly)			NSString			* jsonString;
+@property(readwrite,assign)	TestGroup			* testGroup;
 @property(assign)	enum TestOperationState		operationState;
+@property(readonly)			id					lastResult;
 @end
 
 @implementation TestStringInput
@@ -90,7 +92,19 @@
 				name,
 				error,
 				testGroup,
-				operationState;
+				operationState,
+				lastResult;
+
+#pragma mark - manually implemented properties
+
+- (BOOL)hasError { return self.error != nil; }
+
+- (NSString *)details
+{
+	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", self.name, self.jsonString, self.lastResult, self.expectedResult];
+}
+
+#pragma mark - creation and destruction
 
 + (id)testStringWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult
 {
@@ -103,7 +117,7 @@
 		name = [aName copy];
 		jsonString = [aJSON copy];
 		expectedResult = [aResult retain];
-		operationState = kTestOperationStateInited;
+		operationState = kTestOperationStateInitial;
 	}
 	return self;
 }
@@ -114,21 +128,23 @@
 	[expectedResult release];
 	[name release];
 	[error release];
-	[result release];
+	[lastResult release];
 	[super dealloc];
 }
 
-- (BOOL)hasError { return self.error != nil; }
+#pragma mark - execution
 
 - (id)run
 {
 	NDJSON		* theJSON = [[NDJSON alloc] init];
 	id			theResult = [theJSON asynchronousParseJSONString:self.jsonString error:&error];
-	result = [theResult retain];
+	lastResult = [theResult retain];
 	[error retain];
 	[theJSON release];
-	return result;
+	return lastResult;
 }
+
+#pragma mark - NSObject overridden methods
 
 - (NSString *)description
 {

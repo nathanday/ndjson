@@ -81,6 +81,18 @@
 	return name;
 }
 
+- (enum TestOperationState)operationState
+{
+	enum TestOperationState		theResult = kTestOperationStateFinished;
+	for( id<TestProtocol> theTest in self.everyTest )
+	{
+		enum TestOperationState		theState = theTest.operationState;
+		if( theState > theResult )
+			theResult = theState;
+	}
+	return theResult;
+}
+
 - (NSString	*)testDescription
 {
 	NSAssert(NO, @"The method %@ is abstract", NSStringFromSelector(_cmd));

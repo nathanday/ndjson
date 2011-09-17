@@ -34,7 +34,7 @@
 	if( (self = [super init]) != nil )
 	{
 		test = [aTest retain];
-		test.operationState = kTestOperationStateInited;
+		test.operationState = kTestOperationStateInitial;
 	}
 	return self;
 }

@@ -10,7 +10,7 @@
 
 struct NDJSONGeneratorContext
 {
-//	NSMutableArray		* previoustKeys;
+	NSMutableArray		* previoustKeys;
 	NSMutableArray		* previoustObject;
 	id					currentObject;
 	id					currentKey;
@@ -177,7 +177,9 @@ static void addObject( struct NDJSONGeneratorContext * aContext, id anObject );
 
 - (void)jsonParserDidStartArray:(id)parser
 {
-	pushObject( &generatorContext, [[NSMutableArray alloc] init] );
+	NSMutableArray		* theArrayRep = [[NSMutableArray alloc] init];
+	addObject( &generatorContext, theArrayRep );
+	pushObject( &generatorContext, theArrayRep );
 }
 
 - (void)jsonParserDidEndArray:(id)parser
@@ -187,8 +189,10 @@ static void addObject( struct NDJSONGeneratorContext * aContext, id anObject );
 
 - (void)jsonParserDidStartObject:(id)parser
 {
-//	pushKeyCurrentKey( &generatorContext );
-	pushObject( &generatorContext ,[[NSMutableDictionary alloc] init] );
+	NSMutableDictionary		* theObjectRep = [[NSMutableDictionary alloc] init];
+	addObject( &generatorContext, theObjectRep );
+	pushKeyCurrentKey( &generatorContext );
+	pushObject( &generatorContext, theObjectRep );
 }
 
 - (void)jsonParserDidEndObject:(id)parser
@@ -247,7 +251,7 @@ static void addObject( struct NDJSONGeneratorContext * aContext, id anObject );
 #pragma mark - functions used by NDJSONFoundationObjectsGenerator
 void initGeneratorContext( struct NDJSONGeneratorContext * aContext )
 {
-//	aContext->previoustKeys = [[NSMutableArray alloc] init];
+	aContext->previoustKeys = [[NSMutableArray alloc] init];
 	aContext->previoustObject = [[NSMutableArray alloc] init];
 	aContext->currentObject = nil;
 	aContext->currentKey = nil;
@@ -256,19 +260,18 @@ void initGeneratorContext( struct NDJSONGeneratorContext * aContext )
 
 void freeGeneratorContext( struct NDJSONGeneratorContext * aContext )
 {
-//	[aContext->previoustKeys release];
+	[aContext->previoustKeys release];
 	[aContext->previoustObject release];
 }
 
 void pushObject( struct NDJSONGeneratorContext * aContext, id anObject )
 {
 	NSCParameterAssert( anObject != nil );
-	addObject( aContext, anObject );
 	NSCParameterAssert( aContext->previoustObject != nil );
 	if( aContext->currentObject != nil )
 	{
 		[aContext->previoustObject addObject:aContext->currentObject];
-		[aContext->currentObject release];
+//		[aContext->currentObject release];
 	}
 	aContext->currentObject = [anObject retain];
 }
@@ -293,18 +296,22 @@ void setCurrentKey( struct NDJSONGeneratorContext * aContext, NSString * aKey )
 
 void pushKeyCurrentKey( struct NDJSONGeneratorContext * aContext )
 {
-	NSCParameterAssert( aContext->currentKey != nil );
-//	NSCParameterAssert(aContext->previoustKeys != nil );
-//	[aContext->previoustKeys addObject:aContext->currentKey];
+	if( aContext->currentKey != nil )
+	{
+		NSCParameterAssert(aContext->previoustKeys != nil );
+		[aContext->previoustKeys addObject:aContext->currentKey];
+		[aContext->currentKey release], aContext->currentKey = nil;
+	}
 }
 
 void popCurrentKey( struct NDJSONGeneratorContext * aContext )
 {
 	NSCParameterAssert( aContext->currentKey == nil);
-//	aContext->currentKey = [aContext->previoustKeys lastObject];
-//	if( aContext->currentKey == [NSNull null] )
-//		aContext->currentKey = nil;
-//	[aContext->previoustKeys removeLastObject];
+	aContext->currentKey = [aContext->previoustKeys lastObject];
+	if( aContext->currentKey == [NSNull null] )
+		aContext->currentKey = nil;
+	[aContext->currentKey retain];
+	[aContext->previoustKeys removeLastObject];
 }
 
 void addObject( struct NDJSONGeneratorContext * aContext, id anObject )
@@ -320,8 +327,7 @@ void addObject( struct NDJSONGeneratorContext * aContext, id anObject )
 		{
 			NSCParameterAssert( [aContext->currentObject respondsToSelector:@selector(setValue:forKey:)] );
 			[aContext->currentObject setValue:anObject forKey:aContext->currentKey];
-			[aContext->currentKey release];
-			aContext->currentKey = nil;
+			[aContext->currentKey release], aContext->currentKey = nil;
 		}
 	}
 	else

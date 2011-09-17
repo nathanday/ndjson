@@ -12,28 +12,32 @@
 
 enum TestOperationState
 {
-    kTestOperationStateInited, 
-    kTestOperationStateExecuting, 
     kTestOperationStateFinished,
+    kTestOperationStateInitial, 
 	kTestOperationStateError,
-	kTestOperationStateException
+	kTestOperationStateException,
+    kTestOperationStateExecuting 
 };
 
 @protocol TestProtocol <NSObject>
 
 @property(readonly)	TestGroup					* testGroup;
 @property(readonly)	NSString					* name;
-@property(readonly)	id							expectedResult;
+@property(readonly)	id							expectedResult,
+												lastResult;
 @property(readonly)	BOOL						hasError;
 @property(readonly)	NSError						* error;
 @property(assign) enum TestOperationState		operationState;
+@property(readonly)	NSString					* details;
 - (id)run;
 
 @end
 
 @interface TestGroup : NSObject
 
-@property(readonly)	NSString	* name;
+@property(readonly)	NSString					* name;
+@property(readonly) enum TestOperationState		operationState;
+
 /**
  Methods and protocals to override
  */
