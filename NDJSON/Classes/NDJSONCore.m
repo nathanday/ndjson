@@ -52,7 +52,7 @@ static BOOL parseObject( struct NDJSONContext * aContext );
 static BOOL parseArray( struct NDJSONContext * aContext );
 static BOOL parseKey( struct NDJSONContext * aContext );
 static BOOL parseString( struct NDJSONContext * aContext );
-static BOOL parseQuotedText( struct NDJSONContext * aContext, BOOL aIsKey );
+static BOOL parseText( struct NDJSONContext * aContext, BOOL aIsKey, BOOL aIsQuotesTerminated );
 static BOOL parseNumber( struct NDJSONContext * aContext );
 static BOOL parseTrue( struct NDJSONContext * aContext );
 static BOOL parseFalse( struct NDJSONContext * aContext );
@@ -60,6 +60,11 @@ static BOOL parseNull( struct NDJSONContext * aContext );
 
 static void foundError( struct NDJSONContext * aContext, NDJSONErrorCode aCode );
 
+@interface NSInputStream (NDJSONDebugging)
+
+- (NSInteger)readIntoBuffer:(uint8_t *)buffer maxLength:(NSInteger)bufferLength;
+
+@end
 
 BOOL contextWithNullTermiantedString( struct NDJSONContext * aContext, NDJSON * aParser, const char * aString, id<NDJSONDelegate> aDelegate )
 {
@@ -149,11 +154,17 @@ uint8_t currentChar( struct NDJSONContext * aContext )
 	uint8_t	theResult = '\0';
 	if( aContext->position >= aContext->length )
 	{
-		;
+#ifdef DEBUG
+		if( aContext->inputStream != nil && (aContext->length = [aContext->inputStream readIntoBuffer:aContext->bytes maxLength:kBufferSize]) > 0 )
+				aContext->position = 0;
+			else
+				aContext->complete = YES;
+#else
 		if( aContext->inputStream != nil && (aContext->length = CFReadStreamRead( (CFReadStreamRef)aContext->inputStream, aContext->bytes, kBufferSize )) > 0 )
 			aContext->position = 0;
 		else
 			aContext->complete = YES;
+#endif
 	}
 
 	if( !aContext->complete )
@@ -368,18 +379,22 @@ BOOL parseKey( struct NDJSONContext * aContext )
 {
 	BOOL			theResult = YES;
 	if( nextCharIgnoreWhiteSpace(aContext) == '"' )
-		theResult = parseQuotedText( aContext, YES );
+		theResult = parseText( aContext, YES, YES );
 	else
+	{
+		backUp(aContext);
+		theResult = parseText( aContext, YES, NO );
 		foundError( aContext, NDJSONBadFormatError );
+	}
 	return theResult;
 }
 
 BOOL parseString( struct NDJSONContext * aContext )
 {
-	return parseQuotedText( aContext, NO );
+	return parseText( aContext, NO, YES );
 }
 
-BOOL parseQuotedText( struct NDJSONContext * aContext, BOOL aIsKey )
+BOOL parseText( struct NDJSONContext * aContext, BOOL aIsKey, BOOL aIsQuotesTerminated )
 
 {
 	BOOL					theResult = YES,
@@ -391,64 +406,71 @@ BOOL parseQuotedText( struct NDJSONContext * aContext, BOOL aIsKey )
 		uint8_t		theChar = nextChar(aContext);
 		switch( theChar )
 		{
+		case '\0':
+			theResult = NO;
+			break;
+		case '\\':
+		{
+			theChar = nextChar(aContext);
+			switch( theChar )
+			{
 			case '\0':
 				theResult = NO;
 				break;
-			case '\\':
-			{
-				theChar = nextChar(aContext);
-				switch( theChar )
-				{
-					case '\0':
-						theResult = NO;
-						break;
-					case '"':
-					case '\\':
-						if( !appendByte( &theBuffer, theChar ) )
-							foundError( aContext, NDJSONMemoryErrorError );
-						break;
-					case '/':
-						if( !appendByte( &theBuffer, theChar ) )
-							foundError( aContext, NDJSONMemoryErrorError );
-						break;
-					case 'b':
-						if( !appendByte( &theBuffer, '\b' ) )
-							foundError( aContext, NDJSONMemoryErrorError );
-						break;
-					case 'f':
-						if( !appendByte( &theBuffer, '\b' ) )
-							foundError( aContext, NDJSONMemoryErrorError );
-						break;
-					case 'n':
-						if( !appendByte( &theBuffer, '\n' ) )
-							foundError( aContext, NDJSONMemoryErrorError );
-						break;
-					case 'r':
-						if( !appendByte( &theBuffer, '\r' ) )
-							foundError( aContext, NDJSONMemoryErrorError );
-						break;
-					case 't':
-						if( !appendByte( &theBuffer, '\t' ) )
-							foundError( aContext, NDJSONMemoryErrorError );
-						break;
-						/*					case 'u':
-						 if( !appendByte( &theBuffer, '\u' ) )
-						 foundError( aContext, NDJSONMemoryErrorError );
-						 break;
-						 */
-					default:
-						foundError( aContext, NDJSONBadEscapeSequenceError );
-						break;
-				}
-				break;
-			}
 			case '"':
-				theEnd = YES;
-				break;
-			default:
+			case '\\':
 				if( !appendByte( &theBuffer, theChar ) )
 					foundError( aContext, NDJSONMemoryErrorError );
 				break;
+			case '/':
+				if( !appendByte( &theBuffer, theChar ) )
+					foundError( aContext, NDJSONMemoryErrorError );
+				break;
+			case 'b':
+				if( !appendByte( &theBuffer, '\b' ) )
+					foundError( aContext, NDJSONMemoryErrorError );
+				break;
+			case 'f':
+				if( !appendByte( &theBuffer, '\b' ) )
+					foundError( aContext, NDJSONMemoryErrorError );
+				break;
+			case 'n':
+				if( !appendByte( &theBuffer, '\n' ) )
+					foundError( aContext, NDJSONMemoryErrorError );
+				break;
+			case 'r':
+				if( !appendByte( &theBuffer, '\r' ) )
+					foundError( aContext, NDJSONMemoryErrorError );
+				break;
+			case 't':
+				if( !appendByte( &theBuffer, '\t' ) )
+					foundError( aContext, NDJSONMemoryErrorError );
+				break;
+				/*					case 'u':
+				 if( !appendByte( &theBuffer, '\u' ) )
+				 foundError( aContext, NDJSONMemoryErrorError );
+				 break;
+				 */
+			default:
+				foundError( aContext, NDJSONBadEscapeSequenceError );
+				break;
+			}
+			break;
+		}
+		case '"':
+			theEnd = YES;
+			break;
+		default:
+			if( !aIsQuotesTerminated && isspace(theChar) )
+				theEnd = YES;
+			else if( !aIsQuotesTerminated && theChar == ':' )
+			{
+				theEnd = YES;
+				backUp(aContext);
+			}
+			else if( !appendByte( &theBuffer, theChar ) )
+				foundError( aContext, NDJSONMemoryErrorError );
+			break;
 		}
 	}
 	if( theEnd )
@@ -732,3 +754,14 @@ void freeByte( struct NDBytesBuffer * aBuffer )
 	aBuffer->capacity = 0;
 }
 
+
+@implementation NSInputStream (NDJSONDebugging)
+
+//CFIndex CFReadStreamRead( CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLength );
+
+- (NSInteger)readIntoBuffer:(uint8_t *)aBuffer maxLength:(NSInteger)aBufferLength
+{
+	return CFReadStreamRead( (CFReadStreamRef)self, aBuffer, aBufferLength );
+}
+
+@end

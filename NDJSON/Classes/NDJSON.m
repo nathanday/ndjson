@@ -86,13 +86,27 @@ struct NDJSONGeneratorContext
 	return nil;
 }
 
-- (id)asynchronousParseContentsOfFile:(NSString *)path error:(NSError **)aError
+- (id)asynchronousParseContentsOfFile:(NSString *)aPath error:(NSError **)aError
 {
-	NSAssert( NO, @"This method needs to be over ridden" );
-	return nil;
+	id					theResult =  nil;
+	NSAssert( aPath != nil, @"NUll input JSON path" );
+	NSInputStream		* theInputStream = [NSInputStream inputStreamWithFileAtPath:aPath];
+	if( theInputStream != nil )
+		theResult = [self asynchronousParseInputStream:theInputStream error:aError];
+	return theResult;
 }
 
-- (id)asynchronousParseContentsOfURL:(NSURL *)url error:(NSError **)aError
+- (id)asynchronousParseContentsOfURL:(NSURL *)aURL error:(NSError **)aError
+{
+	id					theResult =  nil;
+	NSAssert( aURL != nil, @"NUll input JSON file url" );
+	NSInputStream		* theInputStream = [NSInputStream inputStreamWithURL:aURL];
+	if( theInputStream != nil )
+		theResult = [self asynchronousParseInputStream:theInputStream error:aError];
+	return theResult;
+}
+
+- (id)asynchronousParseInputStream:(NSInputStream *)stream error:(NSError **)error;
 {
 	NSAssert( NO, @"This method needs to be over ridden" );
 	return nil;
@@ -130,36 +144,16 @@ static void addObject( struct NDJSONGeneratorContext * aContext, id anObject );
 	return theResult;
 }
 
-- (id)asynchronousParseContentsOfFile:(NSString *)aPath error:(NSError **)aError
-{
-	id					theResult =  nil;
-	NSAssert( aPath != nil, @"NUll input JSON path" );
-	NSInputStream		* theInputStream = [NSInputStream inputStreamWithFileAtPath:aPath];
-	if( theInputStream != nil )
-	{
-		if( contextWithInputStream( self.parserContext, self, theInputStream, self ) )
-		{
-			beginParsing( self.parserContext );
-			freeContext( self.parserContext );
-			theResult = generatorContext.root;
-		}
-	}
-	return theResult;
-}
 
-- (id)asynchronousParseContentsOfURL:(NSURL *)aURL error:(NSError **)aError
+- (id)asynchronousParseInputStream:(NSInputStream *)aStream error:(NSError **)aError
 {
 	id					theResult =  nil;
-	NSAssert( aURL != nil, @"NUll input JSON file url" );
-	NSInputStream		* theInputStream = [NSInputStream inputStreamWithURL:aURL];
-	if( theInputStream != nil )
+	NSAssert( aStream != nil, @"NUll input stream" );
+	if( contextWithInputStream( self.parserContext, self, aStream, self ) )
 	{
-		if( contextWithInputStream( self.parserContext, self, theInputStream, self ) )
-		{
-			beginParsing( self.parserContext );
-			freeContext( self.parserContext );
-			theResult = generatorContext.root;
-		}
+		beginParsing( self.parserContext );
+		freeContext( self.parserContext );
+		theResult = generatorContext.root;
 	}
 	return theResult;
 }

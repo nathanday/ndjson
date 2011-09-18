@@ -12,6 +12,7 @@
 {
 	NSString				* name;
 	NSMutableDictionary		* testsByName;
+	NSMutableArray			* everyTest;
 }
 
 @property(readonly)		NSMutableDictionary		* testsByName;
@@ -71,6 +72,7 @@
 {
 	[testsByName release];
 	[name release];
+	[everyTest release];
     [super dealloc];
 }
 
@@ -110,10 +112,17 @@
 	return [[self.testsByName objectForKey:aName] operationState];
 }
 
-- (NSArray *)everyTest
+- (NSMutableArray *)everyTest
 {
-	NSAssert(NO, @"The method %@ is abstract", NSStringFromSelector(_cmd));
-	return NULL;
+	if( everyTest == nil )
+		everyTest = [[NSMutableArray alloc] init];
+	return everyTest;
+}
+
+- (void)addTest:(id<TestProtocol>)aTest
+{
+	[self.everyTest addObject:aTest];
+	aTest.testGroup = self;
 }
 
 @end

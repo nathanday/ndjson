@@ -21,15 +21,17 @@ enum TestOperationState
 
 @protocol TestProtocol <NSObject>
 
-@property(readonly)	TestGroup					* testGroup;
-@property(readonly)	NSString					* name;
-@property(readonly)	id							expectedResult,
-												lastResult;
+@property(assign)	TestGroup					* testGroup;
+@property(readonly,copy)	NSString			* name;
+@property(readonly,retain)	id					lastResult;
 @property(readonly)	BOOL						hasError;
-@property(readonly)	NSError						* error;
+@property(readonly,retain)	NSError				* error;
 @property(assign) enum TestOperationState		operationState;
 @property(readonly)	NSString					* details;
 - (id)run;
+
+@optional
+@property(readonly)	id							expectedResult;
 
 @end
 
@@ -41,10 +43,12 @@ enum TestOperationState
 /**
  Methods and protocals to override
  */
-@property(readonly)	NSString	* testDescription;
-@property(readonly)	NSArray		* everyTest;
+@property(readonly)	NSString			* testDescription;
+@property(readonly)	NSMutableArray		* everyTest;
 
 - (void)willLoad;
 - (enum TestOperationState)operationStateForTestNamed:(NSString *)name;
+
+- (void)addTest:(id<TestProtocol>)test;
 
 @end

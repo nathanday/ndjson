@@ -5,6 +5,7 @@
 	<key>ClassNames</key>
 	<array>
 		<string>TestStringInput</string>
+		<string>TestFileInput</string>
 	</array>
 </dict>
 </plist>

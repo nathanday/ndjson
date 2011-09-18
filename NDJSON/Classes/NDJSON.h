@@ -44,5 +44,6 @@
 - (id)asynchronousParseJSONString:(NSString *)string error:(NSError **)error;
 - (id)asynchronousParseContentsOfFile:(NSString *)path error:(NSError **)error;
 - (id)asynchronousParseContentsOfURL:(NSURL *)url error:(NSError **)error;
+- (id)asynchronousParseInputStream:(NSInputStream *)stream error:(NSError **)error;
 
 @end

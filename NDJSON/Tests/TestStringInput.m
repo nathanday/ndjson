@@ -8,54 +8,35 @@
 
 #import "TestStringInput.h"
 #import "NDJSON.h"
+#import "TestProtocolBase.h"
 
 #define INTNUM(_NUM_) [NSNumber numberWithInteger:_NUM_]
 #define REALNUM(_NUM_) [NSNumber numberWithDouble:_NUM_]
 #define BOOLNUM(_NUM_) [NSNumber numberWithBool:_NUM_]
 
 @interface TestStringInput ()
-{
-	NSMutableArray				* tests;
-}
-- (void)addName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)lastResult;
+- (void)addName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)expectedResult;
 @end
 
-@interface TestString : NSObject <TestProtocol>
+@interface TestString : TestProtocolBase
 {
 	NSString					* jsonString;
-	id							expectedResult,
-								lastResult;
-	NSError						* error;
-	TestGroup					* testGroup;
-	enum TestOperationState		operationState;
+	id							expectedResult;
 }
-+ (id)testStringWithName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)lastResult;
++ (id)testStringWithName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)expectedResult;
 - (id)initWithName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)result;
 
 @property(readonly)			NSString			* jsonString;
-@property(readwrite,assign)	TestGroup			* testGroup;
-@property(assign)	enum TestOperationState		operationState;
-@property(readonly)			id					lastResult;
+@property(readonly)			id					expectedResult;
 @end
 
 @implementation TestStringInput
 
-- (NSArray *)everyTest { return tests; }
 - (NSString *)testDescription { return @"Test input with string, all bytes are available, tests ability to recongnize all kinds of JSON"; }
 
 - (void)addName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult
 {
-	if( tests == nil )
-		tests = [[NSMutableArray alloc] init];
-	TestString		* theTestString = [TestString testStringWithName:aName jsonString:aJSON expectedResult:aResult];
-	[tests addObject:theTestString];
-	theTestString.testGroup = self;
-}
-
-- (void)dealloc
-{
-	[tests release];
-	[super dealloc];
+	[self addTest:[TestString testStringWithName:aName jsonString:aJSON expectedResult:aResult]];
 }
 
 - (void)willLoad
@@ -85,23 +66,16 @@
 
 @end
 
-@implementation TestString : NSObject
+@implementation TestString
 
-@synthesize		jsonString,
-				expectedResult,
-				name,
-				error,
-				testGroup,
-				operationState,
-				lastResult;
+@synthesize		expectedResult,
+				jsonString;
 
 #pragma mark - manually implemented properties
 
-- (BOOL)hasError { return self.error != nil; }
-
 - (NSString *)details
 {
-	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", self.name, self.jsonString, self.lastResult, self.expectedResult];
+	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", self.jsonString, self.lastResult, self.expectedResult];
 }
 
 #pragma mark - creation and destruction
@@ -112,12 +86,10 @@
 }
 - (id)initWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult
 {
-	if( (self = [super init]) != nil )
+	if( (self = [super initWithName:aName]) != nil )
 	{
-		name = [aName copy];
 		jsonString = [aJSON copy];
 		expectedResult = [aResult retain];
-		operationState = kTestOperationStateInitial;
 	}
 	return self;
 }
@@ -126,9 +98,6 @@
 {
 	[jsonString release];
 	[expectedResult release];
-	[name release];
-	[error release];
-	[lastResult release];
 	[super dealloc];
 }
 
@@ -136,12 +105,13 @@
 
 - (id)run
 {
+	NSError		* theError = nil;
 	NDJSON		* theJSON = [[NDJSON alloc] init];
-	id			theResult = [theJSON asynchronousParseJSONString:self.jsonString error:&error];
-	lastResult = [theResult retain];
-	[error retain];
+	id			theResult = [theJSON asynchronousParseJSONString:self.jsonString error:&theError];
+	self.lastResult = theResult;
+	self.error = theError;
 	[theJSON release];
-	return lastResult;
+	return self.lastResult;
 }
 
 #pragma mark - NSObject overridden methods
