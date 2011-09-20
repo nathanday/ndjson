@@ -11,6 +11,7 @@
 		D8167700141624E30082CEB6 /* TestStringInput.m in Sources */ = {isa = PBXBuildFile; fileRef = D81676FF141624E30082CEB6 /* TestStringInput.m */; };
 		D81677041416265A0082CEB6 /* TestGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = D81677031416265A0082CEB6 /* TestGroup.m */; };
 		D854B626141508000019D7E2 /* TestClassNames.plist in Resources */ = {isa = PBXBuildFile; fileRef = D854B625141508000019D7E2 /* TestClassNames.plist */; };
+		D8D473951428BB8700954AD3 /* file5.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8D473941428BB8700954AD3 /* file5.plist */; };
 		D8D6023A1414FD91007F8A29 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8D602391414FD91007F8A29 /* Cocoa.framework */; };
 		D8D602441414FD91007F8A29 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D8D602421414FD91007F8A29 /* InfoPlist.strings */; };
 		D8D602461414FD91007F8A29 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D602451414FD91007F8A29 /* main.m */; };
@@ -39,6 +40,7 @@
 		D81677021416265A0082CEB6 /* TestGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestGroup.h; sourceTree = "<group>"; };
 		D81677031416265A0082CEB6 /* TestGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestGroup.m; sourceTree = "<group>"; };
 		D854B625141508000019D7E2 /* TestClassNames.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = TestClassNames.plist; sourceTree = "<group>"; };
+		D8D473941428BB8700954AD3 /* file5.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = file5.plist; sourceTree = "<group>"; };
 		D8D602351414FD91007F8A29 /* NDJSON.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NDJSON.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8D602391414FD91007F8A29 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		D8D6023C1414FD91007F8A29 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -187,6 +189,7 @@
 				D8F0226D1425F44000504B84 /* file3.json */,
 				D8F0226E1425F44000504B84 /* file4.json */,
 				D8F0226F1425F44000504B84 /* file5.json */,
+				D8D473941428BB8700954AD3 /* file5.plist */,
 				D8F022701425F44000504B84 /* file6.json */,
 			);
 			path = SampleFiles;
@@ -253,6 +256,7 @@
 				D8F022741425F44000504B84 /* file4.json in Resources */,
 				D8F022751425F44000504B84 /* file5.json in Resources */,
 				D8F022761425F44000504B84 /* file6.json in Resources */,
+				D8D473951428BB8700954AD3 /* file5.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

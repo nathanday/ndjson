@@ -60,12 +60,6 @@ static BOOL parseNull( struct NDJSONContext * aContext );
 
 static void foundError( struct NDJSONContext * aContext, NDJSONErrorCode aCode );
 
-@interface NSInputStream (NDJSONDebugging)
-
-- (NSInteger)readIntoBuffer:(uint8_t *)buffer maxLength:(NSInteger)bufferLength;
-
-@end
-
 BOOL contextWithNullTermiantedString( struct NDJSONContext * aContext, NDJSON * aParser, const char * aString, id<NDJSONDelegate> aDelegate )
 {
 	if( aDelegate != nil )
@@ -154,17 +148,10 @@ uint8_t currentChar( struct NDJSONContext * aContext )
 	uint8_t	theResult = '\0';
 	if( aContext->position >= aContext->length )
 	{
-#ifdef DEBUG
-		if( aContext->inputStream != nil && (aContext->length = [aContext->inputStream readIntoBuffer:aContext->bytes maxLength:kBufferSize]) > 0 )
-				aContext->position = 0;
-			else
-				aContext->complete = YES;
-#else
-		if( aContext->inputStream != nil && (aContext->length = CFReadStreamRead( (CFReadStreamRef)aContext->inputStream, aContext->bytes, kBufferSize )) > 0 )
+		if( aContext->inputStream != nil && (aContext->length = [aContext->inputStream read:aContext->bytes maxLength:kBufferSize]) > 0 )
 			aContext->position = 0;
 		else
 			aContext->complete = YES;
-#endif
 	}
 
 	if( !aContext->complete )
@@ -754,14 +741,3 @@ void freeByte( struct NDBytesBuffer * aBuffer )
 	aBuffer->capacity = 0;
 }
 
-
-@implementation NSInputStream (NDJSONDebugging)
-
-//CFIndex CFReadStreamRead( CFReadStreamRef stream, UInt8 *buffer, CFIndex bufferLength );
-
-- (NSInteger)readIntoBuffer:(uint8_t *)aBuffer maxLength:(NSInteger)aBufferLength
-{
-	return CFReadStreamRead( (CFReadStreamRef)self, aBuffer, aBufferLength );
-}
-
-@end

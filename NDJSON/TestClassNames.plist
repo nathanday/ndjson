@@ -6,6 +6,7 @@
 	<array>
 		<string>TestStringInput</string>
 		<string>TestFileInput</string>
+		<string>TestFragementedInput</string>
 	</array>
 </dict>
 </plist>

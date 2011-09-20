@@ -62,7 +62,10 @@
 			if( !self.test.hasError )
 			{
 				if( !self.isCancelled && [self.test respondsToSelector:@selector(expectedResult)] )
-					succeeded = [theResult isEqual:[self.test expectedResult]];
+				{
+					id		theExpectedResult = [self.test expectedResult];
+					succeeded = [theResult isEqual:theExpectedResult];
+				}
 			}
 			self.test.operationState = self.test.hasError ? kTestOperationStateError : kTestOperationStateFinished;
 		}
