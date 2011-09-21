@@ -41,9 +41,10 @@
 - (id)init;
 - (id)initWithPropertyList:(NSDictionary *)aTemplateDict;
 
-- (id)asynchronousParseJSONString:(NSString *)string error:(NSError **)error;
-- (id)asynchronousParseContentsOfFile:(NSString *)path error:(NSError **)error;
-- (id)asynchronousParseContentsOfURL:(NSURL *)url error:(NSError **)error;
-- (id)asynchronousParseInputStream:(NSInputStream *)stream error:(NSError **)error;
+- (id)parseJSONString:(NSString *)string error:(NSError **)error;
+- (id)parseContentsOfFile:(NSString *)path error:(NSError **)error;
+- (id)parseContentsOfURL:(NSURL *)url error:(NSError **)error;
+- (id)parseContentsOfURLRequest:(NSURLRequest *)urlRequest error:(NSError **)error;
+- (id)parseInputStream:(NSInputStream *)stream error:(NSError **)error;
 
 @end

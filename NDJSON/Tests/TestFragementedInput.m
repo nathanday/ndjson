@@ -54,6 +54,7 @@
 	[self addName:@"(50,100) bytes" json:kJSON minBlockSize:10 maxBlockSize:20];
 	[self addName:@"(10,50) bytes" json:kJSON minBlockSize:10 maxBlockSize:20];
 	[self addName:@"(1,5) bytes" json:kJSON minBlockSize:1 maxBlockSize:5];
+	[self addName:@"(1,100) bytes" json:kJSON minBlockSize:1 maxBlockSize:100];
 }
 
 @end
@@ -84,7 +85,7 @@
 {
 	NSError		* theError = nil;
 	NDJSON		* theJSON = [[NDJSON alloc] init];
-	self.lastResult = [theJSON asynchronousParseInputStream:[FragementedInputStream fragementedInputWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize] error:&theError];
+	self.lastResult = [theJSON parseInputStream:[FragementedInputStream fragementedInputWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize] error:&theError];
 	self.error = theError;
 	[theJSON release];
 	return lastResult;

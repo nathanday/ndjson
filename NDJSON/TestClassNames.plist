@@ -7,6 +7,7 @@
 		<string>TestStringInput</string>
 		<string>TestFileInput</string>
 		<string>TestFragementedInput</string>
+		<string>TestRemoteRequest</string>
 	</array>
 </dict>
 </plist>

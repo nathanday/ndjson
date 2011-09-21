@@ -8,6 +8,7 @@
 
 #import "TestOperation.h"
 #import "TestGroup.h"
+#import "NDAppDelegate.h"
 
 @interface TestOperation ()
 {
@@ -46,6 +47,11 @@
     [super dealloc];
 }
 
+- (void)logMessage:(NSString *)aMessage
+{
+	NDAppDelegate		* theAppDelegate = (NDAppDelegate*)[[NSApplication sharedApplication] delegate];
+	[theAppDelegate logMessage:[NSString stringWithFormat:@"%@, %@: %@",self.test.testGroup.name, self.test.name, aMessage]];
+}
 
 #pragma mark - NSOperation overridden methods
 
@@ -69,10 +75,12 @@
 			}
 			self.test.operationState = self.test.hasError ? kTestOperationStateError : kTestOperationStateFinished;
 		}
-		@catch (NSException *exception)
+		@catch (NSException * anException)
 		{
 			succeeded = NO;
 			self.test.operationState = kTestOperationStateException;
+			self.completionBlock();
+			[self logMessage:[anException description]];
 		}		
 	}
 	else

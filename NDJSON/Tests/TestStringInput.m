@@ -109,7 +109,7 @@
 {
 	NSError		* theError = nil;
 	NDJSON		* theJSON = [[NDJSON alloc] init];
-	id			theResult = [theJSON asynchronousParseJSONString:self.jsonString error:&theError];
+	id			theResult = [theJSON parseJSONString:self.jsonString error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
 	[theJSON release];

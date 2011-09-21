@@ -16,6 +16,7 @@
 		D8C1EDC5142A057B00FED1B0 /* file3.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8C1EDC2142A057B00FED1B0 /* file3.plist */; };
 		D8C1EDC6142A057B00FED1B0 /* file4.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8C1EDC3142A057B00FED1B0 /* file4.plist */; };
 		D8C1EDC7142A057B00FED1B0 /* file6.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8C1EDC4142A057B00FED1B0 /* file6.plist */; };
+		D8C1EDCA142A0FC300FED1B0 /* TestRemoteRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D8C1EDC9142A0FC300FED1B0 /* TestRemoteRequest.m */; };
 		D8D473951428BB8700954AD3 /* file5.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8D473941428BB8700954AD3 /* file5.plist */; };
 		D8D6023A1414FD91007F8A29 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8D602391414FD91007F8A29 /* Cocoa.framework */; };
 		D8D602441414FD91007F8A29 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D8D602421414FD91007F8A29 /* InfoPlist.strings */; };
@@ -50,6 +51,8 @@
 		D8C1EDC2142A057B00FED1B0 /* file3.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = file3.plist; sourceTree = "<group>"; };
 		D8C1EDC3142A057B00FED1B0 /* file4.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = file4.plist; sourceTree = "<group>"; };
 		D8C1EDC4142A057B00FED1B0 /* file6.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = file6.plist; sourceTree = "<group>"; };
+		D8C1EDC8142A0FC300FED1B0 /* TestRemoteRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestRemoteRequest.h; sourceTree = "<group>"; };
+		D8C1EDC9142A0FC300FED1B0 /* TestRemoteRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestRemoteRequest.m; sourceTree = "<group>"; };
 		D8D473941428BB8700954AD3 /* file5.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = file5.plist; sourceTree = "<group>"; };
 		D8D602351414FD91007F8A29 /* NDJSON.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NDJSON.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8D602391414FD91007F8A29 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
@@ -186,6 +189,8 @@
 				D8F022631425EB3000504B84 /* TestFileInput.m */,
 				D8F022781426283300504B84 /* TestFragementedInput.h */,
 				D8F022791426283300504B84 /* TestFragementedInput.m */,
+				D8C1EDC8142A0FC300FED1B0 /* TestRemoteRequest.h */,
+				D8C1EDC9142A0FC300FED1B0 /* TestRemoteRequest.m */,
 				D8F0226A1425F44000504B84 /* SampleFiles */,
 			);
 			path = Tests;
@@ -298,6 +303,7 @@
 				D8F022641425EB3000504B84 /* TestFileInput.m in Sources */,
 				D8F0227A1426283300504B84 /* TestFragementedInput.m in Sources */,
 				D8F0227D142634B700504B84 /* TestProtocolBase.m in Sources */,
+				D8C1EDCA142A0FC300FED1B0 /* TestRemoteRequest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

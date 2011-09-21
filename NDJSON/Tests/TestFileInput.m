@@ -39,9 +39,9 @@
 {
 	for( NSUInteger i = 1; i <= 6; i++ )
 	{
-		
-		NSString	* theFileName = [NSString stringWithFormat:@"file%u", i];
-		[self addName:theFileName fileName:theFileName];
+		NSString	* theTestName = [NSString stringWithFormat:@"File %u", i],
+					* theFileName = [NSString stringWithFormat:@"file%u", i];
+		[self addName:theTestName fileName:theFileName];
 	}
 }
 
@@ -86,7 +86,7 @@
 {
 	NSError		* theError = nil;
 	NDJSON		* theJSON = [[NDJSON alloc] init];
-	self.lastResult = [theJSON asynchronousParseContentsOfFile:self.path error:&theError];
+	self.lastResult = [theJSON parseContentsOfFile:self.path error:&theError];
 	self.error = theError;
 	[theJSON release];
 	return lastResult;
