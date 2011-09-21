@@ -181,6 +181,7 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 	[self.queue setMaxConcurrentOperationCount:NSOperationQueueDefaultMaxConcurrentOperationCount];
 	for( id<TestProtocol> theTest in self.everyCheckedTest )
 		[self runTest:theTest waitUntilFinished:NO];
+	[theGregorian release];
 }
 
 - (IBAction)checkAllTests:(NSButton *)aSender

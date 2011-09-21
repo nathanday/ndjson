@@ -669,7 +669,7 @@ void foundError( struct NDJSONContext * aContext, NDJSONErrorCode aCode )
 BOOL extendsBytesOfLen( struct NDBytesBuffer * aBuffer, NSUInteger aLen )
 {
 	BOOL			theResult = YES;
-	uint8_t			* theNewBuff = aBuffer->bytes;
+	uint8_t			* theNewBuff = NULL;
 	while( aBuffer->length + aLen >= aBuffer->capacity )
 	{
 		if( aBuffer->capacity == 0 )

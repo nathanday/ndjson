@@ -174,6 +174,7 @@ static void addObject( struct NDJSONGeneratorContext * aContext, id anObject );
 	NSMutableArray		* theArrayRep = [[NSMutableArray alloc] init];
 	addObject( &generatorContext, theArrayRep );
 	pushObject( &generatorContext, theArrayRep );
+	[theArrayRep release];
 }
 
 - (void)jsonParserDidEndArray:(id)parser
@@ -187,6 +188,7 @@ static void addObject( struct NDJSONGeneratorContext * aContext, id anObject );
 	addObject( &generatorContext, theObjectRep );
 	pushKeyCurrentKey( &generatorContext );
 	pushObject( &generatorContext, theObjectRep );
+	[theObjectRep release];
 }
 
 - (void)jsonParserDidEndObject:(id)parser
