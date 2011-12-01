@@ -173,15 +173,14 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 
 - (IBAction)runTests:(NSButton *)aSender
 {
-	NSCalendar			* theGregorian = [[NSCalendar alloc]
-							 initWithCalendarIdentifier:NSGregorianCalendar];
-	NSDateComponents	* theHourComps = [theGregorian components:NSWeekdayCalendarUnit fromDate:[NSDate date]];
+	NSCalendar			* theGregorianCalendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
+	NSDateComponents	* theHourComps = [theGregorianCalendar components:NSDayCalendarUnit|NSMonthCalendarUnit|NSYearCalendarUnit fromDate:[NSDate date]];
+
 	[self logMessage:[NSString stringWithFormat:@"%02d:%02d:%02d\n-----------------------------------------------------------", theHourComps.hour, theHourComps.minute, theHourComps.second]];
 	[runStopButton setTitle:NSLocalizedString(@"Stop", @"Text for run/stop button when tests are running")];
 	[self.queue setMaxConcurrentOperationCount:NSOperationQueueDefaultMaxConcurrentOperationCount];
 	for( id<TestProtocol> theTest in self.everyCheckedTest )
 		[self runTest:theTest waitUntilFinished:NO];
-	[theGregorian release];
 }
 
 - (IBAction)checkAllTests:(NSButton *)aSender

@@ -55,20 +55,20 @@ struct NDJSONContext
 	struct
 	{
 		
-		int didStartDocument	: 1;
-		int didEndDocument		: 1;
-		int didStartArray		: 1;
-		int didEndArray			: 1;
-		int didStartObject		: 1;
-		int didEndObject		: 1;
-		int foundKey			: 1;
-		int foundString			: 1;
-		int foundInteger		: 1;
-		int foundFloat			: 1;
-		int foundBool			: 1;
-		int foundNULL			: 1;
-		int foundError			: 1;
-	}						respondsTo;
+		IMP		didStartDocument,
+				didEndDocument,
+				didStartArray,
+				didEndArray,
+				didStartObject,
+				didEndObject,
+				foundKey,
+				foundString,
+				foundInteger,
+				foundFloat,
+				foundBool,
+				foundNULL,
+				foundError;
+	}						delegateMethod;
 };
 
 BOOL contextWithNullTermiantedString( struct NDJSONContext *, NDJSON * aParser, const char *, id<NDJSONDelegate> );

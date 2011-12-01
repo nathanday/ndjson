@@ -127,20 +127,46 @@ void freeContext( struct NDJSONContext * aContext )
  */
 void setUpRespondsTo( struct NDJSONContext * aContext )
 {
-	aContext->respondsTo.didStartDocument = [aContext->delegate respondsToSelector:@selector(jsonParserDidStartDocument:)];
-	aContext->respondsTo.didEndDocument = [aContext->delegate respondsToSelector:@selector(jsonParserDidEndDocument:)];
-	aContext->respondsTo.didStartArray = [aContext->delegate respondsToSelector:@selector(jsonParserDidStartArray:)];
-	aContext->respondsTo.didEndArray = [aContext->delegate respondsToSelector:@selector(jsonParserDidEndArray:)];
-	aContext->respondsTo.didStartObject = [aContext->delegate respondsToSelector:@selector(jsonParserDidStartObject:)];
-	aContext->respondsTo.didEndObject = [aContext->delegate respondsToSelector:@selector(jsonParserDidEndObject:)];
-	aContext->respondsTo.foundKey = [aContext->delegate respondsToSelector:@selector(jsonParser:foundKey:)];
-	aContext->respondsTo.foundString = [aContext->delegate respondsToSelector:@selector(jsonParser:foundString:)];
-	aContext->respondsTo.foundInteger = [aContext->delegate respondsToSelector:@selector(jsonParser:foundInteger:)];
-	aContext->respondsTo.foundFloat = [aContext->delegate respondsToSelector:@selector(jsonParser:foundFloat:)];
-	aContext->respondsTo.foundBool = [aContext->delegate respondsToSelector:@selector(jsonParser:foundBool:)];
-	aContext->respondsTo.foundNULL = [aContext->delegate respondsToSelector:@selector(jsonParserFoundNULL)];
-	aContext->respondsTo.foundError = [aContext->delegate respondsToSelector:@selector(jsonParser:error:)];
-
+	NSObject		* theDelegate = (NSObject*)aContext->delegate;
+	aContext->delegateMethod.didStartDocument = [theDelegate respondsToSelector:@selector(jsonParserDidStartDocument:)]
+											? [theDelegate methodForSelector:@selector(jsonParserDidStartDocument:)]
+											: NULL;
+	aContext->delegateMethod.didEndDocument = [theDelegate respondsToSelector:@selector(jsonParserDidEndDocument:)]
+										? [theDelegate methodForSelector:@selector(jsonParserDidEndDocument:)]
+										: NULL;
+	aContext->delegateMethod.didStartArray = [theDelegate respondsToSelector:@selector(jsonParserDidStartArray:)]
+										? [theDelegate methodForSelector:@selector(jsonParserDidStartArray:)]
+										: NULL;
+	aContext->delegateMethod.didEndArray = [theDelegate respondsToSelector:@selector(jsonParserDidEndArray:)]
+										? [theDelegate methodForSelector:@selector(jsonParserDidEndArray:)]
+										: NULL;
+	aContext->delegateMethod.didStartObject = [theDelegate respondsToSelector:@selector(jsonParserDidStartObject:)]
+										? [theDelegate methodForSelector:@selector(jsonParserDidStartObject:)]
+										: NULL;
+	aContext->delegateMethod.didEndObject = [theDelegate respondsToSelector:@selector(jsonParserDidEndObject:)]
+										? [theDelegate methodForSelector:@selector(jsonParserDidEndObject:)]
+										: NULL;
+	aContext->delegateMethod.foundKey = [theDelegate respondsToSelector:@selector(jsonParser:foundKey:)]
+									? [theDelegate methodForSelector:@selector(jsonParser:foundKey:)]
+									: NULL;
+	aContext->delegateMethod.foundString = [theDelegate respondsToSelector:@selector(jsonParser:foundString:)]
+										? [theDelegate methodForSelector:@selector(jsonParser:foundString:)]
+										: NULL;
+	aContext->delegateMethod.foundInteger = [theDelegate respondsToSelector:@selector(jsonParser:foundInteger:)]
+										? [theDelegate methodForSelector:@selector(jsonParser:foundInteger:)]
+										: NULL;
+	aContext->delegateMethod.foundFloat = [theDelegate respondsToSelector:@selector(jsonParser:foundFloat:)]
+										? [theDelegate methodForSelector:@selector(jsonParser:foundFloat:)]
+										: NULL;
+	aContext->delegateMethod.foundBool = [theDelegate respondsToSelector:@selector(jsonParser:foundBool:)]
+										? [theDelegate methodForSelector:@selector(jsonParser:foundBool:)]
+										: NULL;
+	aContext->delegateMethod.foundNULL = [theDelegate respondsToSelector:@selector(jsonParserFoundNULL)]
+										? [theDelegate methodForSelector:@selector(jsonParserFoundNULL)]
+										: NULL;
+	aContext->delegateMethod.foundError = [theDelegate respondsToSelector:@selector(jsonParser:error:)]
+										? [theDelegate methodForSelector:@selector(jsonParser:error:)]
+										: NULL;
 }
 
 uint8_t currentChar( struct NDJSONContext * aContext )
@@ -207,16 +233,16 @@ BOOL beginParsing( struct NDJSONContext * aContext )
 	BOOL		theResult = YES;
 	aContext->containers = NDBytesBufferInit;
 	appendByte(&aContext->containers, NDJSONContainerNone);
-	if( aContext->respondsTo.didStartDocument )
-		[aContext->delegate jsonParserDidStartDocument:aContext->parser];
+	if( aContext->delegateMethod.didStartDocument != NULL )
+		aContext->delegateMethod.didStartDocument( aContext->delegate, @selector(jsonParserDidStartDocument:), aContext->parser );
 	[aContext->inputStream open];
 	theResult = unknownParsing( aContext );
 	[aContext->inputStream close];
 	if( !aContext->complete && theResult )
 		foundError(aContext, NDJSONTrailingGarbageError );
 
-	if( aContext->respondsTo.didEndDocument )
-		[aContext->delegate jsonParserDidEndDocument:aContext->parser];
+	if( aContext->delegateMethod.didEndDocument != NULL )
+		aContext->delegateMethod.didEndDocument( aContext->delegate, @selector(jsonParserDidEndDocument:), aContext->parser );
 	freeByte(&aContext->containers);
 	return theResult;
 }
@@ -271,8 +297,8 @@ BOOL parseArray( struct NDJSONContext * aContext )
 	BOOL				theEnd = NO;
 	NSUInteger			theCount = 0;
 	appendByte(&aContext->containers, NDJSONContainerArray);
-	if( aContext->respondsTo.didStartArray )
-		[aContext->delegate jsonParserDidStartArray:aContext->parser];
+	if( aContext->delegateMethod.didStartArray != NULL )
+		aContext->delegateMethod.didStartArray( aContext->delegate, @selector(jsonParserDidStartArray:), aContext->parser );
 	
 	if( nextCharIgnoreWhiteSpace(aContext) == ']' )
 		theEnd = YES;
@@ -300,8 +326,8 @@ BOOL parseArray( struct NDJSONContext * aContext )
 	if( theEnd )
 	{
 		NSCParameterAssert(truncateByte(&aContext->containers, NDJSONContainerArray));
-		if( aContext->respondsTo.didEndArray )
-			[aContext->delegate jsonParserDidEndArray:aContext->parser];
+		if( aContext->delegateMethod.didEndArray != NULL )
+			aContext->delegateMethod.didEndArray( aContext->delegate, @selector(jsonParserDidEndArray:), aContext->parser );
 	}
 erorOut:
 	return theResult;
@@ -313,8 +339,8 @@ BOOL parseObject( struct NDJSONContext * aContext )
 	BOOL				theEnd = NO;
 	NSUInteger			theCount = 0;
 	appendByte(&aContext->containers, NDJSONContainerObject);
-	if( aContext->respondsTo.didStartObject )
-		[aContext->delegate jsonParserDidStartObject:aContext->parser];
+	if( aContext->delegateMethod.didStartObject != NULL )
+		aContext->delegateMethod.didStartObject( aContext->delegate, @selector(jsonParserDidStartObject:), aContext->parser );
 	
 	if( nextCharIgnoreWhiteSpace(aContext) == '}' )
 		theEnd = YES;
@@ -354,8 +380,8 @@ BOOL parseObject( struct NDJSONContext * aContext )
 	}
 	if( theEnd )
 	{
-		if( aContext->respondsTo.didEndObject )
-			[aContext->delegate jsonParserDidEndObject:aContext->parser];
+		if( aContext->delegateMethod.didEndObject != NULL )
+			aContext->delegateMethod.didEndObject( aContext->delegate, @selector(jsonParserDidEndObject:), aContext->parser );
 		NSCParameterAssert(truncateByte(&aContext->containers, NDJSONContainerObject));
 	}
 	
@@ -465,13 +491,13 @@ BOOL parseText( struct NDJSONContext * aContext, BOOL aIsKey, BOOL aIsQuotesTerm
 		NSString	* theValue = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:NSUTF8StringEncoding];
 		if( aIsKey )
 		{
-			if( aContext->respondsTo.foundKey )
-				[aContext->delegate jsonParser:aContext->parser foundKey:theValue];
+			if( aContext->delegateMethod.foundKey != NULL )
+				aContext->delegateMethod.foundKey( aContext->delegate, @selector(jsonParser:foundKey:), aContext->parser, theValue );
 		}
 		else
 		{
-			if( aContext->respondsTo.foundString )
-				[aContext->delegate jsonParser:aContext->parser foundString:theValue];
+			if( aContext->delegateMethod.foundString != NULL )
+				aContext->delegateMethod.foundString( aContext->delegate, @selector(jsonParser:foundString:), aContext->parser, theValue );
 		}
 	}
 	else
@@ -566,15 +592,15 @@ BOOL parseNumber( struct NDJSONContext * aContext )
 			theValue *= pow(10,theExponentValue);
 		if( theNegative )
 			theValue = -theValue;
-		if( aContext->respondsTo.foundFloat )
-			[aContext->delegate jsonParser:aContext->parser foundFloat:theValue];
+		if( aContext->delegateMethod.foundFloat != NULL )
+			aContext->delegateMethod.foundFloat( aContext->delegate, @selector(jsonParser:foundFloat:), aContext->parser, theValue );
 	}
 	else if( theDecimalPlaces > 0 )
 	{
 		if( theNegative )
 			theIntegerValue = -theIntegerValue;
-		if( aContext->respondsTo.foundInteger )
-			[aContext->delegate jsonParser:aContext->parser foundInteger:theIntegerValue];
+		if( aContext->delegateMethod.foundInteger != NULL )
+			aContext->delegateMethod.foundInteger( aContext->delegate, @selector(jsonParser:foundInteger:), aContext->parser, theIntegerValue );
 	}
 	else
 		foundError(aContext, NDJSONBadNumberError );
@@ -590,8 +616,8 @@ BOOL parseTrue( struct NDJSONContext * aContext )
 	uint8_t		theChar;
 	if( (theChar = nextChar(aContext)) == 'r' && (theChar = nextChar(aContext)) == 'u' && (theChar = nextChar(aContext)) == 'e' )
 	{
-		if( aContext->respondsTo.foundBool )
-			[aContext->delegate jsonParser:aContext->parser foundBool:YES];
+		if( aContext->delegateMethod.foundBool != NULL )
+			aContext->delegateMethod.foundBool( aContext->delegate, @selector(jsonParser:foundBool:), aContext->parser, YES );
 	}
 	else if( theChar == '\0' )
 		theResult = NO;
@@ -606,8 +632,8 @@ BOOL parseFalse( struct NDJSONContext * aContext )
 	uint8_t		theChar;
 	if( (theChar = nextChar(aContext)) == 'a' && (theChar = nextChar(aContext)) == 'l' && (theChar = nextChar(aContext)) == 's' && (theChar = nextChar(aContext)) == 'e' )
 	{
-		if( aContext->respondsTo.foundBool )
-			[aContext->delegate jsonParser:aContext->parser foundBool:NO];
+		if( aContext->delegateMethod.foundBool != NULL )
+			aContext->delegateMethod.foundBool( aContext->delegate, @selector(jsonParser:foundBool:), aContext->parser, NO );
 	}
 	else if( theChar == '\0' )
 		theResult = NO;
@@ -622,8 +648,8 @@ BOOL parseNull( struct NDJSONContext * aContext )
 	uint8_t		theChar;
 	if( (theChar = nextChar(aContext)) == 'u' && (theChar = nextChar(aContext)) == 'l' && (theChar = nextChar(aContext)) == 'l' )
 	{
-		if( aContext->respondsTo.foundNULL )
-			[aContext->delegate jsonParserFoundNULL:aContext->parser];
+		if( aContext->delegateMethod.foundNULL != NULL )
+			aContext->delegateMethod.foundNULL( aContext->delegate, @selector(jsonParserFoundNULL:), aContext->parser );
 	}
 	else if( theChar == '\0' )
 		theResult = NO;
@@ -661,8 +687,8 @@ void foundError( struct NDJSONContext * aContext, NDJSONErrorCode aCode )
 	case NDJSONPrematureEndError:
 		break;
 	}
-	if( aContext->respondsTo.foundError )
-		[aContext->delegate jsonParser:aContext->parser error:[NSError errorWithDomain:NDJSONErrorDomain code:aCode userInfo:theUserInfo]];
+	if( aContext->delegateMethod.foundError != NULL )
+		aContext->delegateMethod.foundError( aContext->delegate, @selector(jsonParser:error:), aContext->parser, [NSError errorWithDomain:NDJSONErrorDomain code:aCode userInfo:theUserInfo] );
 	[theUserInfo release];
 }
 

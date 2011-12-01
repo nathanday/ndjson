@@ -89,7 +89,7 @@ struct NDJSONGeneratorContext
 - (id)parseContentsOfFile:(NSString *)aPath error:(NSError **)aError
 {
 	id					theResult =  nil;
-	NSAssert( aPath != nil, @"NUll input JSON path" );
+	NSAssert( aPath != nil, @"nil input JSON path" );
 	NSInputStream		* theInputStream = [NSInputStream inputStreamWithFileAtPath:aPath];
 	if( theInputStream != nil )
 		theResult = [self parseInputStream:theInputStream error:aError];
@@ -99,7 +99,7 @@ struct NDJSONGeneratorContext
 - (id)parseContentsOfURL:(NSURL *)aURL error:(NSError **)aError
 {
 	id					theResult =  nil;
-	NSAssert( aURL != nil, @"NUll input JSON file url" );
+	NSAssert( aURL != nil, @"nil input JSON file url" );
 	NSInputStream		* theInputStream = [NSInputStream inputStreamWithURL:aURL];
 	if( theInputStream != nil )
 		theResult = [self parseInputStream:theInputStream error:aError];
@@ -108,7 +108,14 @@ struct NDJSONGeneratorContext
 
 - (id)parseContentsOfURLRequest:(NSURLRequest *)aURLRequest error:(NSError **)anError
 {
-	return [self parseInputStream:[aURLRequest HTTPBodyStream] error:anError];
+	id		theResult = nil;
+	CFHTTPMessageRef	theMessageRef = CFHTTPMessageCreateRequest( kCFAllocatorDefault, (CFStringRef)aURLRequest.HTTPMethod, (CFURLRef)aURLRequest.URL, kCFHTTPVersion1_1 );
+	if ( theMessageRef != NULL )
+	{
+		CFReadStreamRef		theReadStreamRef = CFReadStreamCreateForHTTPRequest( kCFAllocatorDefault, theMessageRef );
+		theResult = [self parseInputStream:(NSInputStream*)theReadStreamRef error:anError];
+	}
+	return theResult;
 }
 
 - (id)parseInputStream:(NSInputStream *)stream error:(NSError **)error;
@@ -139,7 +146,7 @@ static void addObject( struct NDJSONGeneratorContext * aContext, id anObject );
 - (id)parseJSONString:(NSString *)aString error:(NSError **)aError
 {
 	id					theResult =  nil;
-	NSAssert( aString != nil, @"NUll input JSON string" );
+	NSAssert( aString != nil, @"nil input JSON string" );
 	if( contextWithNullTermiantedString( self.parserContext, self, [aString UTF8String], self ) )
 	{
 		beginParsing( self.parserContext );
@@ -149,11 +156,10 @@ static void addObject( struct NDJSONGeneratorContext * aContext, id anObject );
 	return theResult;
 }
 
-
 - (id)parseInputStream:(NSInputStream *)aStream error:(NSError **)aError
 {
 	id					theResult =  nil;
-	NSAssert( aStream != nil, @"NUll input stream" );
+	NSAssert( aStream != nil, @"nil input stream" );
 	if( contextWithInputStream( self.parserContext, self, aStream, self ) )
 	{
 		beginParsing( self.parserContext );
