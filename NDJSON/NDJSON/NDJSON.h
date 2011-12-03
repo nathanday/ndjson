@@ -38,13 +38,13 @@
 
 - (id)initWithDelegate:(id<NDJSONDelegate>)delegate;
 
-- (id)init;
-- (id)initWithPropertyList:(NSDictionary *)aTemplateDict;
+- (BOOL)parseJSONString:(NSString *)string error:(NSError **)error;
+- (BOOL)parseContentsOfFile:(NSString *)path error:(NSError **)error;
+- (BOOL)parseContentsOfURL:(NSURL *)url error:(NSError **)error;
+- (BOOL)parseContentsOfURLRequest:(NSURLRequest *)urlRequest error:(NSError **)error;
+- (BOOL)parseInputStream:(NSInputStream *)stream error:(NSError **)error;
 
-- (id)parseJSONString:(NSString *)string error:(NSError **)error;
-- (id)parseContentsOfFile:(NSString *)path error:(NSError **)error;
-- (id)parseContentsOfURL:(NSURL *)url error:(NSError **)error;
-- (id)parseContentsOfURLRequest:(NSURLRequest *)urlRequest error:(NSError **)error;
-- (id)parseInputStream:(NSInputStream *)stream error:(NSError **)error;
+//- (BOOL)asynchronousParseContentsOfURLRequest:(NSURLRequest *)urlRequest error:(NSError **)error;
+//- (BOOL)asynchronousParseInputStream:(NSInputStream *)stream error:(NSError **)error;
 
 @end

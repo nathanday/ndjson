@@ -7,7 +7,7 @@
 //
 
 #import "TestStringInput.h"
-#import "NDJSON.h"
+#import "NDJSONPropertyListGenerator.h"
 #import "TestProtocolBase.h"
 
 #define INTNUM(_NUM_) [NSNumber numberWithInteger:_NUM_]
@@ -108,8 +108,8 @@
 - (id)run
 {
 	NSError		* theError = nil;
-	NDJSON		* theJSON = [[NDJSON alloc] init];
-	id			theResult = [theJSON parseJSONString:self.jsonString error:&theError];
+	NDJSONPropertyListGenerator		* theJSON = [[NDJSONPropertyListGenerator alloc] init];
+	id			theResult = [theJSON propertyListForJSONString:self.jsonString error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
 	[theJSON release];

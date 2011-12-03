@@ -17,116 +17,15 @@ struct NDJSONGeneratorContext
 	id					root;
 };
 
-#pragma mark - cluster class subclass NDJSONFoundationObjectsGenerator interface
-@interface NDJSONFoundationObjectsGenerator : NDJSON <NDJSONDelegate>
+#pragma mark - cluster class subclass NDJSONPropertyListGenerator interface
+@interface NDJSONPropertyListGenerator : NSObject <NDJSONDelegate>
 {
 	struct NDJSONGeneratorContext	generatorContext;
 }
 
 @end
 
-#pragma mark - cluster class subclass NDJSONTemplate interface
-@interface NDJSONTemplate : NDJSON
-{
-	NSDictionary					* templateDictionary;
-}
-
-@end
-
-#pragma mark - cluster class NDJSON private interface
-@interface NDJSON ()
-{
-	id<NDJSONDelegate>				delegate;
-	struct NDJSONContext			parserContext;
-}
-
-@property(readonly)	struct NDJSONContext	* parserContext;
-
-@end
-
-#pragma mark - cluster class NDJSON private implementation
-@implementation NDJSON
-
-@synthesize		delegate;
-
-#pragma mark - manually implemented properties
-
-- (struct NDJSONContext	*)parserContext { return &parserContext; }
-- (NSDictionary *)templateDictionary { return nil; }
-- (NDJSONContainer)currentContainer { return currentContainer(&parserContext); }
-- (NSString *)currentKey { return nil; }
-
-#pragma mark - creation and destruction etc
-
-- (id)init
-{
-	[self release];
-	return [[NDJSONFoundationObjectsGenerator alloc] init];
-}
-
-- (id)initWithDelegate:(id<NDJSONDelegate>)aDelegate
-{
-    if( (self = [super init]) != nil )
-		delegate = aDelegate;
-    
-    return self;
-}
-
-- (id)initWithPropertyList:(NSDictionary *)aTemplateDict
-{
-	[self release];
-	return [[NDJSONFoundationObjectsGenerator alloc] initWithPropertyList:aTemplateDict];
-}
-
-#pragma mark - parsing methods
-
-- (id)parseJSONString:(NSString *)aString error:(NSError **)aError
-{
-	NSAssert( NO, @"This method needs to be over ridden" );
-	return nil;
-}
-
-- (id)parseContentsOfFile:(NSString *)aPath error:(NSError **)aError
-{
-	id					theResult =  nil;
-	NSAssert( aPath != nil, @"nil input JSON path" );
-	NSInputStream		* theInputStream = [NSInputStream inputStreamWithFileAtPath:aPath];
-	if( theInputStream != nil )
-		theResult = [self parseInputStream:theInputStream error:aError];
-	return theResult;
-}
-
-- (id)parseContentsOfURL:(NSURL *)aURL error:(NSError **)aError
-{
-	id					theResult =  nil;
-	NSAssert( aURL != nil, @"nil input JSON file url" );
-	NSInputStream		* theInputStream = [NSInputStream inputStreamWithURL:aURL];
-	if( theInputStream != nil )
-		theResult = [self parseInputStream:theInputStream error:aError];
-	return theResult;
-}
-
-- (id)parseContentsOfURLRequest:(NSURLRequest *)aURLRequest error:(NSError **)anError
-{
-	id		theResult = nil;
-	CFHTTPMessageRef	theMessageRef = CFHTTPMessageCreateRequest( kCFAllocatorDefault, (CFStringRef)aURLRequest.HTTPMethod, (CFURLRef)aURLRequest.URL, kCFHTTPVersion1_1 );
-	if ( theMessageRef != NULL )
-	{
-		CFReadStreamRef		theReadStreamRef = CFReadStreamCreateForHTTPRequest( kCFAllocatorDefault, theMessageRef );
-		theResult = [self parseInputStream:(NSInputStream*)theReadStreamRef error:anError];
-	}
-	return theResult;
-}
-
-- (id)parseInputStream:(NSInputStream *)stream error:(NSError **)error;
-{
-	NSAssert( NO, @"This method needs to be over ridden" );
-	return nil;
-}
-
-@end
-
-#pragma mark - functions used by NDJSONFoundationObjectsGenerator to build tree
+#pragma mark - functions used by NDJSONPropertyListGenerator to build tree
 static void initGeneratorContext( struct NDJSONGeneratorContext * aContext );
 static void freeGeneratorContext( struct NDJSONGeneratorContext * aContext );
 static void pushObject( struct NDJSONGeneratorContext * aContext, id anObject );
@@ -136,35 +35,72 @@ static void pushKeyCurrentKey( struct NDJSONGeneratorContext * aContext );
 static void popCurrentKey( struct NDJSONGeneratorContext * aContext );
 static void addObject( struct NDJSONGeneratorContext * aContext, id anObject );
 
-#pragma mark - cluster class subclass NDJSONFoundationObjectsGenerator implementation
-@implementation NDJSONFoundationObjectsGenerator
-
-- (id)init { return [self initWithDelegate:self]; }
+#pragma mark - cluster class subclass NDJSONPropertyListGenerator implementation
+@implementation NDJSONPropertyListGenerator
 
 #pragma mark - parsing methods
 
-- (id)parseJSONString:(NSString *)aString error:(NSError **)aError
+- (id)propertyListForJSONString:(NSString *)aString error:(NSError **)aError
 {
 	id					theResult =  nil;
 	NSAssert( aString != nil, @"nil input JSON string" );
-	if( contextWithNullTermiantedString( self.parserContext, self, [aString UTF8String], self ) )
+	NDJSON			* theJSONParser = [[NDJSON alloc] initWithDelegate:self];
+	if( theJSONParser != nil )
 	{
-		beginParsing( self.parserContext );
-		freeContext( self.parserContext );
-		theResult = generatorContext.root;
+		if( [theJSONParser parseJSONString:aString error:aError] )
+			theResult = generatorContext.root;
 	}
 	return theResult;
 }
 
-- (id)parseInputStream:(NSInputStream *)aStream error:(NSError **)aError
+- (id)propertyListForContentsOfFile:(NSString *)aPath error:(NSError **)aError
 {
 	id					theResult =  nil;
-	NSAssert( aStream != nil, @"nil input stream" );
-	if( contextWithInputStream( self.parserContext, self, aStream, self ) )
+	NSAssert( aPath != nil, @"nil input path" );
+	NDJSON			* theJSONParser = [[NDJSON alloc] initWithDelegate:self];
+	if( theJSONParser != nil )
 	{
-		beginParsing( self.parserContext );
-		freeContext( self.parserContext );
-		theResult = generatorContext.root;
+		if( [theJSONParser parseContentsOfFile:aPath error:aError] )
+			theResult = generatorContext.root;
+	}
+	return theResult;
+}
+
+- (id)propertyListForContentsOfURL:(NSURL *)aURL error:(NSError **)anError
+{
+	id					theResult =  nil;
+	NSAssert( aURL != nil, @"nil input file url" );
+	NDJSON			* theJSONParser = [[NDJSON alloc] initWithDelegate:self];
+	if( theJSONParser != nil )
+	{
+		if( [theJSONParser parseContentsOfURL:aURL error:anError] )
+			theResult = generatorContext.root;
+	}
+	return theResult;
+}
+
+- (id)propertyListForContentsOfURLRequest:(NSURLRequest *)aURLRequest error:(NSError **)aError
+{
+	id					theResult =  nil;
+	NSAssert( aURLRequest != nil, @"nil URL request" );
+	NDJSON			* theJSONParser = [[NDJSON alloc] initWithDelegate:self];
+	if( theJSONParser != nil )
+	{
+		if( [theJSONParser parseContentsOfURLRequest:aURLRequest error:aError] )
+			theResult = generatorContext.root;
+	}
+	return theResult;
+}
+
+- (id)propertyListForInputStream:(NSInputStream *)aStream error:(NSError **)aError
+{
+	id					theResult =  nil;
+	NSAssert( aStream != nil, @"nil input JSON stream" );
+	NDJSON			* theJSONParser = [[NDJSON alloc] initWithDelegate:self];
+	if( theJSONParser != nil )
+	{
+		if( [theJSONParser parseInputStream:aStream error:aError] )
+			theResult = generatorContext.root;
 	}
 	return theResult;
 }
@@ -240,22 +176,7 @@ static void addObject( struct NDJSONGeneratorContext * aContext, id anObject );
 
 @end
 
-#pragma mark - cluster class subclass NDJSONTemplate implementation
-@implementation NDJSONTemplate
-
-@synthesize		templateDictionary;
-
-- (id)initWithPropertyList:(NSDictionary *)aTemplateDict
-{
-    if( (self = [super init]) != nil )
-		templateDictionary = [aTemplateDict copy];
-    
-    return self;
-}
-
-@end
-
-#pragma mark - functions used by NDJSONFoundationObjectsGenerator
+#pragma mark - functions used by NDJSONPropertyListGenerator
 void initGeneratorContext( struct NDJSONGeneratorContext * aContext )
 {
 	aContext->previoustKeys = [[NSMutableArray alloc] init];
