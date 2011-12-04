@@ -76,7 +76,26 @@ BOOL contextWithBytes( struct NDJSONContext *, NDJSON * aParser, const uint8_t *
 BOOL contextWithInputStream( struct NDJSONContext *, NDJSON *, NSInputStream *, id<NDJSONDelegate> );
 void freeContext( struct NDJSONContext * );
 
-
 BOOL beginParsing( struct NDJSONContext * aContext );
 NDJSONContainer currentContainer( struct NDJSONContext * aContext );
+
+struct NDJSONGeneratorContext
+{
+	NSMutableArray		* previousKeys;
+	NSMutableArray		* previousObject;
+	id					currentObject;
+	id					currentKey;
+	id					root;
+};
+
+#pragma mark - functions used by NDJSONToPropertyList to build tree
+void initGeneratorContext( struct NDJSONGeneratorContext * context );
+void freeGeneratorContext( struct NDJSONGeneratorContext * context );
+void pushObject( struct NDJSONGeneratorContext * context, id object );
+void popCurrentObject( struct NDJSONGeneratorContext * context );
+void setCurrentKey( struct NDJSONGeneratorContext * context, NSString * key );
+void pushKeyCurrentKey( struct NDJSONGeneratorContext * context );
+void popCurrentKey( struct NDJSONGeneratorContext * context );
+void addObject( struct NDJSONGeneratorContext * context, id object );
+
 

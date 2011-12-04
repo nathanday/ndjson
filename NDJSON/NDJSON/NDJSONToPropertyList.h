@@ -1,5 +1,5 @@
 //
-//  NDJSON.h
+//  NDJSONToPropertyList.h
 //  NDJSON
 //
 //  Created by Nathan Day on 31/08/11.
@@ -7,9 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "NDJSON.h"
 
-@interface NDJSONPropertyListGenerator : NSObject
+@interface NDJSONToPropertyList : NSObject
 
 - (id)propertyListForJSONString:(NSString *)string error:(NSError **)error;
 - (id)propertyListForContentsOfFile:(NSString *)path error:(NSError **)error;

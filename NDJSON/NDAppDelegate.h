@@ -8,6 +8,9 @@
 
 #import <Cocoa/Cocoa.h>
 
+void NDMessage( NSString *format, ... ) NS_FORMAT_FUNCTION(1,2);
+void NDError( NSString *format, ... ) NS_FORMAT_FUNCTION(1,2);
+
 @interface NDAppDelegate : NSObject <NSApplicationDelegate,NSOutlineViewDataSource,NSOutlineViewDelegate,NSSplitViewDelegate>
 {
 @private
@@ -16,12 +19,12 @@
 	IBOutlet NSOutlineView	* testsOutlineView;
 	IBOutlet	NSButton	* runStopButton;
 	IBOutlet	NSButton	* detailsButton;
-	IBOutlet	NSButton	* errorsOnlyCheckBoxButton;
+	IBOutlet	NSButton	* showMessagesCheckBoxButton;
 }
 
 @property (assign)		NSWindow	* window;
 @property (readonly)	NSArray		* everyCheckedTest;
-@property(nonatomic,assign,getter=isShowErrorsOnly)	BOOL	showErrorsOnly;
+@property(nonatomic,assign,getter=isShowMessages)	BOOL	showMessages;
 
 - (IBAction)clearLogs:(NSButton *)sender;
 - (IBAction)detailsForSelectedTest:(NSButton *)sender;
@@ -29,8 +32,6 @@
 - (IBAction)checkAllTests:(NSButton *)sender;
 - (IBAction)uncheckAllTests:(NSButton *)sender;
 - (IBAction)clearAll:(id)sender;
-- (IBAction)errorsOnlyAction:(NSButton *)sender;
-
-- (void)logMessage:(NSString *)message;
+- (IBAction)showMessagesAction:(NSButton *)sender;
 
 @end

@@ -47,12 +47,6 @@
     [super dealloc];
 }
 
-- (void)logMessage:(NSString *)aMessage
-{
-	NDAppDelegate		* theAppDelegate = (NDAppDelegate*)[[NSApplication sharedApplication] delegate];
-	[theAppDelegate logMessage:[NSString stringWithFormat:@"%@, %@: %@",self.test.testGroup.name, self.test.name, aMessage]];
-}
-
 #pragma mark - NSOperation overridden methods
 
 - (void)main
@@ -85,7 +79,7 @@
 			succeeded = NO;
 			self.test.operationState = kTestOperationStateException;
 			self.completionBlock();
-			[self logMessage:[anException description]];
+			NDError( @"%@", [anException description] );
 		}		
 	}
 	else

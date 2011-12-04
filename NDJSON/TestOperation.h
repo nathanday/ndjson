@@ -17,7 +17,4 @@
 
 - (id)initWithTestProtocol:(id<TestProtocol>)test;
 
-- (void)logMessage:(NSString *)message;
-
-
 @end

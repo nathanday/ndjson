@@ -7,7 +7,7 @@
 //
 
 #import "TestStringInput.h"
-#import "NDJSONPropertyListGenerator.h"
+#import "NDJSONToPropertyList.h"
 #import "TestProtocolBase.h"
 
 #define INTNUM(_NUM_) [NSNumber numberWithInteger:_NUM_]
@@ -50,6 +50,7 @@
 	[self addName:@"Negative Float" jsonString:@"-0.0003" expectedResult:[NSNumber numberWithDouble:-0.0003]];
 	[self addName:@"White Space" jsonString:@"\" \tsome text  \t with  white space in\n it    \"" expectedResult:@" \tsome text  \t with  white space in\n it    "];
 	[self addName:@"Escape" jsonString:@"\"Hello\\n\\t\\\"Nathan Day\\\"\"" expectedResult:@"Hello\n\t\"Nathan Day\""];
+	[self addName:@"Escaped Forward Slashs in String" jsonString:@"\"http:\\/\\/rhtv.cdn.launchpad6.tv\\/thumbnails\\/small\\/100.png\"" expectedResult:@"http://rhtv.cdn.launchpad6.tv/thumbnails/small/100.png"];
 	[self addName:@"Scientific Notation Number" jsonString:@"314159265358979e-14" expectedResult:[NSNumber numberWithDouble:3.14159265358979]];
 	[self addName:@"Array" jsonString:@"[1,2,\"three\",-4,-5.5,true,false,null]" expectedResult:[NSArray arrayWithObjects:INTNUM(1),INTNUM(2),@"three",INTNUM(-4),REALNUM(-5.5),BOOLNUM(YES),BOOLNUM(NO),[NSNull null], nil]];
 	[self addName:@"Nested Array" jsonString:@"[1,[\"array\"]]" expectedResult:[NSArray arrayWithObjects:INTNUM(1),[NSArray arrayWithObjects:@"array",nil],nil]];
@@ -108,7 +109,7 @@
 - (id)run
 {
 	NSError		* theError = nil;
-	NDJSONPropertyListGenerator		* theJSON = [[NDJSONPropertyListGenerator alloc] init];
+	NDJSONToPropertyList		* theJSON = [[NDJSONToPropertyList alloc] init];
 	id			theResult = [theJSON propertyListForJSONString:self.jsonString error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;

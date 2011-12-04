@@ -22,6 +22,9 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 					* const kStateColumnIdentifier = @"State",
 					* const kCheckBoxColumnIdentifier = @"CheckBox";
 
+static CGFloat		kTestListMaximumWidth = 420.0,
+					kTestListMinimumWidth = 250.0;
+
 @interface TestGroupChecks : NSObject
 {
 @private
@@ -51,7 +54,7 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 	NSMutableDictionary		* checkForTestGroups;
 	NSOperationQueue		* queue;
 	NSUInteger				testsToComplete;
-	BOOL					showErrorsOnly;
+	BOOL					showMessages;
 }
 
 @property(readonly)		NSArray					* everyTestGroup;
@@ -64,14 +67,37 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 - (void)updateStateColumn;
 
 - (void)runTest:(id<TestProtocol>)aTest waitUntilFinished:(BOOL)aFlag;
+- (void)logFormat:(NSString *)format, ...;
+- (void)logFormat:(NSString *)format arguments:(va_list)argList;
 
 @end
+
+void NDMessage( NSString *aFormat, ... )
+{
+	va_list				theArgList;
+	NDAppDelegate		* theDelegate = (NDAppDelegate*)[[NSApplication sharedApplication] delegate];
+	if( !theDelegate.isShowMessages )
+	{
+		va_start(theArgList, aFormat);
+		[theDelegate logFormat:[aFormat stringByAppendingString:@"\n"] arguments:theArgList];
+		va_end(theArgList);
+	}
+}
+
+void NDError( NSString *aFormat, ... )
+{
+	va_list				theArgList;
+	NDAppDelegate		* theDelegate = (NDAppDelegate*)[[NSApplication sharedApplication] delegate];
+	va_start(theArgList, aFormat);
+	[theDelegate logFormat:[NSString stringWithFormat:@"Error: %@\n",aFormat] arguments:theArgList];
+	va_end(theArgList);
+}
 
 @implementation NDAppDelegate
 
 @synthesize		window,
 				checkForTestGroups,
-				showErrorsOnly;
+				showMessages;
 
 #pragma mark - manually implemented properties
 
@@ -88,6 +114,9 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 		NSMutableDictionary	* theCheckForTestGroups = [[NSMutableDictionary alloc] initWithCapacity:theEveryTest.count];
 		NSParameterAssert( theClassNames != nil );
 		
+		self.checkForTestGroups = theCheckForTestGroups;
+		[theCheckForTestGroups release];
+
 		onOffFlags = [[NSMutableData alloc] initWithCapacity:theEveryTest.count];
 
 		for( NSString * theClassName in theClassNames )
@@ -98,9 +127,8 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 			[theTest release];
 			[theCheckForTestGroups setObject:[TestGroupChecks testGroupChecksWithBool:YES] forKey:theTest.name];
 		}
-		self.checkForTestGroups = theCheckForTestGroups;
-		[theCheckForTestGroups release];
 		everyTestGroup = theEveryTest;
+		[theTestProps release];
 	}
 	return everyTestGroup;
 		
@@ -129,10 +157,10 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 	return queue;
 }
 
-- (void)setShowErrorsOnly:(BOOL)aFlag
+- (void)setShowMessages:(BOOL)aFlag
 {
-	showErrorsOnly = aFlag;
-	errorsOnlyCheckBoxButton.state = showErrorsOnly ? NSOnState : NSOffState;
+	showMessages = aFlag;
+	showMessagesCheckBoxButton.state = showMessages ? NSOffState : NSOnState;
 }
 
 #pragma mark - creation destruction
@@ -140,6 +168,11 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 - (void)dealloc
 {
 	[everyTestGroup release];
+	[checkForTestGroups release];
+	[onOffFlags release];
+	[everyTestGroup release];
+	[checkForTestGroups release];
+	[queue release];
     [super dealloc];
 }
 
@@ -166,7 +199,7 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 		{
 			if( theItem.operationState == kTestOperationStateInitial )
 				[self runTest:theItem waitUntilFinished:YES];
-			[self logMessage:[NSString stringWithFormat:@"details for '%@'\n\n%@", theItem.name, theItem.details]];
+			[self logFormat:@"details for '%@'\n\n%@", theItem.name, theItem.details];
 		}
 	}];
 }
@@ -176,11 +209,12 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 	NSCalendar			* theGregorianCalendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
 	NSDateComponents	* theHourComps = [theGregorianCalendar components:NSHourCalendarUnit|NSMinuteCalendarUnit|NSSecondCalendarUnit fromDate:[NSDate date]];
 
-	[self logMessage:[NSString stringWithFormat:@"%02d:%02d:%02d\n-----------------------------------------------------------", theHourComps.hour, theHourComps.minute, theHourComps.second]];
+	[self logFormat:@"%02d:%02d:%02d\n-----------------------------------------------------------\n", theHourComps.hour, theHourComps.minute, theHourComps.second];
 	[runStopButton setTitle:NSLocalizedString(@"Stop", @"Text for run/stop button when tests are running")];
 	[self.queue setMaxConcurrentOperationCount:NSOperationQueueDefaultMaxConcurrentOperationCount];
 	for( id<TestProtocol> theTest in self.everyCheckedTest )
 		[self runTest:theTest waitUntilFinished:NO];
+	[theGregorianCalendar release];
 }
 
 - (IBAction)checkAllTests:(NSButton *)aSender
@@ -218,14 +252,32 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 	[testsOutlineView setNeedsDisplay:YES];
 }
 
-- (IBAction)errorsOnlyAction:(NSButton *)aSender
+- (IBAction)showMessagesAction:(NSButton *)aSender
 {
-	self.showErrorsOnly = aSender.state == NSOnState;
+	self.showMessages = aSender.state == NSOffState;
 }
 
-- (void)logMessage:(NSString *)aMessage
+- (void)logFormat:(NSString *)aFormat, ...
 {
-	logTextView.string = [logTextView.string stringByAppendingFormat:@"%@\n", aMessage];
+	va_list		theArgList;
+	va_start(theArgList, aFormat);
+	[self logFormat:aFormat arguments:theArgList];
+	va_end(theArgList);
+}
+
+- (void)appendString:(NSString *)aString
+{
+	logTextView.string = [logTextView.string stringByAppendingString:aString];
+}
+
+- (void)logFormat:(NSString *)aFormat arguments:(va_list)anArgList
+{
+	NSString		* theString = [[NSString alloc] initWithFormat:aFormat arguments:anArgList];
+	if( [NSThread isMainThread] )
+		[self appendString:theString];
+	else
+		[self performSelectorOnMainThread:@selector(appendString:) withObject:theString waitUntilDone:NO];
+	[theString release];
 }
 
 - (void)runTest:(id<TestProtocol>)aTest waitUntilFinished:(BOOL)aFlag
@@ -383,12 +435,25 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 	return theResult;
 }
 
-- (CGFloat)splitView:(NSSplitView *)aSplitView constrainMinCoordinate:(CGFloat)aProposedMin ofSubviewAt:(NSInteger)aDividerIndex
+- (CGFloat)splitView:(NSSplitView *)aSplitView constrainMaxCoordinate:(CGFloat)aProposedMax ofSubviewAt:(NSInteger)aDividerIndex
 {
-	return 239;
+	return kTestListMaximumWidth;
 }
 
-- (BOOL)splitView:(NSSplitView *)aSplitView canCollapseSubview:(NSView *)aSubview { return NO; }
+- (CGFloat)splitView:(NSSplitView *)aSplitView constrainMinCoordinate:(CGFloat)aProposedMin ofSubviewAt:(NSInteger)aDividerIndex
+{
+	return kTestListMinimumWidth;
+}
+
+- (BOOL)splitView:(NSSplitView *)aSplitView canCollapseSubview:(NSView *)aSubview
+{
+	return [testsOutlineView isDescendantOf:aSubview];
+}
+
+- (BOOL)splitView:(NSSplitView *)aSplitView shouldCollapseSubview:(NSView *)aSubview forDoubleClickOnDividerAtIndex:(NSInteger)aDividerIndex
+{
+	return [testsOutlineView isDescendantOf:aSubview];
+}
 
 #pragma mark - Private
 
@@ -396,6 +461,7 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 {
 	@synchronized(self.queue)
 	{
+		NDMessage( @"Test %@ started...", aTest.name );
 		testsToComplete++;
 	}
 	[[self.checkForTestGroups objectForKey:[[aTest testGroup] name]] setState:aTest.operationState forTestName:aTest.name];
@@ -407,7 +473,7 @@ static NSString		* const kNameColumnIdentifier = @"Name",
 	@synchronized(self.queue)
 	{
 		testsToComplete--;
-		NSLog( @"Test %@ finshed", aTest.name );
+		NDMessage( @"...Test %@ finshed", aTest.name );
 		if( aTest.hasError )
 			NSLog(@"%@", aTest.error );
 		if( testsToComplete == 0 )

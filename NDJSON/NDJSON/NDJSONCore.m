@@ -411,7 +411,7 @@ BOOL parseText( struct NDJSONContext * aContext, BOOL aIsKey, BOOL aIsQuotesTerm
 
 {
 	BOOL					theResult = YES,
-	theEnd = NO;
+							theEnd = NO;
 	struct NDBytesBuffer	theBuffer = NDBytesBufferInit;
 	
 	while( theResult  && !theEnd)
@@ -499,6 +499,7 @@ BOOL parseText( struct NDJSONContext * aContext, BOOL aIsKey, BOOL aIsQuotesTerm
 			if( aContext->delegateMethod.foundString != NULL )
 				aContext->delegateMethod.foundString( aContext->delegate, @selector(jsonParser:foundString:), aContext->parser, theValue );
 		}
+		[theValue release];
 	}
 	else
 		foundError( aContext, NDJSONBadFormatError );
@@ -765,5 +766,92 @@ void freeByte( struct NDBytesBuffer * aBuffer )
 	aBuffer->bytes = NULL;
 	aBuffer->length = 0;
 	aBuffer->capacity = 0;
+}
+
+#pragma mark - functions used by NDJSONToPropertyList
+void initGeneratorContext( struct NDJSONGeneratorContext * aContext )
+{
+	aContext->previousKeys = [[NSMutableArray alloc] init];
+	aContext->previousObject = [[NSMutableArray alloc] init];
+	aContext->currentObject = nil;
+	aContext->currentKey = nil;
+	aContext->root = nil;
+}
+
+void freeGeneratorContext( struct NDJSONGeneratorContext * aContext )
+{
+	[aContext->previousKeys release];
+	[aContext->previousObject release];
+}
+
+void pushObject( struct NDJSONGeneratorContext * aContext, id anObject )
+{
+	NSCParameterAssert( anObject != nil );
+	NSCParameterAssert( aContext->previousObject != nil );
+	if( aContext->currentObject != nil )
+	{
+		[aContext->previousObject addObject:aContext->currentObject];
+	}
+	aContext->currentObject = [anObject retain];
+}
+
+void popCurrentObject( struct NDJSONGeneratorContext * aContext )
+{
+	[aContext->currentObject release], aContext->currentObject = nil;
+	NSCParameterAssert( aContext->previousObject != nil );
+	if( [aContext->previousObject count] > 0 )
+	{
+		aContext->currentObject = [aContext->previousObject lastObject];
+		[aContext->previousObject removeLastObject];
+	}
+}
+
+void setCurrentKey( struct NDJSONGeneratorContext * aContext, NSString * aKey )
+{
+	NSCParameterAssert(aContext->currentKey == nil);
+	aContext->currentKey = [aKey retain];
+}
+
+void pushKeyCurrentKey( struct NDJSONGeneratorContext * aContext )
+{
+	if( aContext->currentKey != nil )
+	{
+		NSCParameterAssert(aContext->previousKeys != nil );
+		[aContext->previousKeys addObject:aContext->currentKey];
+		[aContext->currentKey release], aContext->currentKey = nil;
+	}
+}
+
+void popCurrentKey( struct NDJSONGeneratorContext * aContext )
+{
+	NSCParameterAssert( aContext->currentKey == nil);
+	aContext->currentKey = [aContext->previousKeys lastObject];
+	if( aContext->currentKey == [NSNull null] )
+		aContext->currentKey = nil;
+	[aContext->currentKey retain];
+	[aContext->previousKeys removeLastObject];
+}
+
+void addObject( struct NDJSONGeneratorContext * aContext, id anObject )
+{
+	if( aContext->currentObject != nil )
+	{
+		if( aContext->currentKey == nil )
+		{
+			NSCParameterAssert( [aContext->currentObject respondsToSelector:@selector(addObject:)] );
+			[aContext->currentObject addObject:anObject];
+		}
+		else
+		{
+			NSCParameterAssert( [aContext->currentObject respondsToSelector:@selector(setValue:forKey:)] );
+			[aContext->currentObject setValue:anObject forKey:aContext->currentKey];
+			[aContext->currentKey release], aContext->currentKey = nil;
+		}
+	}
+	else
+	{
+		NSCParameterAssert( aContext->root == nil );
+		aContext->root = [anObject retain];
+	}
 }
 

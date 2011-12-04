@@ -7,9 +7,22 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "NDJSONCore.h"
 
-@class		NDJSON;
+@protocol		NDJSONDelegate;
+
+@interface NDJSON : NSObject
+
+@property(assign)		id<NDJSONDelegate>	delegate;
+
+- (id)initWithDelegate:(id<NDJSONDelegate>)delegate;
+
+- (BOOL)parseJSONString:(NSString *)string error:(NSError **)error;
+- (BOOL)parseContentsOfFile:(NSString *)path error:(NSError **)error;
+- (BOOL)parseContentsOfURL:(NSURL *)url error:(NSError **)error;
+- (BOOL)parseContentsOfURLRequest:(NSURLRequest *)urlRequest error:(NSError **)error;
+- (BOOL)parseInputStream:(NSInputStream *)stream error:(NSError **)error;
+
+@end
 
 @protocol NDJSONDelegate <NSObject>
 
@@ -27,24 +40,6 @@
 - (void)jsonParser:(NDJSON *)parser foundBool:(BOOL)aValue;
 - (void)jsonParserFoundNULL:(NDJSON *)parser;
 - (void)jsonParser:(NDJSON *)parser error:(NSError *)error;
-@end
-
-@interface NDJSON : NSObject
-
-@property(assign)		id<NDJSONDelegate>	delegate;
-@property(readonly)		NSDictionary		* templateDictionary;
-@property(readonly)		NDJSONContainer		currentContainer;
-@property(readonly)		NSString 			* currentKey;
-
-- (id)initWithDelegate:(id<NDJSONDelegate>)delegate;
-
-- (BOOL)parseJSONString:(NSString *)string error:(NSError **)error;
-- (BOOL)parseContentsOfFile:(NSString *)path error:(NSError **)error;
-- (BOOL)parseContentsOfURL:(NSURL *)url error:(NSError **)error;
-- (BOOL)parseContentsOfURLRequest:(NSURLRequest *)urlRequest error:(NSError **)error;
-- (BOOL)parseInputStream:(NSInputStream *)stream error:(NSError **)error;
-
-//- (BOOL)asynchronousParseContentsOfURLRequest:(NSURLRequest *)urlRequest error:(NSError **)error;
-//- (BOOL)asynchronousParseInputStream:(NSInputStream *)stream error:(NSError **)error;
 
 @end
+

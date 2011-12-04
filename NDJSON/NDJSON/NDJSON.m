@@ -7,16 +7,17 @@
 //
 
 #import "NDJSON.h"
-
+#import "NDJSONCore.h"
 
 #pragma mark - cluster class NDJSON private interface
 @interface NDJSON ()
 {
-	id<NDJSONDelegate>				delegate;
+	__weak id<NDJSONDelegate>		delegate;
 	struct NDJSONContext			parserContext;
 }
 
 @property(readonly)	struct NDJSONContext	* parserContext;
+@property(readonly)		NDJSONContainer		currentContainer;
 
 @end
 
@@ -28,9 +29,7 @@
 #pragma mark - manually implemented properties
 
 - (struct NDJSONContext	*)parserContext { return &parserContext; }
-- (NSDictionary *)templateDictionary { return nil; }
 - (NDJSONContainer)currentContainer { return currentContainer(&parserContext); }
-- (NSString *)currentKey { return nil; }
 
 #pragma mark - creation and destruction etc
 
@@ -49,7 +48,7 @@
 
 #pragma mark - parsing methods
 
-- (BOOL)parseJSONString:(NSString *)aString error:(NSError **)aError
+- (BOOL)parseJSONString:(NSString *)aString error:(__autoreleasing NSError **)aError
 {
 	BOOL			theResult = NO;
 	NSAssert( aString != nil, @"nil input JSON string" );
@@ -61,7 +60,7 @@
 	return theResult;
 }
 
-- (BOOL)parseContentsOfFile:(NSString *)aPath error:(NSError **)aError
+- (BOOL)parseContentsOfFile:(NSString *)aPath error:(__autoreleasing NSError **)aError
 {
 	BOOL			theResult = NO;
 	NSAssert( aPath != nil, @"nil input JSON path" );
@@ -71,7 +70,7 @@
 	return theResult;
 }
 
-- (BOOL)parseContentsOfURL:(NSURL *)aURL error:(NSError **)aError
+- (BOOL)parseContentsOfURL:(NSURL *)aURL error:(__autoreleasing NSError **)aError
 {
 	BOOL			theResult = NO;
 	NSAssert( aURL != nil, @"nil input JSON file url" );
@@ -81,7 +80,7 @@
 	return theResult;
 }
 
-- (BOOL)parseContentsOfURLRequest:(NSURLRequest *)aURLRequest error:(NSError **)anError
+- (BOOL)parseContentsOfURLRequest:(NSURLRequest *)aURLRequest error:(__autoreleasing NSError **)anError
 {
 	BOOL			theResult = NO;
 	CFHTTPMessageRef	theMessageRef = CFHTTPMessageCreateRequest( kCFAllocatorDefault, (__bridge CFStringRef)aURLRequest.HTTPMethod, (__bridge CFURLRef)aURLRequest.URL, kCFHTTPVersion1_1 );
@@ -89,11 +88,13 @@
 	{
 		CFReadStreamRef		theReadStreamRef = CFReadStreamCreateForHTTPRequest( kCFAllocatorDefault, theMessageRef );
 		theResult = [self parseInputStream:(__bridge NSInputStream*)theReadStreamRef error:anError];
+		CFRelease(theReadStreamRef);
+		CFRelease(theMessageRef);
 	}
 	return theResult;
 }
 
-- (BOOL)parseInputStream:(NSInputStream *)aStream error:(NSError **)aError
+- (BOOL)parseInputStream:(NSInputStream *)aStream error:(__autoreleasing NSError **)aError
 {
 	BOOL			theResult = NO;
 	NSAssert( aStream != nil, @"nil input stream" );
