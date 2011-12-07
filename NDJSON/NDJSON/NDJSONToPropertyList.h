@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+@class			NDJSON;
+
 @interface NDJSONToPropertyList : NSObject
 
 - (id)propertyListForJSONString:(NSString *)string error:(NSError **)error;
@@ -15,5 +17,7 @@
 - (id)propertyListForContentsOfURL:(NSURL *)url error:(NSError **)error;
 - (id)propertyListForContentsOfURLRequest:(NSURLRequest *)urlRequest error:(NSError **)error;
 - (id)propertyListForInputStream:(NSInputStream *)stream error:(NSError **)error;
+
+- (id)propertyListForJSONParser:(NDJSON *)parser;
 
 @end

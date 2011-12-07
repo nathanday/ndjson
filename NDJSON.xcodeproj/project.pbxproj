@@ -74,6 +74,8 @@
 		D8D6024B1414FD91007F8A29 /* NDAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NDAppDelegate.h; sourceTree = "<group>"; };
 		D8D6024C1414FD91007F8A29 /* NDAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NDAppDelegate.m; sourceTree = "<group>"; };
 		D8D6024F1414FD92007F8A29 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		D8EA3F3D148D15B300B52FC3 /* NDJSONSelect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONSelect.h; sourceTree = "<group>"; };
+		D8EA3F3E148D15B300B52FC3 /* NDJSONSelect.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONSelect.m; sourceTree = "<group>"; };
 		D8F022621425EB3000504B84 /* TestFileInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestFileInput.h; sourceTree = "<group>"; };
 		D8F022631425EB3000504B84 /* TestFileInput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestFileInput.m; sourceTree = "<group>"; };
 		D8F0226B1425F44000504B84 /* file1.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = file1.json; sourceTree = "<group>"; };
@@ -111,6 +113,8 @@
 				D8CCFCFF1489B06A0015DF1E /* NDJSONCore.m */,
 				D8CCFD001489B06A0015DF1E /* NDJSONToPropertyList.h */,
 				D8CCFD011489B06A0015DF1E /* NDJSONToPropertyList.m */,
+				D8EA3F3D148D15B300B52FC3 /* NDJSONSelect.h */,
+				D8EA3F3E148D15B300B52FC3 /* NDJSONSelect.m */,
 			);
 			path = NDJSON;
 			sourceTree = "<group>";

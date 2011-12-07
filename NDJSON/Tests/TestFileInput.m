@@ -86,10 +86,10 @@
 - (id)run
 {
 	NSError		* theError = nil;
-	NDJSONToPropertyList		* theJSON = [[NDJSONToPropertyList alloc] init];
-	self.lastResult = [theJSON propertyListForContentsOfFile:self.path error:&theError];
+	NDJSONToPropertyList		* theJSONToPropertyList = [[NDJSONToPropertyList alloc] init];
+	self.lastResult = [theJSONToPropertyList propertyListForContentsOfFile:self.path error:&theError];
 	self.error = theError;
-	[theJSON release];
+	[theJSONToPropertyList release];
 	return lastResult;
 }
 

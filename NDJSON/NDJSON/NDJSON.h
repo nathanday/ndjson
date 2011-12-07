@@ -12,6 +12,8 @@
 
 @interface NDJSON : NSObject
 
+@property(readonly)		NSUInteger		position;
+
 @property(assign)		id<NDJSONDelegate>	delegate;
 
 - (id)initWithDelegate:(id<NDJSONDelegate>)delegate;
@@ -21,6 +23,14 @@
 - (BOOL)parseContentsOfURL:(NSURL *)url error:(NSError **)error;
 - (BOOL)parseContentsOfURLRequest:(NSURLRequest *)urlRequest error:(NSError **)error;
 - (BOOL)parseInputStream:(NSInputStream *)stream error:(NSError **)error;
+
+- (BOOL)setJSONString:(NSString *)string error:(NSError **)error;
+- (BOOL)setContentsOfFile:(NSString *)path error:(NSError **)error;
+- (BOOL)setContentsOfURL:(NSURL *)url error:(NSError **)error;
+- (BOOL)setContentsOfURLRequest:(NSURLRequest *)urlRequest error:(NSError **)error;
+- (BOOL)setInputStream:(NSInputStream *)stream error:(NSError **)error;
+
+- (BOOL)parse;
 
 @end
 

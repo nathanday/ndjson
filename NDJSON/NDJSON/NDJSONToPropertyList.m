@@ -27,11 +27,11 @@
 {
 	id					theResult =  nil;
 	NSAssert( aString != nil, @"nil input JSON string" );
-	NDJSON			* theJSONParser = [[NDJSON alloc] initWithDelegate:self];
+	NDJSON			* theJSONParser = [[NDJSON alloc] init];
 	if( theJSONParser != nil )
 	{
-		if( [theJSONParser parseJSONString:aString error:aError] )
-			theResult = generatorContext.root;
+		if( [theJSONParser setJSONString:aString error:aError] )
+			theResult = [self propertyListForJSONParser:theJSONParser];
 	}
 	[theJSONParser release];
 	return theResult;
@@ -41,11 +41,11 @@
 {
 	id					theResult =  nil;
 	NSAssert( aPath != nil, @"nil input path" );
-	NDJSON			* theJSONParser = [[NDJSON alloc] initWithDelegate:self];
+	NDJSON			* theJSONParser = [[NDJSON alloc] init];
 	if( theJSONParser != nil )
 	{
-		if( [theJSONParser parseContentsOfFile:aPath error:aError] )
-			theResult = generatorContext.root;
+		if( [theJSONParser setContentsOfFile:aPath error:aError] )
+			theResult = [self propertyListForJSONParser:theJSONParser];
 	}
 	[theJSONParser release];
 	return theResult;
@@ -55,11 +55,11 @@
 {
 	id					theResult =  nil;
 	NSAssert( aURL != nil, @"nil input file url" );
-	NDJSON			* theJSONParser = [[NDJSON alloc] initWithDelegate:self];
+	NDJSON			* theJSONParser = [[NDJSON alloc] init];
 	if( theJSONParser != nil )
 	{
-		if( [theJSONParser parseContentsOfURL:aURL error:anError] )
-			theResult = generatorContext.root;
+		if( [theJSONParser setContentsOfURL:aURL error:anError] )
+			theResult = [self propertyListForJSONParser:theJSONParser];
 	}
 	[theJSONParser release];
 	return theResult;
@@ -69,11 +69,11 @@
 {
 	id					theResult =  nil;
 	NSAssert( aURLRequest != nil, @"nil URL request" );
-	NDJSON			* theJSONParser = [[NDJSON alloc] initWithDelegate:self];
+	NDJSON			* theJSONParser = [[NDJSON alloc] init];
 	if( theJSONParser != nil )
 	{
-		if( [theJSONParser parseContentsOfURLRequest:aURLRequest error:aError] )
-			theResult = generatorContext.root;
+		if( [theJSONParser setContentsOfURLRequest:aURLRequest error:aError] )
+			theResult = [self propertyListForJSONParser:theJSONParser];
 	}
 	[theJSONParser release];
 	return theResult;
@@ -83,13 +83,23 @@
 {
 	id					theResult =  nil;
 	NSAssert( aStream != nil, @"nil input JSON stream" );
-	NDJSON			* theJSONParser = [[NDJSON alloc] initWithDelegate:self];
+	NDJSON			* theJSONParser = [[NDJSON alloc] init];
 	if( theJSONParser != nil )
 	{
-		if( [theJSONParser parseInputStream:aStream error:aError] )
-			theResult = generatorContext.root;
+		if( [theJSONParser setInputStream:aStream error:aError] )
+			theResult = [self propertyListForJSONParser:theJSONParser];
 	}
 	[theJSONParser release];
+	return theResult;
+}
+
+- (id)propertyListForJSONParser:(NDJSON *)aParser
+{
+	id		theResult = nil;
+	NSAssert( aParser != nil, @"nil JSON parser" );
+	aParser.delegate = self;
+	if( [aParser parse] )
+		theResult = generatorContext.root;
 	return theResult;
 }
 

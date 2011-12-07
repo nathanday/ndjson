@@ -252,6 +252,8 @@ NDJSONContainer currentContainer( struct NDJSONContext * aContext )
 	return (NDJSONContainer)topByte(&aContext->containers);
 }
 
+NSUInteger currentPosition( struct NDJSONContext * aContext ) { return aContext->position; }
+
 BOOL unknownParsing( struct NDJSONContext * aContext )
 {
 	BOOL		theResult = YES;

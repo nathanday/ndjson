@@ -9,12 +9,14 @@
 #import "TestOperation.h"
 #import "TestGroup.h"
 #import "NDAppDelegate.h"
+#import "NDJSON.h"
 
 @interface TestOperation ()
 {
 	id<TestProtocol>	test;
 	BOOL				succeeded;
 	void (^beginningBlock)(void);
+	BOOL (^additionValidation)(TestOperation * aTestOperation);
 }
 
 @end

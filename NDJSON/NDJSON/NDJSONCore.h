@@ -78,6 +78,7 @@ void freeContext( struct NDJSONContext * );
 
 BOOL beginParsing( struct NDJSONContext * aContext );
 NDJSONContainer currentContainer( struct NDJSONContext * aContext );
+NSUInteger currentPosition( struct NDJSONContext * aContext );
 
 struct NDJSONGeneratorContext
 {
