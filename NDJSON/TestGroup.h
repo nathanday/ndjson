@@ -12,11 +12,12 @@
 
 enum TestOperationState
 {
-    kTestOperationStateFinished,
     kTestOperationStateInitial, 
-	kTestOperationStateError,
+    kTestOperationStateExecuting,
 	kTestOperationStateException,
-    kTestOperationStateExecuting 
+    kTestOperationStateFinished,
+	kTestOperationStateTestFailed,
+	kTestOperationStateError
 };
 
 @protocol TestProtocol <NSObject>

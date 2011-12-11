@@ -74,6 +74,7 @@ struct NDJSONContext
 BOOL contextWithNullTermiantedString( struct NDJSONContext *, NDJSON * aParser, const char *, id<NDJSONDelegate> );
 BOOL contextWithBytes( struct NDJSONContext *, NDJSON * aParser, const uint8_t *, NSUInteger, id<NDJSONDelegate> );
 BOOL contextWithInputStream( struct NDJSONContext *, NDJSON *, NSInputStream *, id<NDJSONDelegate> );
+void setDelegateForContext( struct NDJSONContext *, id<NDJSONDelegate> );
 void freeContext( struct NDJSONContext * );
 
 BOOL beginParsing( struct NDJSONContext * aContext );
@@ -89,7 +90,10 @@ struct NDJSONGeneratorContext
 	id					root;
 };
 
-#pragma mark - functions used by NDJSONToPropertyList to build tree
+/**
+ functions used by NDJSONToPropertyList to build tree
+ */
+
 void initGeneratorContext( struct NDJSONGeneratorContext * context );
 void freeGeneratorContext( struct NDJSONGeneratorContext * context );
 void pushObject( struct NDJSONGeneratorContext * context, id object );

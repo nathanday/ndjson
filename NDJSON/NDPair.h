@@ -9,8 +9,8 @@
 #import <Foundation/Foundation.h>
 
 @interface NDPair : NSObject <NSCopying,NSMutableCopying,NSCoding>
-@property(readonly,retain)		id		primary,
-								secondary;
+@property(readonly,retain,nonatomic)	id		primary,
+												secondary;
 
 + (id)pairWithPrimary:(id)primary secondary:(id)secondary;
 - (id)initWithPrimary:(id)primary secondary:(id)secondary;
@@ -55,7 +55,7 @@ enum NDPairPosition
 - (void)setPrimary:(id)object;
 - (void)setSecondary:(id)object;
 
-- (void)swappingObjects;
+- (void)swapObjects;
 - (void)removeAllObjects;
 
 @end

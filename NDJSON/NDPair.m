@@ -207,7 +207,7 @@ static NSString		* const kPrimaryObjectKey = @"primary",
 	}
 }
 
-- (void)swappingObjects
+- (void)swapObjects
 {
 	if( primary != secondary )
 	{

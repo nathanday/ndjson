@@ -33,6 +33,12 @@
 - (struct NDJSONContext	*)parserContext { return &parserContext; }
 - (NDJSONContainer)currentContainer { return currentContainer(&parserContext); }
 
+- (void)setDelegate:(id<NDJSONDelegate>)aDelegate
+{
+	delegate = aDelegate;
+	setDelegateForContext( self.parserContext, self.delegate );
+}
+
 #pragma mark - creation and destruction etc
 
 - (id)init

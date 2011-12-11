@@ -26,4 +26,14 @@
 	return blockForPath;
 }
 
+- (void)addKeyPath:(NSString *)aKeyPath block:(void (^)(NSString *, id, id value))aBlock
+{
+	[self.blockForPath setObject:aBlock forKey:aKey];
+}
+
+#pragma mark - NDJSON delegate methods
+
+
+
+
 @end

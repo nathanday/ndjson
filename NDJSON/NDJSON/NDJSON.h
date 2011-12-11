@@ -12,9 +12,9 @@
 
 @interface NDJSON : NSObject
 
-@property(readonly)		NSUInteger		position;
+@property(readonly,nonatomic)		NSUInteger		position;
 
-@property(assign)		id<NDJSONDelegate>	delegate;
+@property(assign,nonatomic)		id<NDJSONDelegate>	delegate;
 
 - (id)initWithDelegate:(id<NDJSONDelegate>)delegate;
 

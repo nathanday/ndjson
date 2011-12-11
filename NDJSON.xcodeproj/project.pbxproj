@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D80B5717148FAA0100999695 /* JSONToObjectiveCMapping.plist in Resources */ = {isa = PBXBuildFile; fileRef = D80B5716148FAA0100999695 /* JSONToObjectiveCMapping.plist */; };
 		D80E19BA141A7E3000ED0747 /* NDPair.m in Sources */ = {isa = PBXBuildFile; fileRef = D80E19B9141A7E3000ED0747 /* NDPair.m */; };
 		D81677041416265A0082CEB6 /* TestGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = D81677031416265A0082CEB6 /* TestGroup.m */; };
 		D854B626141508000019D7E2 /* TestClassNames.plist in Resources */ = {isa = PBXBuildFile; fileRef = D854B625141508000019D7E2 /* TestClassNames.plist */; };
@@ -40,6 +41,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D80B5716148FAA0100999695 /* JSONToObjectiveCMapping.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = JSONToObjectiveCMapping.plist; sourceTree = "<group>"; };
 		D80E19B8141A7E3000ED0747 /* NDPair.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDPair.h; sourceTree = "<group>"; };
 		D80E19B9141A7E3000ED0747 /* NDPair.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDPair.m; sourceTree = "<group>"; };
 		D81676FE141624E30082CEB6 /* TestStringInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestStringInput.h; sourceTree = "<group>"; };
@@ -220,6 +222,7 @@
 				D8D473941428BB8700954AD3 /* file5.plist */,
 				D8F022701425F44000504B84 /* file6.json */,
 				D8C1EDC4142A057B00FED1B0 /* file6.plist */,
+				D80B5716148FAA0100999695 /* JSONToObjectiveCMapping.plist */,
 			);
 			path = SampleFiles;
 			sourceTree = "<group>";
@@ -291,6 +294,7 @@
 				D8C1EDC5142A057B00FED1B0 /* file3.plist in Resources */,
 				D8C1EDC6142A057B00FED1B0 /* file4.plist in Resources */,
 				D8C1EDC7142A057B00FED1B0 /* file6.plist in Resources */,
+				D80B5717148FAA0100999695 /* JSONToObjectiveCMapping.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

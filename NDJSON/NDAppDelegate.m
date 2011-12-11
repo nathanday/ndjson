@@ -283,8 +283,8 @@ void NDError( NSString *aFormat, ... )
 - (void)runTest:(id<TestProtocol>)aTest waitUntilFinished:(BOOL)aFlag
 {
 	TestOperation	* theTestOpp = [[TestOperation alloc] initWithTestProtocol:aTest];
-	[theTestOpp setBeginningBlock:^{[self startedTest:aTest];}];
-	[theTestOpp setCompletionBlock:^{[self finshedTest:aTest];}];
+	theTestOpp.beginningBlock = ^{[self startedTest:aTest];};
+	theTestOpp.completionBlock = ^{[self finshedTest:aTest];};
 	[self.queue addOperation:theTestOpp];
 	[theTestOpp release];
 	if( aFlag )
@@ -334,6 +334,9 @@ void NDError( NSString *aFormat, ... )
 			case kTestOperationStateInitial:
 				theResult = NSLocalizedString(@"Initial", @"State displayed for kTestOperationStateInitial, showing that the test has not run yet." );
 				break;
+			case kTestOperationStateTestFailed:
+				theResult = NSLocalizedString(@"Failed", @"State displayed for kTestOperationStateTestFailed, showing that the test result does not make the expected result." );
+				break;
 			case kTestOperationStateExecuting:
 				theResult = NSLocalizedString(@"Executing", @"State displayed for kTestOperationStateExecuting, showing that the test is currently in progress" );
 				break;
@@ -341,7 +344,7 @@ void NDError( NSString *aFormat, ... )
 				theResult = NSLocalizedString(@"Complete", @"State displayed for kTestOperationStateFinished, showing that the test was completed error free." );
 				break;
 			case kTestOperationStateError:
-				theResult = NSLocalizedString(@"Error", @"State displayed for kTestOperationStateError, showing that the test was completed with and error result" );
+				theResult = NSLocalizedString(@"Error", @"State displayed for kTestOperationStateError, showing that the test was completed with NDJSON production an error" );
 				break;
 			case kTestOperationStateException:
 				theResult = NSLocalizedString(@"Exception", @"State displayed for kTestOperationStateException, showing that the test was not completed because an exception was thrown." );

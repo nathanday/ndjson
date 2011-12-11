@@ -7,8 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "NDJSONToPropertyList.h"
 
-@interface NDJSONSelect : NSObject
+@interface NDJSONSelect : NDJSONToPropertyList
 
 - (BOOL)parseJSONString:(NSString *)string error:(NSError **)error;
 - (BOOL)parseContentsOfFile:(NSString *)path error:(NSError **)error;
@@ -16,6 +17,6 @@
 - (BOOL)parseContentsOfURLRequest:(NSURLRequest *)urlRequest error:(NSError **)error;
 - (BOOL)parseInputStream:(NSInputStream *)stream error:(NSError **)error;
 
-- (void)addMatchPath:(NSString *)path block:(void (^)(NSString * path, id value))block;
+- (void)addKeyPath:(NSString *)keyPath block:(void (^)(NSString * path, id parent, id value))block;
 
 @end

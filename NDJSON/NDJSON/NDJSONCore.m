@@ -62,57 +62,54 @@ static void foundError( struct NDJSONContext * aContext, NDJSONErrorCode aCode )
 
 BOOL contextWithNullTermiantedString( struct NDJSONContext * aContext, NDJSON * aParser, const char * aString, id<NDJSONDelegate> aDelegate )
 {
-	if( aDelegate != nil )
-	{
-		aContext->position = 0;
-		aContext->length = NSUIntegerMax;
-		aContext->bytes = (uint8_t*)aString;
-		aContext->complete = NO;
-		aContext->useBackUpByte = NO;
-		aContext->parser = aParser;
-		aContext->delegate = aDelegate;
-		aContext->inputStream = NULL;
-		if( aContext->delegate != nil )
-			setUpRespondsTo( aContext );
-	}
-	return aContext->delegate != nil;
+	aContext->position = 0;
+	aContext->length = NSUIntegerMax;
+	aContext->bytes = (uint8_t*)aString;
+	aContext->complete = NO;
+	aContext->useBackUpByte = NO;
+	aContext->parser = aParser;
+	aContext->delegate = aDelegate;
+	aContext->inputStream = NULL;
+	if( aContext->delegate != nil )
+		setUpRespondsTo( aContext );
+	return aContext->bytes != NULL;
 }
 
 BOOL contextWithBytes( struct NDJSONContext * aContext, NDJSON * aParser, const uint8_t * aBytes, NSUInteger aLen, id<NDJSONDelegate> aDelegate )
 {
-	if( aDelegate != nil )
-	{
-		aContext->position = 0;
-		aContext->length = aLen;
-		aContext->bytes = (uint8_t*)aBytes;
-		aContext->complete = NO;
-		aContext->useBackUpByte = NO;
-		aContext->parser = aParser;
-		aContext->delegate = aDelegate;
-		aContext->inputStream = NULL;
+	aContext->position = 0;
+	aContext->length = aLen;
+	aContext->bytes = (uint8_t*)aBytes;
+	aContext->complete = NO;
+	aContext->useBackUpByte = NO;
+	aContext->parser = aParser;
+	aContext->delegate = aDelegate;
+	aContext->inputStream = NULL;
 
-		if( aContext->delegate != nil )
-			setUpRespondsTo( aContext );
-	}
-	return aContext->delegate != nil;
+	if( aContext->delegate != nil )
+		setUpRespondsTo( aContext );
+	return aContext->bytes != NULL;
 }
 
 BOOL contextWithInputStream( struct NDJSONContext * aContext, NDJSON * aParser, NSInputStream * aStream, id<NDJSONDelegate> aDelegate )
 {
-	if( aDelegate != nil )
-	{
-		aContext->position = 0;
-		aContext->length = 0;
-		aContext->bytes = malloc(kBufferSize);
-		aContext->complete = NO;
-		aContext->useBackUpByte = NO;
-		aContext->parser = aParser;
-		aContext->delegate = aDelegate;
-		aContext->inputStream = [aStream retain];
-		if( aContext->delegate != nil )
-			setUpRespondsTo( aContext );
-	}
-	return aContext->delegate != nil;
+	aContext->position = 0;
+	aContext->length = 0;
+	aContext->bytes = malloc(kBufferSize);
+	aContext->complete = NO;
+	aContext->useBackUpByte = NO;
+	aContext->parser = aParser;
+	aContext->delegate = aDelegate;
+	aContext->inputStream = [aStream retain];
+	if( aContext->delegate != nil )
+		setUpRespondsTo( aContext );
+	return aContext->inputStream != NULL && aContext->bytes != NULL;
+}
+
+void setDelegateForContext( struct NDJSONContext * aContext, id<NDJSONDelegate> aDelegate )
+{
+	aContext->delegate = aDelegate;
+	setUpRespondsTo( aContext );
 }
 
 void freeContext( struct NDJSONContext * aContext )
@@ -161,8 +158,8 @@ void setUpRespondsTo( struct NDJSONContext * aContext )
 	aContext->delegateMethod.foundBool = [theDelegate respondsToSelector:@selector(jsonParser:foundBool:)]
 										? [theDelegate methodForSelector:@selector(jsonParser:foundBool:)]
 										: NULL;
-	aContext->delegateMethod.foundNULL = [theDelegate respondsToSelector:@selector(jsonParserFoundNULL)]
-										? [theDelegate methodForSelector:@selector(jsonParserFoundNULL)]
+	aContext->delegateMethod.foundNULL = [theDelegate respondsToSelector:@selector(jsonParserFoundNULL:)]
+										? [theDelegate methodForSelector:@selector(jsonParserFoundNULL:)]
 										: NULL;
 	aContext->delegateMethod.foundError = [theDelegate respondsToSelector:@selector(jsonParser:error:)]
 										? [theDelegate methodForSelector:@selector(jsonParser:error:)]
@@ -289,7 +286,7 @@ BOOL unknownParsing( struct NDJSONContext * aContext )
 	}
 	
 	if( theResult )
-		theResult = skipWhiteSpace(aContext) != '\0';
+		skipWhiteSpace(aContext);
 	return theResult;
 }
 
@@ -361,6 +358,7 @@ BOOL parseObject( struct NDJSONContext * aContext )
 					theCount++;
 					switch( theChar )
 					{
+						case '\0':
 						case '}':
 							theEnd = YES;
 							break;
@@ -530,7 +528,7 @@ BOOL parseNumber( struct NDJSONContext * aContext )
 		switch( theChar )
 		{
 			case '\0':
-				theResult = 0;
+				theEnd = YES;
 				break;
 			case '0'...'9':
 				if( theDecimalPlaces <= 0 )
@@ -561,9 +559,9 @@ BOOL parseNumber( struct NDJSONContext * aContext )
 					theChar = nextChar(aContext);
 					switch( theChar )
 					{
-						case '\0':
-							theResult = NO;
-							break;
+//						case '\0':
+//							theEnd = YES;
+//							break;
 						case '0'...'9':
 							theExponentValue = theExponentValue * 10 + (theChar - '0');
 							break;

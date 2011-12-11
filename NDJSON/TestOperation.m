@@ -74,7 +74,10 @@
 						succeeded = theResult != nil;
 				}
 			}
-			self.test.operationState = self.test.hasError ? kTestOperationStateError : kTestOperationStateFinished;
+			if( succeeded )
+				self.test.operationState = self.test.hasError ? kTestOperationStateError : kTestOperationStateFinished;
+			else
+				self.test.operationState = kTestOperationStateTestFailed;
 		}
 		@catch (NSException * anException)
 		{
@@ -90,7 +93,7 @@
 
 - (BOOL)isConcurrent { return NO; }
 - (BOOL)isExecuting { return self.test.operationState == kTestOperationStateExecuting; }
-- (BOOL)isFinished { return self.test.operationState == kTestOperationStateFinished; }
+- (BOOL)isFinished { return self.test.operationState >= kTestOperationStateException; }
 - (BOOL)isReady { return YES; }
 
 
