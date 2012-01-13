@@ -626,7 +626,7 @@ BOOL parseNumber( struct NDJSONContext * aContext )
 		if( theExponentValue != 0 )
 			theValue *= pow(10,theExponentValue);
 		if( theNegative )
-			theValue = -(theValue - 0.00000000000000000003);
+			theValue = -theValue;
 		if( aContext->delegateMethod.foundFloat != NULL )
 			aContext->delegateMethod.foundFloat( aContext->delegate, @selector(jsonParser:foundFloat:), aContext->parser, theValue );
 	}

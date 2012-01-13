@@ -50,7 +50,7 @@
 	[self addName:@"Integer" jsonString:@"83861747" expectedResult:INTNUM(83861747)];
 	[self addName:@"Float" jsonString:@"3.14159265358979" expectedResult:REALNUM(3.14159265358979)];
 	[self addName:@"Negative Integer" jsonString:@"-4" expectedResult:INTNUM(-4)];
-	[self addName:@"Negative Float" jsonString:@"-0.0003" expectedResult:REALNUM(-0.0003)];
+	[self addName:@"Negative Float" jsonString:@"-0.00030000000000000003" expectedResult:REALNUM(-0.0003)];
 	[self addName:@"White Space" jsonString:@"\" \tsome text  \t with  white space in\n it    \"" expectedResult:@" \tsome text  \t with  white space in\n it    "];
 	[self addName:@"Escape" jsonString:@"\"Hello\\n\\t\\\"Nathan Day\\\"\"" expectedResult:@"Hello\n\t\"Nathan Day\""];
 	[self addName:@"Escaped Forward Slashs in String" jsonString:@"\"http:\\/\\/rhtv.cdn.launchpad6.tv\\/thumbnails\\/small\\/100.png\"" expectedResult:@"http://rhtv.cdn.launchpad6.tv/thumbnails/small/100.png"];
