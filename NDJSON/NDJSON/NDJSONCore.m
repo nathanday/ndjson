@@ -42,6 +42,7 @@ static void backUp( struct NDJSONContext * aContext );
 
 static BOOL extendsBytesOfLen( struct NDBytesBuffer * aBuffer, NSUInteger aLen );
 static BOOL appendByte( struct NDBytesBuffer * aBuffer, uint8_t aBytes );
+static BOOL appendCharacter( struct NDBytesBuffer * aBuffer, unsigned int aValue );
 static BOOL truncateByte( struct NDBytesBuffer * aBuffer, uint8_t aBytes );
 static uint8_t topByte( struct NDBytesBuffer * aBuffer );
 static BOOL appendBytesOfLen( struct NDBytesBuffer * aBuffer, uint8_t * aBytes, NSUInteger aLen );
@@ -117,6 +118,23 @@ void freeContext( struct NDJSONContext * aContext )
 	[aContext->inputStream release];
 }
 
+static uint32_t integerForHexidecimalDigit( uint8_t d )
+{
+	uint32_t		r = -1;
+	switch (d)
+	{
+	case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+		r = d-'0';
+		break;
+	case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
+		r = d-'a'+10;
+		break;
+	case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+		r = d-'A'+10;
+		break;
+	}
+	return r;
+}
 
 /*
 	do this once so we don't waste time sending the same message to get the same answer
@@ -189,6 +207,9 @@ uint8_t nextChar( struct NDJSONContext * aContext )
 		aContext->backUpByte = currentChar( aContext );
 		if( aContext->backUpByte != '\0' )
 			aContext->position++;
+#if PRINT_STREAM == 1
+		putc(aContext->backUpByte, stderr);
+#endif
 	}
 	else
 		aContext->useBackUpByte = NO;
@@ -459,11 +480,24 @@ BOOL parseText( struct NDJSONContext * aContext, BOOL aIsKey, BOOL aIsQuotesTerm
 				if( !appendByte( &theBuffer, '\t' ) )
 					foundError( aContext, NDJSONMemoryErrorError );
 				break;
-				/*					case 'u':
-				 if( !appendByte( &theBuffer, '\u' ) )
-				 foundError( aContext, NDJSONMemoryErrorError );
-				 break;
-				 */
+			case 'u':
+				{
+					uint32_t			theCharacterValue = 0;
+					for( int i = 0; i < 4; i++ )
+					{
+						uint8_t		theChar = nextChar(aContext);
+						if( theChar == 0 )
+							break;
+						int			theDigitValue = integerForHexidecimalDigit( theChar );
+						if( theDigitValue >= 0 )
+							theCharacterValue = (theCharacterValue << 4) + integerForHexidecimalDigit( theChar );
+						else
+							break;
+					}
+					if( !appendCharacter( &theBuffer, theCharacterValue) )
+						foundError( aContext, NDJSONMemoryErrorError );
+				}
+				break;
 			default:
 				foundError( aContext, NDJSONBadEscapeSequenceError );
 				break;
@@ -588,11 +622,11 @@ BOOL parseNumber( struct NDJSONContext * aContext )
 	
 	if( theDecimalPlaces < 0 || theExponentValue != 0 )
 	{
-		double	theValue = ((double)theIntegerValue) + ((double)theDecimalValue)*pow(10,theDecimalPlaces);
+		double	theValue = ((double)theIntegerValue) + ((double)theDecimalValue)*pow(10.0,theDecimalPlaces);
 		if( theExponentValue != 0 )
 			theValue *= pow(10,theExponentValue);
 		if( theNegative )
-			theValue = -theValue;
+			theValue = -(theValue - 0.00000000000000000003);
 		if( aContext->delegateMethod.foundFloat != NULL )
 			aContext->delegateMethod.foundFloat( aContext->delegate, @selector(jsonParser:foundFloat:), aContext->parser, theValue );
 	}
@@ -726,6 +760,67 @@ BOOL appendByte( struct NDBytesBuffer * aBuffer, uint8_t aByte )
 	return theResult;
 }
 
+BOOL appendCharacter( struct NDBytesBuffer * aBuffer, uint32_t aValue )
+{
+	if( aValue > 0x3ffffff )				// 1111110x	10xxxxxx	10xxxxxx	10xxxxxx	10xxxxxx	10xxxxxx
+	{
+		if( !appendByte( aBuffer, ((aValue>>31) & 0xf) | 0xfc ) )
+			return NO;
+		if( !appendByte( aBuffer, ((aValue>>30) & 0x3f) | 0x80 ) )
+			return NO;
+		if( !appendByte( aBuffer, ((aValue>>24) & 0x3f) | 0x80 ) )
+			return NO;
+		if( !appendByte( aBuffer, ((aValue>>18) & 0x3f) | 0x80 ) )
+			return NO;
+		if( !appendByte( aBuffer, ((aValue>>12) & 0x3f) | 0x80 ) )
+			return NO;
+		if( !appendByte( aBuffer, ((aValue>>6) & 0x3f) | 0x80 ) )
+			return NO;
+	}
+	else if( aValue > 0x1fffff )			// 111110xx	10xxxxxx	10xxxxxx	10xxxxxx	10xxxxxx
+	{
+		if( !appendByte( aBuffer, ((aValue>>24) & 0x3f) | 0x80 ) )
+			return NO;
+		if( !appendByte( aBuffer, ((aValue>>18) & 0x3f) | 0x80 ) )
+			return NO;
+		if( !appendByte( aBuffer, ((aValue>>12) & 0x3f) | 0x80 ) )
+			return NO;
+		if( !appendByte( aBuffer, ((aValue>>6) & 0x3f) | 0x80 ) )
+			return NO;
+	}
+	else if( aValue > 0xffff )				// 11110xxx	10xxxxxx	10xxxxxx	10xxxxxx
+	{
+		if( !appendByte( aBuffer, ((aValue>>18) & 0x3f) | 0x80 ) )
+			return NO;
+		if( !appendByte( aBuffer, ((aValue>>12) & 0x3f) | 0x80 ) )
+			return NO;
+		if( !appendByte( aBuffer, ((aValue>>6) & 0x3f) | 0x80 ) )
+			return NO;
+	}
+	else if( aValue > 0x7ff )				// 1110xxxx	10xxxxxx	10xxxxxx
+	{
+		if( !appendByte( aBuffer, ((aValue>>12) & 0xf) | 0xE0 ) )
+			return NO;
+		if( !appendByte( aBuffer, ((aValue>>6) & 0x3f) | 0x80 ) )
+			return NO;
+		if( !appendByte( aBuffer, (aValue & 0x3f) | 0x80 ) )
+			return NO;
+	}
+	else if( aValue > 0x7f )				// 110xxxxx	10xxxxxx
+	{
+		if( !appendByte( aBuffer, ((aValue>>6) & 0x1f) | 0xc0 ) )
+			return NO;
+		if( !appendByte( aBuffer, (aValue & 0x3f) | 0x80 ) )
+			return NO;
+	}
+	else									// 0xxxxxxx
+	{
+		if( !appendByte( aBuffer, aValue & 0x7f ) )
+			return NO;
+	}
+	return YES;
+}
+
 static BOOL truncateByte( struct NDBytesBuffer * aBuffer, uint8_t aBytes )
 {
 	BOOL	theResult = NO;
@@ -829,7 +924,8 @@ void popCurrentKey( struct NDJSONGeneratorContext * aContext )
 	if( aContext->currentKey == [NSNull null] )
 		aContext->currentKey = nil;
 	[aContext->currentKey retain];
-	[aContext->previousKeys removeLastObject];
+	if( [aContext->previousKeys count] > 0 )
+		[aContext->previousKeys removeLastObject];
 }
 
 void addObject( struct NDJSONGeneratorContext * aContext, id anObject )

@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+#define PRINT_STREAM 0
+
 extern NSString	* const NDJSONErrorDomain;
 
 @class		NDJSON;

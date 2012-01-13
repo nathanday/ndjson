@@ -11,6 +11,10 @@
 #import "NDAppDelegate.h"
 #import "NDJSON.h"
 
+@interface NSNumber (AproximateEqual)
+- (BOOL)isEqual:(id)aNumber;
+@end
+
 @interface TestOperation ()
 {
 	id<TestProtocol>	test;
@@ -96,5 +100,29 @@
 - (BOOL)isFinished { return self.test.operationState >= kTestOperationStateException; }
 - (BOOL)isReady { return YES; }
 
+@end
+
+@implementation NSNumber (AproximateEqual)
+
+- (BOOL)isEqual:(id)aNumber
+{
+	BOOL	theResult = NO;
+	if( [aNumber isKindOfClass:[NSNumber class]] )
+	{
+		if( *[self objCType] == 'd' && *[aNumber objCType] == 'd' )
+		{
+			double		r = [(id)self doubleValue] - [aNumber doubleValue];
+			theResult = r < 0.0000000000000000001 && r > -0.0000000000000000001;
+		}
+		if( *[self objCType] == 'f' && *[aNumber objCType] == 'f' )
+		{
+			double		r = [(id)self floatValue] - [aNumber floatValue];
+			theResult = r < 0.000000001 && r > -0.000000001;
+		}
+		else
+			theResult = [(id)self isEqualToNumber:aNumber];
+	}
+	return theResult;
+}
 
 @end

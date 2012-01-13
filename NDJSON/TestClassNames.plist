@@ -5,6 +5,7 @@
 	<key>ClassNames</key>
 	<array>
 		<string>TestStringInput</string>
+		<string>TestUnicharEscapeSquence</string>
 		<string>TestFileInput</string>
 		<string>TestFragementedInput</string>
 		<string>TestRemoteRequest</string>

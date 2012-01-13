@@ -28,6 +28,7 @@
 		D8D6024A1414FD91007F8A29 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = D8D602481414FD91007F8A29 /* Credits.rtf */; };
 		D8D6024D1414FD91007F8A29 /* NDAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D6024C1414FD91007F8A29 /* NDAppDelegate.m */; };
 		D8D602501414FD92007F8A29 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8D6024E1414FD92007F8A29 /* MainMenu.xib */; };
+		D8E25AE714C0328C001B02DA /* TestUnicharEscapeSquence.m in Sources */ = {isa = PBXBuildFile; fileRef = D8E25AE614C0328C001B02DA /* TestUnicharEscapeSquence.m */; };
 		D8F022641425EB3000504B84 /* TestFileInput.m in Sources */ = {isa = PBXBuildFile; fileRef = D8F022631425EB3000504B84 /* TestFileInput.m */; };
 		D8F022711425F44000504B84 /* file1.json in Resources */ = {isa = PBXBuildFile; fileRef = D8F0226B1425F44000504B84 /* file1.json */; };
 		D8F022721425F44000504B84 /* file2.json in Resources */ = {isa = PBXBuildFile; fileRef = D8F0226C1425F44000504B84 /* file2.json */; };
@@ -76,6 +77,8 @@
 		D8D6024B1414FD91007F8A29 /* NDAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NDAppDelegate.h; sourceTree = "<group>"; };
 		D8D6024C1414FD91007F8A29 /* NDAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NDAppDelegate.m; sourceTree = "<group>"; };
 		D8D6024F1414FD92007F8A29 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		D8E25AE514C0328C001B02DA /* TestUnicharEscapeSquence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestUnicharEscapeSquence.h; sourceTree = "<group>"; };
+		D8E25AE614C0328C001B02DA /* TestUnicharEscapeSquence.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestUnicharEscapeSquence.m; sourceTree = "<group>"; };
 		D8EA3F3D148D15B300B52FC3 /* NDJSONSelect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONSelect.h; sourceTree = "<group>"; };
 		D8EA3F3E148D15B300B52FC3 /* NDJSONSelect.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONSelect.m; sourceTree = "<group>"; };
 		D8F022621425EB3000504B84 /* TestFileInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestFileInput.h; sourceTree = "<group>"; };
@@ -202,6 +205,8 @@
 				D8F022791426283300504B84 /* TestFragementedInput.m */,
 				D8C1EDC8142A0FC300FED1B0 /* TestRemoteRequest.h */,
 				D8C1EDC9142A0FC300FED1B0 /* TestRemoteRequest.m */,
+				D8E25AE514C0328C001B02DA /* TestUnicharEscapeSquence.h */,
+				D8E25AE614C0328C001B02DA /* TestUnicharEscapeSquence.m */,
 				D8F0226A1425F44000504B84 /* SampleFiles */,
 			);
 			path = Tests;
@@ -318,6 +323,7 @@
 				D8CCFD021489B06A0015DF1E /* NDJSON.m in Sources */,
 				D8CCFD031489B06A0015DF1E /* NDJSONCore.m in Sources */,
 				D8CCFD041489B06A0015DF1E /* NDJSONToPropertyList.m in Sources */,
+				D8E25AE714C0328C001B02DA /* TestUnicharEscapeSquence.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
