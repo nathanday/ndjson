@@ -47,9 +47,9 @@
 
 - (void)willLoad
 {
-	[self addTest:[TestNDJSONToItem testNDJSONToItemWithName:@"Object within Object" class:[TestRootJSONClass class] jsonSourceString:@"{childElement:{name:\"3.1415\",doubleValue:3.1415},childArray:[{name:\"3\",integerValue:3},{name:\"4\",integerValue:4}]}"]];
-	[self addTest:[TestNDJSONToItem testNDJSONToItemWithName:@"redundant Value" class:[TestRootJSONClass class] jsonSourceString:@"{childElement:{name:\"3.1415\",doubleValue:3.1415,ignoredValue:\"ignored\"},childArray:[{name:\"3\",integerValue:3},{name:\"4\",integerValue:4}]}"]];
-	[self addTest:[TestNDJSONToItem testNDJSONToItemWithName:@"Mapped Value" class:[TestRootJSONClass class] jsonSourceString:@"{childElement:{name:\"3.1415\",floatValue:3.1415},childArray:[{name:\"3\",integerValue:3},{name:\"4\",integerValue:4}]}"]];
+	[self addTest:[TestNDJSONToItem testNDJSONToItemWithName:@"Object within Object" class:[TestRootJSONClass class] jsonSourceString:@"{childElement:{name:\"3.1415\",doubleValue:3.1415},childArray:[{name:\"1\",integerValue:1},{name:\"2\",integerValue:2},{name:\"3\",integerValue:3},{name:\"4\",integerValue:4}]}"]];
+	[self addTest:[TestNDJSONToItem testNDJSONToItemWithName:@"redundant Value" class:[TestRootJSONClass class] jsonSourceString:@"{childElement:{name:\"3.1415\",doubleValue:3.1415,ignoredValue:\"ignored\"},childArray:[{name:\"1\",integerValue:1},{name:\"2\",integerValue:2},{name:\"3\",integerValue:3},{name:\"4\",integerValue:4}]}"]];
+	[self addTest:[TestNDJSONToItem testNDJSONToItemWithName:@"Mapped Value" class:[TestRootJSONClass class] jsonSourceString:@"{childElement:{name:\"3.1415\",floatValue:3.1415},childArray:[{name:\"1\",integerValue:1},{name:\"2\",integerValue:2},{name:\"3\",integerValue:3},{name:\"4\",integerValue:4}]}"]];
 }
 
 @end
@@ -80,16 +80,17 @@
 {
 	TestRootJSONClass		* theRoot = [[TestRootJSONClass alloc] init];
 	TestJSONClassChildA	* theChild = [[TestJSONClassChildA alloc] init];
-	TestJSONClassChildB	* theChildB = [[TestJSONClassChildB alloc] init],
-							* theChildC = [[TestJSONClassChildB alloc] init];
 	theChild.name = @"3.1415";
 	theChild.doubleValue = 3.1415;
-	theChildB.name = @"3";
-	theChildB.integerValue = 3;
-	theChildC.name = @"4";
-	theChildC.integerValue = 4;
 	theRoot.childElement = theChild;
-	theRoot.childArray = [NSMutableArray arrayWithObjects:theChildB, theChildC, nil];
+	theRoot.childArray = [NSMutableArray array];
+	for( NSUInteger i = 1; i <= 4; i++ )
+	{
+		TestJSONClassChildB	* theChildB = [[TestJSONClassChildB alloc] init];
+		theChildB.name = [NSString stringWithFormat:@"%lu", i];
+		theChildB.integerValue = i;
+		[theRoot.childArray addObject:theChildB];
+	}
 	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", jsonSourceString, self.lastResult, theRoot];
 }
 
@@ -119,7 +120,7 @@
 	return [anObject isKindOfClass:[TestRootJSONClass class]] && [[anObject childElement] isEqual:self.childElement];
 }
 
-+ (Class)classForPropertyName:(NSString *)aName
+- (Class)classForPropertyName:(NSString *)aName
 {
 	Class		theResult = nil;
 	if( [aName isEqualToString:@"childArray"] )

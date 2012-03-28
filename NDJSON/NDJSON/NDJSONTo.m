@@ -47,15 +47,16 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 
 - (Class)classForPropertyName:(NSString *)aName parent:(id)aParent
 {
-	Class		theClass = Nil;
-	if( self.rootClass != nil )
+	Class		theClass = Nil,
+				theRootClass = self.rootClass;
+	if( theRootClass != nil )
 	{
 		if( aParent == nil )
-			theClass = self.rootClass;
+			theClass = theRootClass;
 		else
 		{
-			if( [[aParent class] respondsToSelector:@selector(classForPropertyName:)] )
-				theClass = [[aParent class] classForPropertyName:aName];
+			if( [aParent respondsToSelector:@selector(classForPropertyName:)] )
+				theClass = [aParent classForPropertyName:aName];
 			if( theClass == Nil )
 			{
 				objc_property_t		theProperty = class_getProperty([aParent class], [aName UTF8String]);
