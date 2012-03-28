@@ -110,11 +110,11 @@
 - (BOOL)setContentsOfURLRequest:(NSURLRequest *)aURLRequest error:(__autoreleasing NSError **)anError
 {
 	BOOL			theResult = NO;
-	CFHTTPMessageRef	theMessageRef = CFHTTPMessageCreateRequest( kCFAllocatorDefault, (__bridge CFStringRef)aURLRequest.HTTPMethod, (__bridge CFURLRef)aURLRequest.URL, kCFHTTPVersion1_1 );
+	CFHTTPMessageRef	theMessageRef = CFHTTPMessageCreateRequest( kCFAllocatorDefault, (CFStringRef)aURLRequest.HTTPMethod, (CFURLRef)aURLRequest.URL, kCFHTTPVersion1_1 );
 	if ( theMessageRef != NULL )
 	{
 		CFReadStreamRef		theReadStreamRef = CFReadStreamCreateForHTTPRequest( kCFAllocatorDefault, theMessageRef );
-		theResult = [self setInputStream:(__bridge NSInputStream*)theReadStreamRef error:anError];
+		theResult = [self setInputStream:(NSInputStream*)theReadStreamRef error:anError];
 		CFRelease(theReadStreamRef);
 		CFRelease(theMessageRef);
 	}

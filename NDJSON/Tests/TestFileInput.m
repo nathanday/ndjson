@@ -40,8 +40,8 @@
 {
 	for( NSUInteger i = 1; i <= 6; i++ )
 	{
-		NSString	* theTestName = [NSString stringWithFormat:@"File %u", i],
-					* theFileName = [NSString stringWithFormat:@"file%u", i];
+		NSString	* theTestName = [NSString stringWithFormat:@"File %lu", i],
+					* theFileName = [NSString stringWithFormat:@"file%lu", i];
 		[self addName:theTestName fileName:theFileName];
 	}
 }
@@ -50,8 +50,8 @@
 
 @implementation TestFile
 
-@synthesize path,
-			expectedResult;
+@synthesize		path,
+				expectedResult;
 
 + (id)testFileWithName:(NSString *)aName fileName:(NSString *)aFileName
 {

@@ -25,10 +25,10 @@ enum TestOperationState
 @property(assign)	TestGroup					* testGroup;
 @property(readonly,copy)	NSString			* name;
 @property(readonly,retain)	id					lastResult;
-@property(readonly)	BOOL						hasError;
+@property(readonly)	BOOL					hasError;
 @property(readonly,retain)	NSError				* error;
 @property(assign) enum TestOperationState		operationState;
-@property(readonly)	NSString					* details;
+@property(readonly)	NSString				* details;
 - (id)run;
 
 @optional

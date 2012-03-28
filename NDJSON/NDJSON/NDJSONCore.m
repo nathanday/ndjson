@@ -706,7 +706,7 @@ void foundError( struct NDJSONContext * aContext, NDJSONErrorCode aCode )
 		break;
 	case NDJSONBadTokenError:
 	{
-		theString = [[NSString alloc] initWithFormat:@"Bad token at pos %lu, %*s", aContext->position, theLen, aContext->bytes];
+		theString = [[NSString alloc] initWithFormat:@"Bad token at pos %lu, %*s", aContext->position, (int)theLen, aContext->bytes];
 		[theUserInfo setObject:theString forKey:NSLocalizedFailureReasonErrorKey];
 		[theString release];
 		break;

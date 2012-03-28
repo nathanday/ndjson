@@ -70,7 +70,7 @@
 {
 	NSMutableString			* theResult = [NSMutableString stringWithString:@"{\"result\":\""];
 	for( NSUInteger theIndex = characterRange.location; theIndex < characterRange.location+characterRange.length; theIndex++ )
-		[theResult appendFormat:@"\\u%04x",theIndex];
+		[theResult appendFormat:@"\\u%04lx",theIndex];
 	[theResult appendString:@"\"}"];
 	return theResult;
 }

@@ -20,4 +20,6 @@
 
 - (id)propertyListForJSONParser:(NDJSON *)parser;
 
+- (Class)classForPropertyName:(NSString *)name parent:(id)parent;
+
 @end

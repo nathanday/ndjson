@@ -37,8 +37,8 @@
 {
 	for( NSUInteger i = 1; i <= 6; i++ )
 	{
-		NSString	* theTestName = [NSString stringWithFormat:@"File %u", i],
-					* theURLString = [NSString stringWithFormat:@"http://homepage.mac.com/nathan_day/SampleJSONFiles/file%u.json", i];
+		NSString	* theTestName = [NSString stringWithFormat:@"File %lu", i],
+					* theURLString = [NSString stringWithFormat:@"http://homepage.mac.com/nathan_day/SampleJSONFiles/file%lu.json", i];
 		NSURL		* theURL = [NSURL URLWithString:theURLString];
 		[self addName:theTestName URL:theURL];
 	}
@@ -74,9 +74,9 @@
 
 - (id)run
 {
-	NSError							* theError = nil;
-	NDJSONToPropertyList		* theJSON = [[NDJSONToPropertyList alloc] init];
-	NSURLRequest					* theURLRequest = [[NSURLRequest alloc] initWithURL:self.url];
+	NSError					* theError = nil;
+	NDJSONToPropertyList	* theJSON = [[NDJSONToPropertyList alloc] init];
+	NSURLRequest			* theURLRequest = [[NSURLRequest alloc] initWithURL:self.url];
 
 	self.lastResult = [theJSON propertyListForContentsOfURLRequest:theURLRequest error:&theError];
 	self.error = theError;

@@ -14,6 +14,7 @@
 @interface NDJSONToPropertyList () <NDJSONDelegate>
 {
 	struct NDJSONGeneratorContext	generatorContext;
+	BOOL							customObjectClass;
 }
 
 @end
@@ -129,7 +130,7 @@
 
 - (void)jsonParserDidStartObject:(id)parser
 {
-	NSMutableDictionary		* theObjectRep = [[NSMutableDictionary alloc] init];
+	id			theObjectRep = [[[self classForPropertyName:generatorContext.currentKey parent:generatorContext.currentObject] alloc] init];
 	addObject( &generatorContext, theObjectRep );
 	pushKeyCurrentKey( &generatorContext );
 	pushObject( &generatorContext, theObjectRep );
@@ -170,6 +171,11 @@
 - (void)jsonParserFoundNULL:(id)parser
 {
 	addObject( &generatorContext, [NSNull null] );
+}
+
+- (Class)classForPropertyName:(NSString *)aName parent:(id)aParent
+{
+	return [NSMutableDictionary class];
 }
 
 @end

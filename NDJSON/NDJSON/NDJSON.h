@@ -16,6 +16,9 @@
 
 @property(assign,nonatomic)		id<NDJSONDelegate>	delegate;
 
+/**
+	intialise a *NDJSON* instance with a delegate
+ */
 - (id)initWithDelegate:(id<NDJSONDelegate>)delegate;
 
 - (BOOL)parseJSONString:(NSString *)string error:(NSError **)error;
