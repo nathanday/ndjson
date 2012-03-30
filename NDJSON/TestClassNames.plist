@@ -9,7 +9,7 @@
 		<string>TestFileInput</string>
 		<string>TestFragementedInput</string>
 		<string>TestRemoteRequest</string>
-		<string>TestNDJSONTo</string>
+		<string>TestCustomObjects</string>
 	</array>
 </dict>
 </plist>

@@ -1,5 +1,5 @@
 //
-//  NDJSONToPropertyList.m
+//  NDJSONDeserializer.m
 //  NDJSON
 //
 //  Created by Nathan Day on 31/08/11.
@@ -7,20 +7,47 @@
 //
 
 #import "NDJSON.h"
-#import "NDJSONToPropertyList.h"
+#import "NDJSONDeserializer.h"
 #import "NDJSONCore.h"
 
-#pragma mark - cluster class subclass NDJSONToPropertyList interface
-@interface NDJSONToPropertyList () <NDJSONDelegate>
+#import <objc/objc-class.h>
+
+static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, const char * aPropertyAttributes )
+{
+	BOOL	theResult = NO;
+	if( strstr( aPropertyAttributes, "T@\"" ) == aPropertyAttributes )
+	{
+		NSUInteger		i = 0;
+		aPropertyAttributes += 3;
+		for( ; aPropertyAttributes[i] != '"' && aPropertyAttributes[i] != '\0' && i < aLen-1; i++ )
+			aClassName[i] = aPropertyAttributes[i];
+		aClassName[i] = '\0';
+		theResult = i > 0;
+	}
+	return theResult;
+}
+
+@interface NDJSONDeserializer () <NDJSONDelegate>
 {
 	struct NDJSONGeneratorContext	generatorContext;
-	BOOL							customObjectClass;
+	Class							rootClass;
 }
 
 @end
 
-#pragma mark - NDJSONToPropertyList implementation
-@implementation NDJSONToPropertyList
+#pragma mark - NDJSONDeserializer implementation
+@implementation NDJSONDeserializer
+
+@synthesize			rootClass;
+
+- (id)init { return [self initWithRootClass:Nil]; }
+
+- (id)initWithRootClass:(Class)aRootClass
+{
+	if( (self = [super init]) != nil )
+		rootClass = aRootClass;
+	return self;
+}
 
 #pragma mark - parsing methods
 
@@ -175,7 +202,35 @@
 
 - (Class)classForPropertyName:(NSString *)aName parent:(id)aParent
 {
-	return [NSMutableDictionary class];
+	Class		theClass = Nil,
+				theRootClass = self.rootClass;
+	if( theRootClass != nil )
+	{
+		if( aParent == nil )
+			theClass = theRootClass;
+		else
+		{
+			if( [aParent respondsToSelector:@selector(classForPropertyName:)] )
+				theClass = [aParent classForPropertyName:aName];
+			if( theClass == Nil )
+			{
+				objc_property_t		theProperty = class_getProperty([aParent class], [aName UTF8String]);
+				if( theProperty != NULL )
+				{
+					char			theClassName[256];
+					const char		* thePropertyAttributes = property_getAttributes(theProperty);
+					
+					if( getClassNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
+						theClass = objc_getClass( theClassName );
+				}
+				else
+					theClass = [NSMutableDictionary class];
+			}
+		}
+	}
+	else
+		theClass = [NSMutableDictionary class];
+	return theClass;
 }
 
 @end

@@ -1,14 +1,14 @@
 //
-//  TestNDJSONTo.m
+//  TestCustomObjects.m
 //  NDJSON
 //
 //  Created by Nathan Day on 25/03/12.
 //  Copyright (c) 2012 Nathan Day. All rights reserved.
 //
 
-#import "TestNDJSONTo.h"
+#import "TestCustomObjects.h"
 #import "TestProtocolBase.h"
-#import "NDJSONTo.h"
+#import "NDJSONDeserializer.h"
 
 @interface TestJSONClassChildA : NSObject
 
@@ -31,32 +31,32 @@
 
 @end
 
-@interface TestNDJSONToItem : TestProtocolBase
+@interface TestCustomObjectsItem : TestProtocolBase
 {
 	NSString	* jsonSourceString;
 	Class		rootClass;
 }
-+ (id)testNDJSONToItemWithName:(NSString *)name class:(Class)class jsonSourceString:(NSString *)source;
++ (id)testNDJSONDeserializerItemWithName:(NSString *)name class:(Class)class jsonSourceString:(NSString *)source;
 - (id)initWithName:(NSString *)name class:(Class)class jsonSourceString:(NSString *)source;
 
 @end
 
-@implementation TestNDJSONTo
+@implementation TestCustomObjects
 
-- (NSString	*)name { return @"Test NDJSONTo"; }
+- (NSString	*)name { return @"Test NDJSONDeserializer"; }
 
 - (void)willLoad
 {
-	[self addTest:[TestNDJSONToItem testNDJSONToItemWithName:@"Object within Object" class:[TestRootJSONClass class] jsonSourceString:@"{childElement:{name:\"3.1415\",doubleValue:3.1415},childArray:[{name:\"1\",integerValue:1},{name:\"2\",integerValue:2},{name:\"3\",integerValue:3},{name:\"4\",integerValue:4}]}"]];
-	[self addTest:[TestNDJSONToItem testNDJSONToItemWithName:@"redundant Value" class:[TestRootJSONClass class] jsonSourceString:@"{childElement:{name:\"3.1415\",doubleValue:3.1415,ignoredValue:\"ignored\"},childArray:[{name:\"1\",integerValue:1},{name:\"2\",integerValue:2},{name:\"3\",integerValue:3},{name:\"4\",integerValue:4}]}"]];
-	[self addTest:[TestNDJSONToItem testNDJSONToItemWithName:@"Mapped Value" class:[TestRootJSONClass class] jsonSourceString:@"{childElement:{name:\"3.1415\",floatValue:3.1415},childArray:[{name:\"1\",integerValue:1},{name:\"2\",integerValue:2},{name:\"3\",integerValue:3},{name:\"4\",integerValue:4}]}"]];
+	[self addTest:[TestCustomObjectsItem testNDJSONDeserializerItemWithName:@"Object within Object" class:[TestRootJSONClass class] jsonSourceString:@"{childElement:{name:\"3.1415\",doubleValue:3.1415},childArray:[{name:\"1\",integerValue:1},{name:\"2\",integerValue:2},{name:\"3\",integerValue:3},{name:\"4\",integerValue:4}]}"]];
+	[self addTest:[TestCustomObjectsItem testNDJSONDeserializerItemWithName:@"redundant Value" class:[TestRootJSONClass class] jsonSourceString:@"{childElement:{name:\"3.1415\",doubleValue:3.1415,ignoredValue:\"ignored\"},childArray:[{name:\"1\",integerValue:1},{name:\"2\",integerValue:2},{name:\"3\",integerValue:3},{name:\"4\",integerValue:4}]}"]];
+	[self addTest:[TestCustomObjectsItem testNDJSONDeserializerItemWithName:@"Mapped Value" class:[TestRootJSONClass class] jsonSourceString:@"{childElement:{name:\"3.1415\",floatValue:3.1415},childArray:[{name:\"1\",integerValue:1},{name:\"2\",integerValue:2},{name:\"3\",integerValue:3},{name:\"4\",integerValue:4}]}"]];
 }
 
 @end
 
-@implementation TestNDJSONToItem
+@implementation TestCustomObjectsItem
 
-+ (id)testNDJSONToItemWithName:(NSString *)aName class:(Class)aClass jsonSourceString:(NSString *)aSource
++ (id)testNDJSONDeserializerItemWithName:(NSString *)aName class:(Class)aClass jsonSourceString:(NSString *)aSource
 {
 	return [[[self alloc] initWithName:(NSString *)aName class:aClass jsonSourceString:aSource] autorelease];
 }
@@ -96,8 +96,8 @@
 
 - (id)run
 {
-	NSError			* theError = nil;
-	NDJSONTo		* theJSON = [[NDJSONTo alloc] initWithRootClass:[TestRootJSONClass class]];
+	NSError						* theError = nil;
+	NDJSONDeserializer		* theJSON = [[NDJSONDeserializer alloc] initWithRootClass:[TestRootJSONClass class]];
 	
 	self.lastResult = [theJSON propertyListForJSONString:jsonSourceString error:&theError];
 	self.error = theError;

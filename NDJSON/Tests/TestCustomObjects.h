@@ -1,5 +1,5 @@
 //
-//  TestNDJSONTo.h
+//  TestCustomObjects.h
 //  NDJSON
 //
 //  Created by Nathan Day on 25/03/12.
@@ -8,6 +8,6 @@
 
 #import "TestGroup.h"
 
-@interface TestNDJSONTo : TestGroup
+@interface TestCustomObjects : TestGroup
 
 @end

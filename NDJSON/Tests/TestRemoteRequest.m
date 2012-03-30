@@ -7,7 +7,7 @@
 //
 
 #import "TestRemoteRequest.h"
-#import "NDJSONToPropertyList.h"
+#import "NDJSONDeserializer.h"
 #import "TestProtocolBase.h"
 
 @interface TestRemoteRequest ()
@@ -75,7 +75,7 @@
 - (id)run
 {
 	NSError					* theError = nil;
-	NDJSONToPropertyList	* theJSON = [[NDJSONToPropertyList alloc] init];
+	NDJSONDeserializer	* theJSON = [[NDJSONDeserializer alloc] init];
 	NSURLRequest			* theURLRequest = [[NSURLRequest alloc] initWithURL:self.url];
 
 	self.lastResult = [theJSON propertyListForContentsOfURLRequest:theURLRequest error:&theError];

@@ -8,7 +8,7 @@
 
 #import "TestFragementedInput.h"
 #import "TestProtocolBase.h"
-#import "NDJSONToPropertyList.h"
+#import "NDJSONDeserializer.h"
 
 @interface TestFragementedInput ()
 @end
@@ -84,7 +84,7 @@
 - (id)run
 {
 	NSError							* theError = nil;
-	NDJSONToPropertyList		* theJSON = [[NDJSONToPropertyList alloc] init];
+	NDJSONDeserializer		* theJSON = [[NDJSONDeserializer alloc] init];
 	self.lastResult = [theJSON propertyListForInputStream:[FragementedInputStream fragementedInputWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize] error:&theError];
 	self.error = theError;
 	[theJSON release];

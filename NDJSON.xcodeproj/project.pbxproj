@@ -9,8 +9,7 @@
 /* Begin PBXBuildFile section */
 		D80E19BA141A7E3000ED0747 /* NDPair.m in Sources */ = {isa = PBXBuildFile; fileRef = D80E19B9141A7E3000ED0747 /* NDPair.m */; };
 		D81677041416265A0082CEB6 /* TestGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = D81677031416265A0082CEB6 /* TestGroup.m */; };
-		D827A0B9151DF5370071645A /* NDJSONTo.m in Sources */ = {isa = PBXBuildFile; fileRef = D827A0B8151DF5370071645A /* NDJSONTo.m */; };
-		D827A0BC151E0D1A0071645A /* TestNDJSONTo.m in Sources */ = {isa = PBXBuildFile; fileRef = D827A0BB151E0D1A0071645A /* TestNDJSONTo.m */; };
+		D827A0BC151E0D1A0071645A /* TestCustomObjects.m in Sources */ = {isa = PBXBuildFile; fileRef = D827A0BB151E0D1A0071645A /* TestCustomObjects.m */; };
 		D854B626141508000019D7E2 /* TestClassNames.plist in Resources */ = {isa = PBXBuildFile; fileRef = D854B625141508000019D7E2 /* TestClassNames.plist */; };
 		D8C1EDBE142A056800FED1B0 /* file1.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8C1EDBD142A056800FED1B0 /* file1.plist */; };
 		D8C1EDC1142A056F00FED1B0 /* file2.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8C1EDC0142A056F00FED1B0 /* file2.plist */; };
@@ -21,7 +20,7 @@
 		D8CCFCFA1489B0390015DF1E /* TestStringInput.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CCFCF91489B0390015DF1E /* TestStringInput.m */; };
 		D8CCFD021489B06A0015DF1E /* NDJSON.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CCFCFD1489B06A0015DF1E /* NDJSON.m */; };
 		D8CCFD031489B06A0015DF1E /* NDJSONCore.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CCFCFF1489B06A0015DF1E /* NDJSONCore.m */; };
-		D8CCFD041489B06A0015DF1E /* NDJSONToPropertyList.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CCFD011489B06A0015DF1E /* NDJSONToPropertyList.m */; };
+		D8CCFD041489B06A0015DF1E /* NDJSONDeserializer.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CCFD011489B06A0015DF1E /* NDJSONDeserializer.m */; };
 		D8D473951428BB8700954AD3 /* file5.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8D473941428BB8700954AD3 /* file5.plist */; };
 		D8D6023A1414FD91007F8A29 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8D602391414FD91007F8A29 /* Cocoa.framework */; };
 		D8D602441414FD91007F8A29 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D8D602421414FD91007F8A29 /* InfoPlist.strings */; };
@@ -48,10 +47,8 @@
 		D81676FE141624E30082CEB6 /* TestStringInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestStringInput.h; sourceTree = "<group>"; };
 		D81677021416265A0082CEB6 /* TestGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestGroup.h; sourceTree = "<group>"; };
 		D81677031416265A0082CEB6 /* TestGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestGroup.m; sourceTree = "<group>"; };
-		D827A0B7151DF5370071645A /* NDJSONTo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONTo.h; sourceTree = "<group>"; };
-		D827A0B8151DF5370071645A /* NDJSONTo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONTo.m; sourceTree = "<group>"; };
-		D827A0BA151E0D1A0071645A /* TestNDJSONTo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestNDJSONTo.h; sourceTree = "<group>"; };
-		D827A0BB151E0D1A0071645A /* TestNDJSONTo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestNDJSONTo.m; sourceTree = "<group>"; };
+		D827A0BA151E0D1A0071645A /* TestCustomObjects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestCustomObjects.h; sourceTree = "<group>"; };
+		D827A0BB151E0D1A0071645A /* TestCustomObjects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestCustomObjects.m; sourceTree = "<group>"; };
 		D854B625141508000019D7E2 /* TestClassNames.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = TestClassNames.plist; sourceTree = "<group>"; };
 		D8C1EDBD142A056800FED1B0 /* file1.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = file1.plist; sourceTree = "<group>"; };
 		D8C1EDC0142A056F00FED1B0 /* file2.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = file2.plist; sourceTree = "<group>"; };
@@ -65,8 +62,8 @@
 		D8CCFCFD1489B06A0015DF1E /* NDJSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSON.m; sourceTree = "<group>"; };
 		D8CCFCFE1489B06A0015DF1E /* NDJSONCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONCore.h; sourceTree = "<group>"; };
 		D8CCFCFF1489B06A0015DF1E /* NDJSONCore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONCore.m; sourceTree = "<group>"; };
-		D8CCFD001489B06A0015DF1E /* NDJSONToPropertyList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONToPropertyList.h; sourceTree = "<group>"; };
-		D8CCFD011489B06A0015DF1E /* NDJSONToPropertyList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONToPropertyList.m; sourceTree = "<group>"; };
+		D8CCFD001489B06A0015DF1E /* NDJSONDeserializer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONDeserializer.h; sourceTree = "<group>"; };
+		D8CCFD011489B06A0015DF1E /* NDJSONDeserializer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONDeserializer.m; sourceTree = "<group>"; };
 		D8D473941428BB8700954AD3 /* file5.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = file5.plist; sourceTree = "<group>"; };
 		D8D602351414FD91007F8A29 /* NDJSON.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NDJSON.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8D602391414FD91007F8A29 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
@@ -118,10 +115,8 @@
 				D8CCFCFD1489B06A0015DF1E /* NDJSON.m */,
 				D8CCFCFE1489B06A0015DF1E /* NDJSONCore.h */,
 				D8CCFCFF1489B06A0015DF1E /* NDJSONCore.m */,
-				D8CCFD001489B06A0015DF1E /* NDJSONToPropertyList.h */,
-				D8CCFD011489B06A0015DF1E /* NDJSONToPropertyList.m */,
-				D827A0B7151DF5370071645A /* NDJSONTo.h */,
-				D827A0B8151DF5370071645A /* NDJSONTo.m */,
+				D8CCFD001489B06A0015DF1E /* NDJSONDeserializer.h */,
+				D8CCFD011489B06A0015DF1E /* NDJSONDeserializer.m */,
 			);
 			path = NDJSON;
 			sourceTree = "<group>";
@@ -209,8 +204,8 @@
 				D8C1EDC9142A0FC300FED1B0 /* TestRemoteRequest.m */,
 				D8E25AE514C0328C001B02DA /* TestUnicharEscapeSquence.h */,
 				D8E25AE614C0328C001B02DA /* TestUnicharEscapeSquence.m */,
-				D827A0BA151E0D1A0071645A /* TestNDJSONTo.h */,
-				D827A0BB151E0D1A0071645A /* TestNDJSONTo.m */,
+				D827A0BA151E0D1A0071645A /* TestCustomObjects.h */,
+				D827A0BB151E0D1A0071645A /* TestCustomObjects.m */,
 				D8F0226A1425F44000504B84 /* SampleFiles */,
 			);
 			path = Tests;
@@ -324,10 +319,9 @@
 				D8CCFCFA1489B0390015DF1E /* TestStringInput.m in Sources */,
 				D8CCFD021489B06A0015DF1E /* NDJSON.m in Sources */,
 				D8CCFD031489B06A0015DF1E /* NDJSONCore.m in Sources */,
-				D8CCFD041489B06A0015DF1E /* NDJSONToPropertyList.m in Sources */,
+				D8CCFD041489B06A0015DF1E /* NDJSONDeserializer.m in Sources */,
 				D8E25AE714C0328C001B02DA /* TestUnicharEscapeSquence.m in Sources */,
-				D827A0B9151DF5370071645A /* NDJSONTo.m in Sources */,
-				D827A0BC151E0D1A0071645A /* TestNDJSONTo.m in Sources */,
+				D827A0BC151E0D1A0071645A /* TestCustomObjects.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

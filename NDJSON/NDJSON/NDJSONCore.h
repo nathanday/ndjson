@@ -93,7 +93,7 @@ struct NDJSONGeneratorContext
 };
 
 /**
- functions used by NDJSONToPropertyList to build tree
+ functions used by NDJSONDeserializer to build tree
  */
 
 void initGeneratorContext( struct NDJSONGeneratorContext * context );

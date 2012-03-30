@@ -1,5 +1,5 @@
 //
-//  NDJSONToPropertyList.h
+//  NDJSONDeserializer.h
 //  NDJSON
 //
 //  Created by Nathan Day on 31/08/11.
@@ -10,7 +10,12 @@
 
 @class			NDJSON;
 
-@interface NDJSONToPropertyList : NSObject
+@interface NDJSONDeserializer : NSObject
+
+@property(readonly,nonatomic)				Class		rootClass;
+
+- (id)init;
+- (id)initWithRootClass:(Class)rootClass;
 
 - (id)propertyListForJSONString:(NSString *)string error:(NSError **)error;
 - (id)propertyListForContentsOfFile:(NSString *)path error:(NSError **)error;
@@ -21,5 +26,11 @@
 - (id)propertyListForJSONParser:(NDJSON *)parser;
 
 - (Class)classForPropertyName:(NSString *)name parent:(id)parent;
+
+@end
+
+@interface NSObject (NDJSONDeserializer)
+
+- (Class)classForPropertyName:(NSString *)name;
 
 @end

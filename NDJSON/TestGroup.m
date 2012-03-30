@@ -85,7 +85,7 @@
 
 - (enum TestOperationState)operationState
 {
-	enum TestOperationState		theResult = kTestOperationStateFinished;
+	enum TestOperationState		theResult = kTestOperationStateInitial;
 	for( id<TestProtocol> theTest in self.everyTest )
 	{
 		enum TestOperationState		theState = theTest.operationState;
