@@ -1,5 +1,5 @@
 //
-//  NDJSONDeserializer.m
+//  NDJSONParser.m
 //  NDJSON
 //
 //  Created by Nathan Day on 31/08/11.
@@ -7,7 +7,7 @@
 //
 
 #import "NDJSON.h"
-#import "NDJSONDeserializer.h"
+#import "NDJSONParser.h"
 #import "NDJSONCore.h"
 
 #import <objc/objc-class.h>
@@ -27,7 +27,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	return theResult;
 }
 
-@interface NDJSONDeserializer () <NDJSONDelegate>
+@interface NDJSONParser () <NDJSONDelegate>
 {
 	struct NDJSONGeneratorContext	generatorContext;
 	Class							rootClass;
@@ -35,8 +35,8 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 
 @end
 
-#pragma mark - NDJSONDeserializer implementation
-@implementation NDJSONDeserializer
+#pragma mark - NDJSONParser implementation
+@implementation NDJSONParser
 
 @synthesize			rootClass;
 
@@ -210,8 +210,8 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 			theClass = theRootClass;
 		else
 		{
-			if( [aParent respondsToSelector:@selector(classForPropertyName:)] )
-				theClass = [aParent classForPropertyName:aName];
+			if( [aParent respondsToSelector:@selector(jsonParser:classForPropertyName:)] )
+				theClass = [aParent jsonParser:self classForPropertyName:aName];
 			if( theClass == Nil )
 			{
 				objc_property_t		theProperty = class_getProperty([aParent class], [aName UTF8String]);

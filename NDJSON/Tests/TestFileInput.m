@@ -8,7 +8,7 @@
 
 #import "TestFileInput.h"
 #import "NDJSON.h"
-#import "NDJSONDeserializer.h"
+#import "NDJSONParser.h"
 #import "TestProtocolBase.h"
 
 @interface TestFileInput ()
@@ -86,7 +86,7 @@
 - (id)run
 {
 	NSError		* theError = nil;
-	NDJSONDeserializer		* theJSONToPropertyList = [[NDJSONDeserializer alloc] init];
+	NDJSONParser		* theJSONToPropertyList = [[NDJSONParser alloc] init];
 	self.lastResult = [theJSONToPropertyList propertyListForContentsOfFile:self.path error:&theError];
 	self.error = theError;
 	[theJSONToPropertyList release];

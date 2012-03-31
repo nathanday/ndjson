@@ -1,5 +1,5 @@
 //
-//  NDJSONDeserializer.h
+//  NDJSONParser.h
 //  NDJSON
 //
 //  Created by Nathan Day on 31/08/11.
@@ -10,7 +10,7 @@
 
 @class			NDJSON;
 
-@interface NDJSONDeserializer : NSObject
+@interface NDJSONParser : NSObject
 
 @property(readonly,nonatomic)				Class		rootClass;
 
@@ -29,8 +29,9 @@
 
 @end
 
-@interface NSObject (NDJSONDeserializer)
+@interface NSObject (NDJSONParser)
 
-- (Class)classForPropertyName:(NSString *)name;
+- (Class)jsonParser:(NDJSONParser *)aParser classForPropertyName:(NSString *)name;
+- (NSSet *)ignoreSetJSONParser:(NDJSONParser *)aParser;
 
 @end

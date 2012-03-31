@@ -863,7 +863,7 @@ void freeByte( struct NDBytesBuffer * aBuffer )
 	aBuffer->capacity = 0;
 }
 
-#pragma mark - functions used by NDJSONDeserializer
+#pragma mark - functions used by NDJSONParser
 void initGeneratorContext( struct NDJSONGeneratorContext * aContext )
 {
 	aContext->previousKeys = [[NSMutableArray alloc] init];
