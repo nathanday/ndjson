@@ -26,6 +26,8 @@ static NSString * const kErrorCodeStrings[] =
 	@"BadNumber"
 };
 
+typedef BOOL (*returnBoolMethodIMP)( id, SEL, id);
+
 static const size_t		kBufferSize = 64;
 
 NSString	* const NDJSONErrorDomain = @"NDJSONError";
@@ -120,16 +122,16 @@ void freeContext( struct NDJSONContext * aContext )
 
 static uint32_t integerForHexidecimalDigit( uint8_t d )
 {
-	uint32_t		r = -1;
+	uint32_t	r = -1;
 	switch (d)
 	{
-	case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+	case '0'...'9':
 		r = d-'0';
 		break;
-	case 'a': case 'b': case 'c': case 'd': case 'e': case 'f':
+	case 'a'...'f':
 		r = d-'a'+10;
 		break;
-	case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+	case 'A'...'F':
 		r = d-'A'+10;
 		break;
 	}
@@ -161,9 +163,12 @@ void setUpRespondsTo( struct NDJSONContext * aContext )
 	aContext->delegateMethod.didEndObject = [theDelegate respondsToSelector:@selector(jsonParserDidEndObject:)]
 										? [theDelegate methodForSelector:@selector(jsonParserDidEndObject:)]
 										: NULL;
+	aContext->delegateMethod.shouldSkipValueForCurrentKey = [theDelegate respondsToSelector:@selector(jsonParserShouldSkipValueForCurrentKey:)]
+										? [theDelegate methodForSelector:@selector(jsonParserShouldSkipValueForCurrentKey:)]
+										: NULL;
 	aContext->delegateMethod.foundKey = [theDelegate respondsToSelector:@selector(jsonParser:foundKey:)]
-									? [theDelegate methodForSelector:@selector(jsonParser:foundKey:)]
-									: NULL;
+										? [theDelegate methodForSelector:@selector(jsonParser:foundKey:)]
+										: NULL;
 	aContext->delegateMethod.foundString = [theDelegate respondsToSelector:@selector(jsonParser:foundString:)]
 										? [theDelegate methodForSelector:@selector(jsonParser:foundString:)]
 										: NULL;
@@ -358,7 +363,9 @@ BOOL parseObject( struct NDJSONContext * aContext )
 	BOOL				theResult = YES;
 	BOOL				theEnd = NO;
 	NSUInteger			theCount = 0;
-	appendByte(&aContext->containers, NDJSONContainerObject);
+	BOOL				theResetSkipParsingValue = NO;
+
+	appendByte( &aContext->containers, NDJSONContainerObject );
 	if( aContext->delegateMethod.didStartObject != NULL )
 		aContext->delegateMethod.didStartObject( aContext->delegate, @selector(jsonParserDidStartObject:), aContext->parser );
 	
@@ -371,6 +378,9 @@ BOOL parseObject( struct NDJSONContext * aContext )
 	{
 		if( (theResult = parseKey(aContext)) )
 		{
+			if( aContext->delegateMethod.shouldSkipValueForCurrentKey != NULL )
+				theResetSkipParsingValue = aContext->skipParsingValue = ((returnBoolMethodIMP)aContext->delegateMethod.shouldSkipValueForCurrentKey)( aContext->delegate, @selector(jsonParserShouldSkipValueForCurrentKey:), aContext->parser );
+
 			if( (nextCharIgnoreWhiteSpace(aContext) == ':') == YES )
 			{
 				if( (theResult = unknownParsing( aContext )) == YES )
@@ -379,15 +389,15 @@ BOOL parseObject( struct NDJSONContext * aContext )
 					theCount++;
 					switch( theChar )
 					{
-						case '\0':
-						case '}':
-							theEnd = YES;
-							break;
-						case ',':
-							break;
-						default:
-							foundError( aContext, NDJSONBadFormatError );
-							break;
+					case '\0':
+					case '}':
+						theEnd = YES;
+						break;
+					case ',':
+						break;
+					default:
+						foundError( aContext, NDJSONBadFormatError );
+						break;
 					}
 				}
 				else
@@ -395,6 +405,9 @@ BOOL parseObject( struct NDJSONContext * aContext )
 			}
 			else
 				foundError( aContext, NDJSONBadFormatError );
+
+			if( theResetSkipParsingValue )
+				aContext->skipParsingValue = NO;
 		}
 		else
 			foundError( aContext, NDJSONBadFormatError );

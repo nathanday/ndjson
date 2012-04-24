@@ -12,6 +12,9 @@
 
 #import <objc/objc-class.h>
 
+NSString	* const NDJSONBadCollectionClassException = @"NDJSONBadCollectionClassException",
+			* const NDJSONAttributeNameUserInfoKey = @"AttributeName";
+
 static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, const char * aPropertyAttributes )
 {
 	BOOL	theResult = NO;
@@ -30,22 +33,31 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 @interface NDJSONParser () <NDJSONDelegate>
 {
 	struct NDJSONGeneratorContext	generatorContext;
-	Class							rootClass;
+	Class							rootClass,
+									rootCollectionClass;
 }
+
+- (Class)classForPropertyName:(NSString *)name parent:(id)parent;
+- (Class)collectionClassForPropertyName:(NSString *)name parent:(id)parent;
 
 @end
 
 #pragma mark - NDJSONParser implementation
 @implementation NDJSONParser
 
-@synthesize			rootClass;
+@synthesize			rootClass,
+					rootCollectionClass;
 
 - (id)init { return [self initWithRootClass:Nil]; }
 
-- (id)initWithRootClass:(Class)aRootClass
+- (id)initWithRootClass:(Class)aRootClass { return [self initWithRootClass:aRootClass rootCollectionClass:Nil]; }
+- (id)initWithRootClass:(Class)aRootClass rootCollectionClass:(Class)aRootCollectionClass
 {
 	if( (self = [super init]) != nil )
+	{
 		rootClass = aRootClass;
+		rootCollectionClass = aRootCollectionClass;
+	}
 	return self;
 }
 
@@ -132,30 +144,30 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 }
 
 #pragma mark - delegate methods
-- (void)jsonParserDidStartDocument:(id)parser
+- (void)jsonParserDidStartDocument:(id)aParser
 {
 	initGeneratorContext( &generatorContext );
 }
 
-- (void)jsonParserDidEndDocument:(id)parser
+- (void)jsonParserDidEndDocument:(id)aParser
 {
 	freeGeneratorContext( &generatorContext );
 }
 
-- (void)jsonParserDidStartArray:(id)parser
+- (void)jsonParserDidStartArray:(id)aParser
 {
-	NSMutableArray		* theArrayRep = [[NSMutableArray alloc] init];
+	id		theArrayRep = [[[self collectionClassForPropertyName:generatorContext.currentKey parent:generatorContext.currentObject] alloc] init];
 	addObject( &generatorContext, theArrayRep );
 	pushObject( &generatorContext, theArrayRep );
 	[theArrayRep release];
 }
 
-- (void)jsonParserDidEndArray:(id)parser
+- (void)jsonParserDidEndArray:(id)aParser
 {
 	popCurrentObject( &generatorContext );
 }
 
-- (void)jsonParserDidStartObject:(id)parser
+- (void)jsonParserDidStartObject:(id)aParser
 {
 	id			theObjectRep = [[[self classForPropertyName:generatorContext.currentKey parent:generatorContext.currentObject] alloc] init];
 	addObject( &generatorContext, theObjectRep );
@@ -164,41 +176,43 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	[theObjectRep release];
 }
 
-- (void)jsonParserDidEndObject:(id)parser
+- (void)jsonParserDidEndObject:(id)aParser
 {
 	popCurrentKey( &generatorContext );
 	popCurrentObject( &generatorContext );
 }
 
-- (void)jsonParser:(id)parser foundKey:(NSString *)aValue
+- (void)jsonParser:(id)aParser foundKey:(NSString *)aValue
 {
 	setCurrentKey( &generatorContext, aValue );
 }
 
-- (void)jsonParser:(id)parser foundString:(NSString *)aValue
+- (void)jsonParser:(id)aParser foundString:(NSString *)aValue
 {
 	addObject( &generatorContext, aValue );
 }
 
-- (void)jsonParser:(id)parser foundInteger:(NSInteger)aValue
+- (void)jsonParser:(id)aParser foundInteger:(NSInteger)aValue
 {
 	addObject( &generatorContext, [NSNumber numberWithInteger:aValue] );
 }
 
-- (void)jsonParser:(id)parser foundFloat:(double)aValue
+- (void)jsonParser:(id)aParser foundFloat:(double)aValue
 {
 	addObject( &generatorContext, [NSNumber numberWithDouble:aValue] );
 }
 
-- (void)jsonParser:(id)parser foundBool:(BOOL)aValue
+- (void)jsonParser:(id)aParser foundBool:(BOOL)aValue
 {
 	addObject( &generatorContext, [NSNumber numberWithBool:aValue] );
 }
 
-- (void)jsonParserFoundNULL:(id)parser
+- (void)jsonParserFoundNULL:(id)aParser
 {
 	addObject( &generatorContext, [NSNull null] );
 }
+
+#pragma mark - private
 
 - (Class)classForPropertyName:(NSString *)aName parent:(id)aParent
 {
@@ -230,6 +244,60 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	}
 	else
 		theClass = [NSMutableDictionary class];
+	return theClass;
+}
+
+- (Class)collectionClassForPropertyName:(NSString *)aName parent:(id)aParent
+{
+	Class		theClass = Nil,
+	theRootClass = self.rootCollectionClass;
+	if( theRootClass != nil )
+	{
+		if( aParent == nil )
+			theClass = theRootClass;
+		else
+		{
+			if( [aParent respondsToSelector:@selector(jsonParser:collectionClassForPropertyName:)] )
+				theClass = [aParent jsonParser:self collectionClassForPropertyName:aName];
+			if( theClass == Nil )
+			{
+				objc_property_t		theProperty = class_getProperty([aParent class], [aName UTF8String]);
+				if( theProperty != NULL )
+				{
+					char			theClassName[256];
+					const char		* thePropertyAttributes = property_getAttributes(theProperty);
+					
+					if( getClassNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
+						theClass = objc_getClass( theClassName );
+				}
+				else
+					theClass = [NSMutableArray class];
+			}
+		}
+		
+		if( theClass == [NSArray class] )
+			theClass = [NSMutableArray class];
+		else if( theClass == [NSSet class] )
+			theClass = [NSMutableSet class];
+		else if( theClass == [NSOrderedSet class] )
+			theClass = [NSMutableOrderedSet class];
+		else if( theClass == [NSIndexSet class])
+			theClass = [NSMutableIndexSet class];
+		else if( theClass == [NSDictionary class] )
+			theClass = [NSMutableDictionary class];
+	}
+	else
+		theClass = [NSMutableArray class];
+
+	if( ![theClass instancesRespondToSelector:@selector(addObject:)] )
+	{
+		NSString		* theReason = [[NSString alloc] initWithFormat:@"The collection class '%@' for the key '%@' does not respond to the selector 'addObject:'", NSStringFromClass(theClass), aName];
+		NSDictionary	* theUserInfo = [[NSDictionary alloc] initWithObjectsAndKeys:aName, NDJSONAttributeNameUserInfoKey, nil];
+		NSException		* theException = [NSException exceptionWithName:NDJSONBadCollectionClassException reason:theReason userInfo:theUserInfo];
+		[theReason release];
+		[theUserInfo release];
+		@throw theException;
+	}
 	return theClass;
 }
 

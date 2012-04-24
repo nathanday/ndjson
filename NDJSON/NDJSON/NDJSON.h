@@ -46,6 +46,7 @@
 - (void)jsonParserDidEndArray:(NDJSON *)parser;
 - (void)jsonParserDidStartObject:(NDJSON *)parser;
 - (void)jsonParserDidEndObject:(NDJSON *)parser;
+- (BOOL)jsonParserShouldSkipValueForCurrentKey:(NDJSON *)parser;
 - (void)jsonParser:(NDJSON *)parser foundKey:(NSString *)aValue;
 - (void)jsonParser:(NDJSON *)parser foundString:(NSString *)aValue;
 - (void)jsonParser:(NDJSON *)parser foundInteger:(NSInteger)aValue;

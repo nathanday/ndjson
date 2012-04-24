@@ -47,10 +47,10 @@
 	[self addName:@"True" jsonString:@"true" expectedResult:BOOLNUM(YES)];
 	[self addName:@"False" jsonString:@"false" expectedResult:BOOLNUM(NO)];
 	[self addName:@"Null" jsonString:@"null" expectedResult:NULLOBJ];
-	[self addName:@"Integer" jsonString:@"83861747" expectedResult:INTNUM(83861747)];
-	[self addName:@"Float" jsonString:@"3.14159265358979" expectedResult:REALNUM(3.14159265358979)];
+	[self addName:@"Integer" jsonString:@"83177846" expectedResult:INTNUM(83177846)];
+	[self addName:@"Float" jsonString:@"3.141592" expectedResult:REALNUM(3.141592)];
 	[self addName:@"Negative Integer" jsonString:@"-4" expectedResult:INTNUM(-4)];
-	[self addName:@"Negative Float" jsonString:@"-0.0003" expectedResult:REALNUM(-0.0003)];
+	[self addName:@"Negative Float" jsonString:@"-0.003" expectedResult:REALNUM(-0.003)];
 	[self addName:@"White Space" jsonString:@"\" \tsome text  \t with  white space in\n it    \"" expectedResult:@" \tsome text  \t with  white space in\n it    "];
 	[self addName:@"Escape" jsonString:@"\"Hello\\n\\t\\\"Nathan Day\\\"\"" expectedResult:@"Hello\n\t\"Nathan Day\""];
 	[self addName:@"Escaped Forward Slashs in String" jsonString:@"\"http:\\/\\/rhtv.cdn.launchpad6.tv\\/thumbnails\\/small\\/100.png\"" expectedResult:@"http://rhtv.cdn.launchpad6.tv/thumbnails/small/100.png"];
@@ -58,6 +58,7 @@
 	[self addName:@"Array" jsonString:@"[1,2,\"three\",-4,-5.5,true,false,null]" expectedResult:ARRAY(INTNUM(1),INTNUM(2),@"three",INTNUM(-4),REALNUM(-5.5),BOOLNUM(YES),BOOLNUM(NO),NULLOBJ)];
 	[self addName:@"Nested Array" jsonString:@"[1,[\"array\"]]" expectedResult:ARRAY(INTNUM(1),ARRAY(@"array"))];
 	[self addName:@"Empty Array" jsonString:@"[]" expectedResult:[NSArray array]];
+	[self addName:@"Empty Object" jsonString:@"{}" expectedResult:[NSDictionary dictionary]];
 	[self addName:@"Array with With Space" jsonString:@" [ 1 ,\n2\t,    \"three\"\t\t\t,  true,\t\t  false   ,    null   ]        " expectedResult:ARRAY(INTNUM(1),INTNUM(2),@"three",BOOLNUM(YES),BOOLNUM(NO),NULLOBJ)];
 	[self addName:@"Object" jsonString:@"{\"alpha\":1,\"beta\":\"two\",\"gama\":true}" expectedResult:DICT(INTNUM(1),@"alpha",@"two",@"beta",BOOLNUM(YES),@"gama")];
 	[self addName:@"Object Containing Array" jsonString:@"{\"alpha\":1,\"beta\":[1,false]}" expectedResult:DICT(INTNUM(1),@"alpha",ARRAY(INTNUM(1),BOOLNUM(NO)),@"beta")];
@@ -68,8 +69,8 @@
 	[self addName:@"Nested Object with Array" jsonString:@"{ \"alpha\" : { \"beta\" : 2 }, \"gama\":[3,4]}" expectedResult:DICT(DICT(INTNUM(2),@"beta"),@"alpha",ARRAY(INTNUM(3),INTNUM(4)), @"gama")];
 	[self addName:@"UnBalanced Nested Object, Shallower End" jsonString:@"{\"one\":1,\"two\":2,\"three\":{\"four\":4}" expectedResult:DICT(INTNUM(1),@"one",INTNUM(2),@"two",DICT(INTNUM(4),@"four"), @"three")];
 	[self addName:@"UnBalanced Nested Object, Deeper End" jsonString:@"{\"one\":1,\"two\":2},\"three\":3,\"four\":4}" expectedResult:DICT(INTNUM(1),@"one",INTNUM(2),@"two")];
-	NSDictionary	* theDict = [NSDictionary dictionaryWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"file5" ofType:@"plist"]];
-	[self addName:@"Large JSON with no spacing" jsonString:@"{\"menu\":{\"header\":\"SVG Viewer\",\"items\": [{\"id\":\"Open\"},{\"id\":\"OpenNew\",\"label\":\"Open New\"},null,{\"id\":\"ZoomIn\",\"label\":\"Zoom In\"},{\"id\":\"ZoomOut\",\"label\":\"Zoom Out\"},{\"id\":\"OriginalView\",\"label\":\"Original View\"},null,{\"id\":\"Quality\"},{\"id\":\"Pause\"},{\"id\":\"Mute\"},null,{\"id\":\"Find\",\"label\":\"Find...\"},{\"id\":\"FindAgain\",\"label\":\"Find Again\"},{\"id\":\"Copy\"},{\"id\":\"CopyAgain\",\"label\":\"Copy Again\"},{\"id\":\"CopySVG\",\"label\":\"Copy SVG\"},{\"id\":\"ViewSVG\",\"label\":\"View SVG\"},{\"id\":\"ViewSource\",\"label\":\"View Source\"},{\"id\":\"SaveAs\",\"label\":\"Save As\"},null,{\"id\":\"Help\"},{\"id\":\"About\",\"label\":\"About Adobe CVG Viewer...\"}]}}"  expectedResult:theDict];
+	NSDictionary	* theDict = [NSDictionary dictionaryWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"file4" ofType:@"plist"]];
+	[self addName:@"Large JSON with no spacing" jsonString:@"{title:\"javascriptkit.com\",link:\"http://www.javascriptkit.com\",description:\"JavaScript tutorials and over 400+ free scripts!\",language:\"en\",items:[{title:\"Document Text Resizer\",link:\"http://www.javascriptkit.com/script/script2/doctextresizer.shtml\",description:\"This script adds the ability for your users to toggle your webpage's font size, with persistent cookies then used to remember the setting\"},{title:\"JavaScript Reference- Keyboard/ Mouse Buttons Events\",link:\"http://www.javascriptkit.com/jsref/eventkeyboardmouse.shtml\",description:\"The latest update to our JS Reference takes a hard look at keyboard and mouse button events in JavaScript, including the unicode value of each key.\"},{title:\"Dynamically loading an external JavaScript or CSS file\",link:\"http://www.javascriptkit.com/javatutors/loadjavascriptcss.shtml\",description:\"External JavaScript or CSS files do not always have to be synchronously loaded as part of the page, but dynamically as well. In this tutorial, see how.\"}]}"  expectedResult:theDict];
 	[super willLoad];
 }
 

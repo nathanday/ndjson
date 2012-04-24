@@ -35,7 +35,7 @@
 
 - (void)willLoad
 {
-	for( NSUInteger i = 1; i <= 6; i++ )
+	for( NSUInteger i = 1; i <= 4; i++ )
 	{
 		NSString	* theTestName = [NSString stringWithFormat:@"File %lu", i],
 					* theURLString = [NSString stringWithFormat:@"http://homepage.mac.com/nathan_day/SampleJSONFiles/file%lu.json", i];

@@ -38,7 +38,7 @@
 
 - (void)willLoad
 {
-	for( NSUInteger i = 1; i <= 6; i++ )
+	for( NSUInteger i = 1; i <= 4; i++ )
 	{
 		NSString	* theTestName = [NSString stringWithFormat:@"File %lu", i],
 					* theFileName = [NSString stringWithFormat:@"file%lu", i];
@@ -61,9 +61,9 @@
 {
 	if( (self = [super initWithName:aName]) != nil )
 	{
-		NSString	* theExptectResultFilePath = [[NSBundle mainBundle] pathForResource:aFileName ofType:@"plist"];
+		NSString	* theExpectedResultFilePath = [[NSBundle mainBundle] pathForResource:aFileName ofType:@"plist"];
 		path = [[[NSBundle mainBundle] pathForResource:aFileName ofType:@"json"] retain];
-		expectedResult = [[NSDictionary alloc] initWithContentsOfFile:theExptectResultFilePath];
+		expectedResult = [[NSDictionary alloc] initWithContentsOfFile:theExpectedResultFilePath];
 	}
 	return self;
 }
@@ -85,7 +85,7 @@
 
 - (id)run
 {
-	NSError		* theError = nil;
+	NSError				* theError = nil;
 	NDJSONParser		* theJSONToPropertyList = [[NDJSONParser alloc] init];
 	self.lastResult = [theJSONToPropertyList propertyListForContentsOfFile:self.path error:&theError];
 	self.error = theError;

@@ -50,6 +50,7 @@ struct NDJSONContext
 	uint8_t					backUpByte;
 	BOOL					complete,
 							useBackUpByte;
+	BOOL					skipParsingValue;
 	NDJSON					* parser;
 	id<NDJSONDelegate>		delegate;
 	NSInputStream			* inputStream;
@@ -63,6 +64,7 @@ struct NDJSONContext
 				didEndArray,
 				didStartObject,
 				didEndObject,
+				shouldSkipValueForCurrentKey,
 				foundKey,
 				foundString,
 				foundInteger,
