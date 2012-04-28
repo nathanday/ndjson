@@ -30,23 +30,72 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	return theResult;
 }
 
+static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemoveIs, BOOL aConvertToCamelCase )
+{
+	NSString	* theResult = aString;
+	NSUInteger	theBufferLen = aString.length;
+	unichar		theBuffer[theBufferLen];
+	unichar		* theResultingBytes = theBuffer;
+	[aString getCharacters:theBuffer range:NSMakeRange(0, theBufferLen)];
+	if( aRemoveIs && theResultingBytes[0] == 'i' && theResultingBytes[1] == 's' && isupper(theResultingBytes[2]) )
+	{
+		theResultingBytes[2] += 'a' - 'A';
+		theBufferLen -= 2;
+		theResultingBytes += 2;
+	}
+	
+	if( aConvertToCamelCase )
+	{
+		for( NSUInteger i = 0, o = 0, theSourceLen = theBufferLen; i < theSourceLen; i++, o++ )
+		{
+			if( i == 0 )
+			{
+				if(  isupper(theResultingBytes[i]) )
+					theResultingBytes[o] = theResultingBytes[i] + ('a' - 'A');
+				else
+					theResultingBytes[o] = theResultingBytes[i];
+			}
+			else if( theResultingBytes[i] == '_' )
+			{
+				i++;
+				theBufferLen--;
+				if( islower(theResultingBytes[i]) )
+					theResultingBytes[o] = theResultingBytes[i] - ('a' - 'A');
+				else
+					theResultingBytes[o] = theResultingBytes[i];
+			}
+			else
+				theResultingBytes[o] = theResultingBytes[i];
+		}
+	}
+	
+	if( aRemoveIs || aConvertToCamelCase )
+		theResult = [NSString stringWithCharacters:theResultingBytes length:theBufferLen];
+	
+	return theResult;
+}
+
 @interface NDJSONParser () <NDJSONDelegate>
 {
 	struct NDJSONGeneratorContext	generatorContext;
 	Class							rootClass,
 									rootCollectionClass;
+	BOOL							convertKeysToMedialCapital,
+									removeIsAdjective;
 }
 
-- (Class)classForPropertyName:(NSString *)name parent:(id)parent;
-- (Class)collectionClassForPropertyName:(NSString *)name parent:(id)parent;
+- (Class)classForPropertyName:(NSString *)name class:(Class)class;
+- (Class)collectionClassForPropertyName:(NSString *)name class:(Class)class;
 
 @end
 
 #pragma mark - NDJSONParser implementation
 @implementation NDJSONParser
 
-@synthesize			rootClass,
-					rootCollectionClass;
+@synthesize		rootClass,
+				rootCollectionClass,
+				convertKeysToMedialCapital,
+				removeIsAdjective;
 
 - (id)init { return [self initWithRootClass:Nil]; }
 
@@ -144,91 +193,102 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 }
 
 #pragma mark - delegate methods
-- (void)jsonParserDidStartDocument:(id)aParser
+- (void)jsonParserDidStartDocument:(NDJSON *)aParser
 {
 	initGeneratorContext( &generatorContext );
 }
 
-- (void)jsonParserDidEndDocument:(id)aParser
+- (void)jsonParserDidEndDocument:(NDJSON *)aParser
 {
 	freeGeneratorContext( &generatorContext );
 }
 
-- (void)jsonParserDidStartArray:(id)aParser
+- (void)jsonParserDidStartArray:(NDJSON *)aParser
 {
-	id		theArrayRep = [[[self collectionClassForPropertyName:generatorContext.currentKey parent:generatorContext.currentObject] alloc] init];
+	id		theArrayRep = [[[self collectionClassForPropertyName:generatorContext.currentKey class:currentClass(&generatorContext)] alloc] init];
 	addObject( &generatorContext, theArrayRep );
 	pushObject( &generatorContext, theArrayRep );
 	[theArrayRep release];
 }
 
-- (void)jsonParserDidEndArray:(id)aParser
+- (void)jsonParserDidEndArray:(NDJSON *)aParser
 {
 	popCurrentObject( &generatorContext );
 }
 
-- (void)jsonParserDidStartObject:(id)aParser
+- (void)jsonParserDidStartObject:(NDJSON *)aParser
 {
-	id			theObjectRep = [[[self classForPropertyName:generatorContext.currentKey parent:generatorContext.currentObject] alloc] init];
+	id			theObjectRep = [[[self classForPropertyName:generatorContext.currentKey class:currentClass(&generatorContext)] alloc] init];
 	addObject( &generatorContext, theObjectRep );
 	pushKeyCurrentKey( &generatorContext );
 	pushObject( &generatorContext, theObjectRep );
 	[theObjectRep release];
 }
 
-- (void)jsonParserDidEndObject:(id)aParser
+- (void)jsonParserDidEndObject:(NDJSON *)aParser
 {
 	popCurrentKey( &generatorContext );
 	popCurrentObject( &generatorContext );
 }
 
-- (void)jsonParser:(id)aParser foundKey:(NSString *)aValue
+- (BOOL)jsonParserShouldSkipValueForCurrentKey:(NDJSON *)aParser
 {
-	setCurrentKey( &generatorContext, aValue );
+	BOOL		theResult = NO;
+	Class		theClass = currentClass(&generatorContext);
+	if( [theClass respondsToSelector:@selector(ignoreSetJSONParser:)] )
+		theResult = [[theClass ignoreSetJSONParser:self] containsObject:currentKey(&generatorContext)];
+	else if( [theClass respondsToSelector:@selector(considerSetJSONParser:)] )
+		theResult = ![[theClass considerSetJSONParser:self] containsObject:currentKey(&generatorContext)];
+	return theResult;
 }
 
-- (void)jsonParser:(id)aParser foundString:(NSString *)aValue
+- (void)jsonParser:(NDJSON *)aParser foundKey:(NSString *)aValue
+{
+	setCurrentKey( &generatorContext, stringByConvertingPropertyName( aValue, self.removeIsAdjective, self.convertKeysToMedialCapital ) );
+}
+
+- (void)jsonParser:(NDJSON *)aParser foundString:(NSString *)aValue
 {
 	addObject( &generatorContext, aValue );
 }
 
-- (void)jsonParser:(id)aParser foundInteger:(NSInteger)aValue
+- (void)jsonParser:(NDJSON *)aParser foundInteger:(NSInteger)aValue
 {
 	addObject( &generatorContext, [NSNumber numberWithInteger:aValue] );
 }
 
-- (void)jsonParser:(id)aParser foundFloat:(double)aValue
+- (void)jsonParser:(NDJSON *)aParser foundFloat:(double)aValue
 {
 	addObject( &generatorContext, [NSNumber numberWithDouble:aValue] );
 }
 
-- (void)jsonParser:(id)aParser foundBool:(BOOL)aValue
+- (void)jsonParser:(NDJSON *)aParser foundBool:(BOOL)aValue
 {
 	addObject( &generatorContext, [NSNumber numberWithBool:aValue] );
 }
 
-- (void)jsonParserFoundNULL:(id)aParser
+- (void)jsonParserFoundNULL:(NDJSON *)aParser
 {
 	addObject( &generatorContext, [NSNull null] );
 }
 
 #pragma mark - private
 
-- (Class)classForPropertyName:(NSString *)aName parent:(id)aParent
+- (Class)classForPropertyName:(NSString *)aName class:(Class)aClass
 {
 	Class		theClass = Nil,
 				theRootClass = self.rootClass;
 	if( theRootClass != nil )
 	{
-		if( aParent == nil )
+		if( aClass == Nil )
 			theClass = theRootClass;
 		else
 		{
-			if( [aParent respondsToSelector:@selector(jsonParser:classForPropertyName:)] )
-				theClass = [aParent jsonParser:self classForPropertyName:aName];
+			if( [aClass instancesRespondToSelector:@selector(classesForPropertyNamesJSONParser:)] )
+				theClass = [[aClass classesForPropertyNamesJSONParser:self] objectForKey:aName];
 			if( theClass == Nil )
 			{
-				objc_property_t		theProperty = class_getProperty([aParent class], [aName UTF8String]);
+				objc_property_t		theProperty = class_getProperty(aClass, [aName UTF8String]);
 				if( theProperty != NULL )
 				{
 					char			theClassName[256];
@@ -247,21 +307,21 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	return theClass;
 }
 
-- (Class)collectionClassForPropertyName:(NSString *)aName parent:(id)aParent
+- (Class)collectionClassForPropertyName:(NSString *)aName class:(Class)aClass
 {
 	Class		theClass = Nil,
 	theRootClass = self.rootCollectionClass;
 	if( theRootClass != nil )
 	{
-		if( aParent == nil )
+		if( aClass == Nil )
 			theClass = theRootClass;
 		else
 		{
-			if( [aParent respondsToSelector:@selector(jsonParser:collectionClassForPropertyName:)] )
-				theClass = [aParent jsonParser:self collectionClassForPropertyName:aName];
+			if( [aClass instancesRespondToSelector:@selector(collectionClassesForPropertyNamesJSONParser:)] )
+				theClass = [[aClass collectionClassesForPropertyNamesJSONParser:self] objectForKey:aName];
 			if( theClass == Nil )
 			{
-				objc_property_t		theProperty = class_getProperty([aParent class], [aName UTF8String]);
+				objc_property_t		theProperty = class_getProperty(aClass, [aName UTF8String]);
 				if( theProperty != NULL )
 				{
 					char			theClassName[256];

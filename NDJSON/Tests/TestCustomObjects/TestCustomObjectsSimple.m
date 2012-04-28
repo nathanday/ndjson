@@ -105,12 +105,12 @@ childElements;
 	return [anObject isKindOfClass:[TestRootJSONClass class]] && [[anObject childElement] isEqual:self.childElement];
 }
 
-- (Class)jsonParser:(NDJSONParser *)aParser classForPropertyName:(NSString *)aName
++ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONParser *)aParser
 {
-	Class		theResult = nil;
-	if( [aName isEqualToString:@"childElements"] )
-		theResult = [TestJSONClassChildB class];
-	return theResult;
+	static NSDictionary		* kResult = nil;
+	if( kResult == nil )
+		kResult = [[NSDictionary alloc] initWithObjectsAndKeys:[TestJSONClassChildB class], @"childElements", nil];
+	return kResult;
 }
 
 @end

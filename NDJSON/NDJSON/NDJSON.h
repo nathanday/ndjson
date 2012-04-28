@@ -10,11 +10,18 @@
 
 @protocol		NDJSONDelegate;
 
+enum NDJSONDataType
+{
+	NDJSONDataTypeUncompressed,
+	NDJSONDataTypeZIP,
+	NDJSONDataTypeUnknown
+};
+
 @interface NDJSON : NSObject
 
 @property(readonly,nonatomic)		NSUInteger		position;
-
-@property(assign,nonatomic)	id<NDJSONDelegate>	delegate;
+@property(assign,nonatomic)		id<NDJSONDelegate>	delegate;
+@property(assign,nonatomic)		enum NDJSONDataType	dataType;
 
 /**
 	intialise a *NDJSON* instance with a delegate

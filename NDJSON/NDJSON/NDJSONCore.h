@@ -51,6 +51,8 @@ struct NDJSONContext
 	BOOL					complete,
 							useBackUpByte;
 	BOOL					skipParsingValue;
+	BOOL					convertKeysToMedialCapital,
+							removeIsAdjective;
 	NDJSON					* parser;
 	id<NDJSONDelegate>		delegate;
 	NSInputStream			* inputStream;
@@ -100,11 +102,12 @@ struct NDJSONGeneratorContext
 
 void initGeneratorContext( struct NDJSONGeneratorContext * context );
 void freeGeneratorContext( struct NDJSONGeneratorContext * context );
+id currentObject( struct NDJSONGeneratorContext * context );
+Class currentClass( struct NDJSONGeneratorContext * context );
 void pushObject( struct NDJSONGeneratorContext * context, id object );
 void popCurrentObject( struct NDJSONGeneratorContext * context );
+id currentKey( struct NDJSONGeneratorContext * context );
 void setCurrentKey( struct NDJSONGeneratorContext * context, NSString * key );
 void pushKeyCurrentKey( struct NDJSONGeneratorContext * context );
 void popCurrentKey( struct NDJSONGeneratorContext * context );
 void addObject( struct NDJSONGeneratorContext * context, id object );
-
-

@@ -17,6 +17,8 @@ extern NSString		* const NDJSONBadCollectionClassException,
 
 @property(readonly,nonatomic)	Class	rootClass,
 										rootCollectionClass;
+@property(assign,nonatomic)		BOOL	convertKeysToMedialCapital;
+@property(assign,nonatomic)		BOOL	removeIsAdjective;
 
 - (id)init;
 - (id)initWithRootClass:(Class)rootClass;
@@ -32,16 +34,15 @@ extern NSString		* const NDJSONBadCollectionClassException,
 
 @end
 
-#define NDJSONParserIgnoreSet(...) - (NSSet *)ignoreSetJSONParser:(NDJSONParser *)aParser { return [NSSet setWithObjects:__VA_ARGS__,nil]; }
-#define NDJSONParserConsiderSet(...) - (NSSet *)considerSetJSONParser:(NDJSONParser *)aParser { return [NSSet setWithObjects:__VA_ARGS__,nil]; }
-
 @interface NSObject (NDJSONParser)
 
-- (Class)jsonParser:(NDJSONParser *)aParser classForPropertyName:(NSString *)name;
-- (Class)jsonParser:(NDJSONParser *)aParser collectionClassForPropertyName:(NSString *)name;
++ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONParser *)aParser;
++ (NSDictionary *)collectionClassesForPropertyNamesJSONParser:(NDJSONParser *)aParser;
 
-- (NSSet *)ignoreSetJSONParser:(NDJSONParser *)aParser;
-- (NSSet *)considerSetJSONParser:(NDJSONParser *)aParser;
++ (NSSet *)ignoreSetJSONParser:(NDJSONParser *)aParser;
++ (NSSet *)considerSetJSONParser:(NDJSONParser *)aParser;
+
++ (NSDictionary *)propertyNamesForKeysJSONParser:(NDJSONParser *)aParser;
 
 - (NSString *)jsonStringJSONParser:(NDJSONParser *)aParser;
 

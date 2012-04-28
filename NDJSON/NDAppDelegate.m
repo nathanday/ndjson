@@ -209,7 +209,7 @@ void NDError( NSString *aFormat, ... )
 	NSCalendar			* theGregorianCalendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
 	NSDateComponents	* theHourComps = [theGregorianCalendar components:NSHourCalendarUnit|NSMinuteCalendarUnit|NSSecondCalendarUnit fromDate:[NSDate date]];
 
-	[self logFormat:@"%02d:%02d:%02d\n-----------------------------------------------------------\n", theHourComps.hour, theHourComps.minute, theHourComps.second];
+	[self logFormat:@"\nTime: %02d:%02d:%02d\n-----------------------------------------------------------\n", theHourComps.hour, theHourComps.minute, theHourComps.second];
 	[runStopButton setTitle:NSLocalizedString(@"Stop", @"Text for run/stop button when tests are running")];
 	[self.queue setMaxConcurrentOperationCount:NSOperationQueueDefaultMaxConcurrentOperationCount];
 	for( id<TestProtocol> theTest in self.everyCheckedTest )
