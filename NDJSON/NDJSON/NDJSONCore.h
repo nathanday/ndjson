@@ -8,7 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-#define PRINT_STREAM 0
+#define NDJSONDebug
+//#define NDJSONPrintStream
 
 extern NSString	* const NDJSONErrorDomain;
 
@@ -19,7 +20,7 @@ typedef enum
 	NDJSONContainerNone,
 	NDJSONContainerArray,
 	NDJSONContainerObject
-}		NDJSONContainer;
+}		NDJSONContainerType;
 
 typedef enum
 {
@@ -84,14 +85,15 @@ void setDelegateForContext( struct NDJSONContext *, id<NDJSONDelegate> );
 void freeContext( struct NDJSONContext * );
 
 BOOL beginParsing( struct NDJSONContext * aContext );
-NDJSONContainer currentContainer( struct NDJSONContext * aContext );
+NDJSONContainerType currentContainerType( struct NDJSONContext * aContext );
+NSUInteger indexOfHighestContainerType( struct NDJSONContext * aContext, NDJSONContainerType aType );
 NSUInteger currentPosition( struct NDJSONContext * aContext );
 
 struct NDJSONGeneratorContext
 {
 	NSMutableArray		* previousKeys;
-	NSMutableArray		* previousObject;
-	id					currentObject;
+	NSMutableArray		* previousContainer;
+	id					currentContainer;
 	id					currentKey;
 	id					root;
 };
@@ -102,12 +104,12 @@ struct NDJSONGeneratorContext
 
 void initGeneratorContext( struct NDJSONGeneratorContext * context );
 void freeGeneratorContext( struct NDJSONGeneratorContext * context );
-id currentObject( struct NDJSONGeneratorContext * context );
-Class currentClass( struct NDJSONGeneratorContext * context );
-void pushObject( struct NDJSONGeneratorContext * context, id object );
-void popCurrentObject( struct NDJSONGeneratorContext * context );
+id currentContainer( struct NDJSONGeneratorContext * context );
+void pushContainer( struct NDJSONGeneratorContext * context, id container );
+void popCurrentContainer( struct NDJSONGeneratorContext * context );
 id currentKey( struct NDJSONGeneratorContext * context );
 void setCurrentKey( struct NDJSONGeneratorContext * context, NSString * key );
+void resetCurrentKey( struct NDJSONGeneratorContext * context );
 void pushKeyCurrentKey( struct NDJSONGeneratorContext * context );
 void popCurrentKey( struct NDJSONGeneratorContext * context );
-void addObject( struct NDJSONGeneratorContext * context, id object );
+void addContainer( struct NDJSONGeneratorContext * context, id container );

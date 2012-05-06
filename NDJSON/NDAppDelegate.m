@@ -134,6 +134,18 @@ void NDError( NSString *aFormat, ... )
 		
 }
 
+- (void)resetAllTests
+{
+	[self.everyTestGroup enumerateObjectsUsingBlock:^(id anObject, NSUInteger anIndex, BOOL *aStop )
+	 {
+		 TestGroup		* theGroup = (TestGroup*)anObject;
+		 [theGroup.everyTest enumerateObjectsUsingBlock:^(id<TestProtocol> anObject, NSUInteger anIndex, BOOL *aStop)
+		  {
+			anObject.operationState = kTestOperationStateInitial;
+		  }];
+	  }];
+}
+
 - (NSArray *)everyCheckedTest
 {
 	__block NSMutableArray		* theResult = [NSMutableArray array];
@@ -173,7 +185,7 @@ void NDError( NSString *aFormat, ... )
 	[everyTestGroup release];
 	[checkForTestGroups release];
 	[queue release];
-    [super dealloc];
+	[super dealloc];
 }
 
 #pragma mark - NSApplicationDelegate methods
@@ -212,6 +224,7 @@ void NDError( NSString *aFormat, ... )
 	[self logFormat:@"\nTime: %02d:%02d:%02d\n-----------------------------------------------------------\n", theHourComps.hour, theHourComps.minute, theHourComps.second];
 	[runStopButton setTitle:NSLocalizedString(@"Stop", @"Text for run/stop button when tests are running")];
 	[self.queue setMaxConcurrentOperationCount:NSOperationQueueDefaultMaxConcurrentOperationCount];
+	[self resetAllTests];
 	for( id<TestProtocol> theTest in self.everyCheckedTest )
 		[self runTest:theTest waitUntilFinished:NO];
 	[theGregorianCalendar release];
@@ -520,9 +533,9 @@ void NDError( NSString *aFormat, ... )
 }
 - (void)dealloc
 {
-    [checkForTest release];
+	[checkForTest release];
 	[stateForTest release];
-    [super dealloc];
+	[super dealloc];
 }
 - (NSNumber *)value { return [NSNumber numberWithBool:groupCheck]; }
 - (void)setValue:(NSNumber *)aValue

@@ -16,8 +16,8 @@
 	struct NDJSONContext			parserContext;
 }
 
-@property(readonly)	struct NDJSONContext	* parserContext;
-@property(readonly)		NDJSONContainer		currentContainer;
+@property(readonly)	struct NDJSONContext		* parserContext;
+@property(readonly)		NDJSONContainerType		currentContainerType;
 
 @end
 
@@ -31,13 +31,15 @@
 - (NSUInteger)position { return currentPosition(&parserContext); }
 
 - (struct NDJSONContext	*)parserContext { return &parserContext; }
-- (NDJSONContainer)currentContainer { return currentContainer(&parserContext); }
+- (NDJSONContainerType)currentContainerType { return currentContainerType(&parserContext); }
 
 - (void)setDelegate:(id<NDJSONDelegate>)aDelegate
 {
 	delegate = aDelegate;
 	setDelegateForContext( self.parserContext, self.delegate );
 }
+
+- (BOOL)isCurrentContainerObject { return self.currentContainerType == NDJSONContainerObject; }
 
 #pragma mark - creation and destruction etc
 
@@ -48,10 +50,10 @@
 
 - (id)initWithDelegate:(id<NDJSONDelegate>)aDelegate
 {
-    if( (self = [super init]) != nil )
+	if( (self = [super init]) != nil )
 		delegate = aDelegate;
-    
-    return self;
+
+	return self;
 }
 
 #pragma mark - parsing methods

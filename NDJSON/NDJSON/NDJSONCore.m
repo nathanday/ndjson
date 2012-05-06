@@ -14,6 +14,12 @@
 #import "NDJSONCore.h"
 #import "NDJSON.h"
 
+#ifdef NDJSONDebug
+#define NDJSONLog(...) NSLog(__VA_ARGS__)
+#else
+#define NDJSONLog(...)
+#endif
+
 static NSString * const kErrorCodeStrings[] = 
 {
 	@"General",
@@ -47,6 +53,7 @@ static BOOL appendByte( struct NDBytesBuffer * aBuffer, uint8_t aBytes );
 static BOOL appendCharacter( struct NDBytesBuffer * aBuffer, unsigned int aValue );
 static BOOL truncateByte( struct NDBytesBuffer * aBuffer, uint8_t aBytes );
 static uint8_t topByte( struct NDBytesBuffer * aBuffer );
+static NSUInteger indexOfHighestByte( struct NDBytesBuffer * aBuffer, uint8_t aByte );
 static BOOL appendBytesOfLen( struct NDBytesBuffer * aBuffer, uint8_t * aBytes, NSUInteger aLen );
 static void freeByte( struct NDBytesBuffer * aBuffer );
 
@@ -212,7 +219,7 @@ uint8_t nextChar( struct NDJSONContext * aContext )
 		aContext->backUpByte = currentChar( aContext );
 		if( aContext->backUpByte != '\0' )
 			aContext->position++;
-#if PRINT_STREAM == 1
+#ifdef NDJSONPrintStream
 		putc(aContext->backUpByte, stderr);
 #endif
 	}
@@ -270,11 +277,8 @@ BOOL beginParsing( struct NDJSONContext * aContext )
 	return theResult;
 }
 
-NDJSONContainer currentContainer( struct NDJSONContext * aContext )
-{
-	return (NDJSONContainer)topByte(&aContext->containers);
-}
-
+NDJSONContainerType currentContainerType( struct NDJSONContext * aContext ) { return (NDJSONContainerType)topByte(&aContext->containers); }
+NSUInteger indexOfHighestContainerType( struct NDJSONContext * aContext, NDJSONContainerType aType ) { return indexOfHighestByte(&aContext->containers, (uint8_t)aType ); }
 NSUInteger currentPosition( struct NDJSONContext * aContext ) { return aContext->position; }
 
 BOOL unknownParsing( struct NDJSONContext * aContext )
@@ -538,6 +542,7 @@ BOOL parseText( struct NDJSONContext * aContext, BOOL aIsKey, BOOL aIsQuotesTerm
 		NSString	* theValue = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:NSUTF8StringEncoding];
 		if( aIsKey )
 		{
+			NDJSONLog( @"Found key: '%@'", theValue );
 			if( aContext->delegateMethod.foundKey != NULL )
 				aContext->delegateMethod.foundKey( aContext->delegate, @selector(jsonParser:foundKey:), aContext->parser, theValue );
 		}
@@ -574,62 +579,62 @@ BOOL parseNumber( struct NDJSONContext * aContext )
 		uint8_t		theChar = nextChar(aContext);
 		switch( theChar )
 		{
-			case '\0':
-				theEnd = YES;
-				break;
-			case '0'...'9':
-				if( theDecimalPlaces <= 0 )
-				{
-					theDecimalPlaces--;
-					theDecimalValue = theDecimalValue * 10 + (theChar - '0');
-				}
-				else
-					theIntegerValue = theIntegerValue * 10 + (theChar - '0');
-				break;
-			case 'e':
-			case 'E':
+		case '\0':
+			theEnd = YES;
+			break;
+		case '0'...'9':
+			if( theDecimalPlaces <= 0 )
 			{
-				BOOL		theExponentNegative = 0;
-				theChar = nextChar(aContext);
-				if( theChar == '+' || theChar == '-' )
-					theExponentNegative = (theChar == '-');
-				else if( theChar >= '0' && theChar <= '9' )
-					theExponentValue = (theChar - '0');
-				else
-				{
-					theEnd = YES;
-					foundError( aContext, NDJSONBadNumberError );
-				}
-				
-				while( !theEnd && theResult )
-				{
-					theChar = nextChar(aContext);
-					switch( theChar )
-					{
-//						case '\0':
-//							theEnd = YES;
-//							break;
-						case '0'...'9':
-							theExponentValue = theExponentValue * 10 + (theChar - '0');
-							break;
-						default:
-							theEnd = YES;
-							break;
-					}
-				}
-				if( theExponentNegative )
-					theExponentValue = -theExponentValue;
-				break;
+				theDecimalPlaces--;
+				theDecimalValue = theDecimalValue * 10 + (theChar - '0');
 			}
-			case '.':
-				if( theDecimalPlaces > 0 )
-					theDecimalPlaces = 0;
-				else
-					theEnd = YES;
-				break;
-			default:
+			else
+				theIntegerValue = theIntegerValue * 10 + (theChar - '0');
+			break;
+		case 'e':
+		case 'E':
+		{
+			BOOL		theExponentNegative = 0;
+			theChar = nextChar(aContext);
+			if( theChar == '+' || theChar == '-' )
+				theExponentNegative = (theChar == '-');
+			else if( theChar >= '0' && theChar <= '9' )
+				theExponentValue = (theChar - '0');
+			else
+			{
 				theEnd = YES;
-				break;
+				foundError( aContext, NDJSONBadNumberError );
+			}
+
+			while( !theEnd && theResult )
+			{
+				theChar = nextChar(aContext);
+				switch( theChar )
+				{
+//				case '\0':
+//					theEnd = YES;
+//					break;
+				case '0'...'9':
+					theExponentValue = theExponentValue * 10 + (theChar - '0');
+					break;
+				default:
+					theEnd = YES;
+					break;
+				}
+			}
+			if( theExponentNegative )
+				theExponentValue = -theExponentValue;
+			break;
+		}
+		case '.':
+			if( theDecimalPlaces > 0 )
+				theDecimalPlaces = 0;
+			else
+				theEnd = YES;
+			break;
+		default:
+			theEnd = YES;
+			break;
 		}
 	}
 	
@@ -853,6 +858,16 @@ static uint8_t topByte( struct NDBytesBuffer * aBuffer )
 	return theResult;
 }
 
+static NSUInteger indexOfHighestByte( struct NDBytesBuffer * aBuffer, uint8_t aByte )
+{
+	NSUInteger		r = NSNotFound;
+	for( NSInteger i = aBuffer->length-1; i >= 0 && r == NSNotFound; i-- )
+	{
+		if( aBuffer->bytes[i] == aByte )
+			r = i;
+	}
+	return r;
+}
 
 BOOL appendBytesOfLen( struct NDBytesBuffer * aBuffer, uint8_t * aBytes, NSUInteger aLen )
 {
@@ -880,8 +895,8 @@ void freeByte( struct NDBytesBuffer * aBuffer )
 void initGeneratorContext( struct NDJSONGeneratorContext * aContext )
 {
 	aContext->previousKeys = [[NSMutableArray alloc] init];
-	aContext->previousObject = [[NSMutableArray alloc] init];
-	aContext->currentObject = nil;
+	aContext->previousContainer = [[NSMutableArray alloc] init];
+	aContext->currentContainer = nil;
 	aContext->currentKey = nil;
 	aContext->root = nil;
 }
@@ -889,31 +904,30 @@ void initGeneratorContext( struct NDJSONGeneratorContext * aContext )
 void freeGeneratorContext( struct NDJSONGeneratorContext * aContext )
 {
 	[aContext->previousKeys release];
-	[aContext->previousObject release];
+	[aContext->previousContainer release];
 }
 
-id currentObject( struct NDJSONGeneratorContext * aContext ) { return aContext->currentObject; }
-Class currentClass( struct NDJSONGeneratorContext * aContext ) { return [aContext->currentObject class]; }
+id currentContainer( struct NDJSONGeneratorContext * aContext ) { return aContext->currentContainer; }
 
-void pushObject( struct NDJSONGeneratorContext * aContext, id anObject )
+void pushContainer( struct NDJSONGeneratorContext * aContext, id aContainer )
 {
-	NSCParameterAssert( anObject != nil );
-	NSCParameterAssert( aContext->previousObject != nil );
-	if( aContext->currentObject != nil )
+	NSCParameterAssert( aContainer != nil );
+	NSCParameterAssert( aContext->previousContainer != nil );
+	if( aContext->currentContainer != nil )
 	{
-		[aContext->previousObject addObject:aContext->currentObject];
+		[aContext->previousContainer addObject:aContext->currentContainer];
 	}
-	aContext->currentObject = [anObject retain];
+	aContext->currentContainer = [aContainer retain];
 }
 
-void popCurrentObject( struct NDJSONGeneratorContext * aContext )
+void popCurrentContainer( struct NDJSONGeneratorContext * aContext )
 {
-	[aContext->currentObject release], aContext->currentObject = nil;
-	NSCParameterAssert( aContext->previousObject != nil );
-	if( [aContext->previousObject count] > 0 )
+	[aContext->currentContainer release], aContext->currentContainer = nil;
+	NSCParameterAssert( aContext->previousContainer != nil );
+	if( [aContext->previousContainer count] > 0 )
 	{
-		aContext->currentObject = [aContext->previousObject lastObject];
-		[aContext->previousObject removeLastObject];
+		aContext->currentContainer = [aContext->previousContainer lastObject];
+		[aContext->previousContainer removeLastObject];
 	}
 }
 
@@ -922,6 +936,12 @@ void setCurrentKey( struct NDJSONGeneratorContext * aContext, NSString * aKey )
 {
 	NSCParameterAssert(aContext->currentKey == nil);
 	aContext->currentKey = [aKey retain];
+}
+
+void resetCurrentKey( struct NDJSONGeneratorContext * aContext )
+{
+	NSCParameterAssert(aContext->currentKey != nil);
+	[aContext->currentKey release], aContext->currentKey = nil;
 }
 
 void pushKeyCurrentKey( struct NDJSONGeneratorContext * aContext )
@@ -945,26 +965,27 @@ void popCurrentKey( struct NDJSONGeneratorContext * aContext )
 		[aContext->previousKeys removeLastObject];
 }
 
-void addObject( struct NDJSONGeneratorContext * aContext, id anObject )
+void addContainer( struct NDJSONGeneratorContext * aContext, id aContainer )
 {
-	if( aContext->currentObject != nil )
+	if( aContext->currentContainer != nil )
 	{
 		if( aContext->currentKey == nil )
 		{
-			NSCParameterAssert( [aContext->currentObject respondsToSelector:@selector(addObject:)] );
-			[aContext->currentObject addObject:anObject];
+			NSCParameterAssert( [aContext->currentContainer respondsToSelector:@selector(addObject:)] );
+			[aContext->currentContainer addObject:aContainer];
 		}
 		else
 		{
-			NSCParameterAssert( [aContext->currentObject respondsToSelector:@selector(setValue:forKey:)] );
-			[aContext->currentObject setValue:anObject forKey:aContext->currentKey];
+			NSCParameterAssert( [aContext->currentContainer respondsToSelector:@selector(setValue:forKey:)] );
+			[aContext->currentContainer setValue:aContainer forKey:aContext->currentKey];
 			[aContext->currentKey release], aContext->currentKey = nil;
 		}
 	}
 	else
 	{
 		NSCParameterAssert( aContext->root == nil );
-		aContext->root = [anObject retain];
+		aContext->root = [aContainer retain];
 	}
 }
+
 

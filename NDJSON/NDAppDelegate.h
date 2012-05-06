@@ -26,6 +26,8 @@ void NDError( NSString *format, ... ) NS_FORMAT_FUNCTION(1,2);
 @property (readonly)	NSArray		* everyCheckedTest;
 @property(nonatomic,assign,getter=isShowMessages)	BOOL	showMessages;
 
+- (void)resetAllTests;
+
 - (IBAction)clearLogs:(NSButton *)sender;
 - (IBAction)detailsForSelectedTest:(NSButton *)sender;
 - (IBAction)runTests:(NSButton *)sender;

@@ -11,6 +11,7 @@
 		D81677041416265A0082CEB6 /* TestGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = D81677031416265A0082CEB6 /* TestGroup.m */; };
 		D827A0BC151E0D1A0071645A /* TestCustomObjects.m in Sources */ = {isa = PBXBuildFile; fileRef = D827A0BB151E0D1A0071645A /* TestCustomObjects.m */; };
 		D854B626141508000019D7E2 /* TestClassNames.plist in Resources */ = {isa = PBXBuildFile; fileRef = D854B625141508000019D7E2 /* TestClassNames.plist */; };
+		D8B6D9BF154D665200C483CF /* TestCustomObjectsExtended.m in Sources */ = {isa = PBXBuildFile; fileRef = D8B6D9BE154D665200C483CF /* TestCustomObjectsExtended.m */; };
 		D8C1EDBE142A056800FED1B0 /* file1.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8C1EDBD142A056800FED1B0 /* file1.plist */; };
 		D8C1EDC1142A056F00FED1B0 /* file2.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8C1EDC0142A056F00FED1B0 /* file2.plist */; };
 		D8C1EDC5142A057B00FED1B0 /* file3.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8C1EDC2142A057B00FED1B0 /* file3.plist */; };
@@ -43,13 +44,11 @@
 		D81676FE141624E30082CEB6 /* TestStringInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestStringInput.h; sourceTree = "<group>"; };
 		D81677021416265A0082CEB6 /* TestGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestGroup.h; sourceTree = "<group>"; };
 		D81677031416265A0082CEB6 /* TestGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestGroup.m; sourceTree = "<group>"; };
-		D82276A7153D65DC0097AAB5 /* NDJSONRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONRequest.h; sourceTree = "<group>"; };
-		D82276A8153D65DC0097AAB5 /* NDJSONRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONRequest.m; sourceTree = "<group>"; };
-		D82276AB153D69C90097AAB5 /* NDJSONResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONResponse.h; sourceTree = "<group>"; };
-		D82276AC153D69C90097AAB5 /* NDJSONResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONResponse.m; sourceTree = "<group>"; };
 		D827A0BA151E0D1A0071645A /* TestCustomObjects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestCustomObjects.h; sourceTree = "<group>"; };
 		D827A0BB151E0D1A0071645A /* TestCustomObjects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestCustomObjects.m; sourceTree = "<group>"; };
 		D854B625141508000019D7E2 /* TestClassNames.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = TestClassNames.plist; sourceTree = "<group>"; };
+		D8B6D9BD154D665200C483CF /* TestCustomObjectsExtended.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestCustomObjectsExtended.h; sourceTree = "<group>"; };
+		D8B6D9BE154D665200C483CF /* TestCustomObjectsExtended.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestCustomObjectsExtended.m; sourceTree = "<group>"; };
 		D8C1EDBD142A056800FED1B0 /* file1.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = file1.plist; sourceTree = "<group>"; };
 		D8C1EDC0142A056F00FED1B0 /* file2.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = file2.plist; sourceTree = "<group>"; };
 		D8C1EDC2142A057B00FED1B0 /* file3.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = file3.plist; sourceTree = "<group>"; };
@@ -57,12 +56,12 @@
 		D8C1EDC8142A0FC300FED1B0 /* TestRemoteRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestRemoteRequest.h; sourceTree = "<group>"; };
 		D8C1EDC9142A0FC300FED1B0 /* TestRemoteRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestRemoteRequest.m; sourceTree = "<group>"; };
 		D8CCFCF91489B0390015DF1E /* TestStringInput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestStringInput.m; sourceTree = "<group>"; };
-		D8CCFCFC1489B06A0015DF1E /* NDJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSON.h; sourceTree = "<group>"; };
-		D8CCFCFD1489B06A0015DF1E /* NDJSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSON.m; sourceTree = "<group>"; };
-		D8CCFCFE1489B06A0015DF1E /* NDJSONCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONCore.h; sourceTree = "<group>"; };
-		D8CCFCFF1489B06A0015DF1E /* NDJSONCore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONCore.m; sourceTree = "<group>"; };
-		D8CCFD001489B06A0015DF1E /* NDJSONParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONParser.h; sourceTree = "<group>"; };
-		D8CCFD011489B06A0015DF1E /* NDJSONParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONParser.m; sourceTree = "<group>"; };
+		D8CCFCFC1489B06A0015DF1E /* NDJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSON.h; sourceTree = "<group>"; usesTabs = 1; };
+		D8CCFCFD1489B06A0015DF1E /* NDJSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSON.m; sourceTree = "<group>"; usesTabs = 1; };
+		D8CCFCFE1489B06A0015DF1E /* NDJSONCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONCore.h; sourceTree = "<group>"; usesTabs = 1; };
+		D8CCFCFF1489B06A0015DF1E /* NDJSONCore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONCore.m; sourceTree = "<group>"; usesTabs = 1; };
+		D8CCFD001489B06A0015DF1E /* NDJSONParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONParser.h; sourceTree = "<group>"; usesTabs = 1; };
+		D8CCFD011489B06A0015DF1E /* NDJSONParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONParser.m; sourceTree = "<group>"; usesTabs = 1; };
 		D8D602351414FD91007F8A29 /* NDJSON.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NDJSON.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8D602391414FD91007F8A29 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		D8D6023C1414FD91007F8A29 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -74,7 +73,7 @@
 		D8D602471414FD91007F8A29 /* NDJSON-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NDJSON-Prefix.pch"; sourceTree = "<group>"; };
 		D8D602491414FD91007F8A29 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
 		D8D6024B1414FD91007F8A29 /* NDAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NDAppDelegate.h; sourceTree = "<group>"; };
-		D8D6024C1414FD91007F8A29 /* NDAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NDAppDelegate.m; sourceTree = "<group>"; };
+		D8D6024C1414FD91007F8A29 /* NDAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NDAppDelegate.m; sourceTree = "<group>"; usesTabs = 1; };
 		D8D6024F1414FD92007F8A29 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		D8E25AE514C0328C001B02DA /* TestUnicharEscapeSquence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestUnicharEscapeSquence.h; sourceTree = "<group>"; };
 		D8E25AE614C0328C001B02DA /* TestUnicharEscapeSquence.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestUnicharEscapeSquence.m; sourceTree = "<group>"; };
@@ -113,10 +112,6 @@
 				D8CCFCFF1489B06A0015DF1E /* NDJSONCore.m */,
 				D8CCFD001489B06A0015DF1E /* NDJSONParser.h */,
 				D8CCFD011489B06A0015DF1E /* NDJSONParser.m */,
-				D82276A7153D65DC0097AAB5 /* NDJSONRequest.h */,
-				D82276A8153D65DC0097AAB5 /* NDJSONRequest.m */,
-				D82276AB153D69C90097AAB5 /* NDJSONResponse.h */,
-				D82276AC153D69C90097AAB5 /* NDJSONResponse.m */,
 			);
 			path = NDJSON;
 			sourceTree = "<group>";
@@ -215,6 +210,8 @@
 			children = (
 				D811D2681543088900D7FFBB /* TestCustomObjectsSimple.h */,
 				D811D2691543088900D7FFBB /* TestCustomObjectsSimple.m */,
+				D8B6D9BD154D665200C483CF /* TestCustomObjectsExtended.h */,
+				D8B6D9BE154D665200C483CF /* TestCustomObjectsExtended.m */,
 			);
 			path = TestCustomObjects;
 			sourceTree = "<group>";
@@ -322,6 +319,7 @@
 				D8E25AE714C0328C001B02DA /* TestUnicharEscapeSquence.m in Sources */,
 				D827A0BC151E0D1A0071645A /* TestCustomObjects.m in Sources */,
 				D811D26A1543088900D7FFBB /* TestCustomObjectsSimple.m in Sources */,
+				D8B6D9BF154D665200C483CF /* TestCustomObjectsExtended.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

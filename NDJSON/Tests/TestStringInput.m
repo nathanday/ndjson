@@ -67,6 +67,7 @@
 	[self addName:@"Object Containing Array Containing Object etc." jsonString:@"{ \"alpha\" :  1  , \"beta\"\n:\t\t\"two\" ,  \"gama\":[1,2,\"three\",true,false,null,{\"alpha\":1,\"beta\":[1,false]}]}  " expectedResult:DICT(INTNUM(1),@"alpha",@"two",@"beta",ARRAY(INTNUM(1),INTNUM(2),@"three",BOOLNUM(YES),BOOLNUM(NO),NULLOBJ,DICT(INTNUM(1),@"alpha",ARRAY(INTNUM(1),BOOLNUM(NO)),@"beta")),@"gama")];
 	[self addName:@"Nested Object" jsonString:@"{ \"alpha\" : { \"beta\" : 2 }}" expectedResult:DICT(DICT(INTNUM(2),@"beta"),@"alpha")];
 	[self addName:@"Nested Object with Array" jsonString:@"{ \"alpha\" : { \"beta\" : 2 }, \"gama\":[3,4]}" expectedResult:DICT(DICT(INTNUM(2),@"beta"),@"alpha",ARRAY(INTNUM(3),INTNUM(4)), @"gama")];
+	[self addName:@"Nested Object with nested Array" jsonString:@"{ \"alpha\" : { \"beta\" : [3,4] }}" expectedResult:DICT(DICT(ARRAY(INTNUM(3),INTNUM(4)),@"beta"),@"alpha")];
 	[self addName:@"UnBalanced Nested Object, Shallower End" jsonString:@"{\"one\":1,\"two\":2,\"three\":{\"four\":4}" expectedResult:DICT(INTNUM(1),@"one",INTNUM(2),@"two",DICT(INTNUM(4),@"four"), @"three")];
 	[self addName:@"UnBalanced Nested Object, Deeper End" jsonString:@"{\"one\":1,\"two\":2},\"three\":3,\"four\":4}" expectedResult:DICT(INTNUM(1),@"one",INTNUM(2),@"two")];
 	NSDictionary	* theDict = [NSDictionary dictionaryWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"file4" ofType:@"plist"]];

@@ -80,6 +80,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 	struct NDJSONGeneratorContext	generatorContext;
 	Class							rootClass,
 									rootCollectionClass;
+	id								currentObject;
 	BOOL							convertKeysToMedialCapital,
 									removeIsAdjective;
 }
@@ -205,40 +206,48 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 
 - (void)jsonParserDidStartArray:(NDJSON *)aParser
 {
-	id		theArrayRep = [[[self collectionClassForPropertyName:generatorContext.currentKey class:currentClass(&generatorContext)] alloc] init];
-	addObject( &generatorContext, theArrayRep );
-	pushObject( &generatorContext, theArrayRep );
+	id		theArrayRep = [[[self collectionClassForPropertyName:generatorContext.currentKey class:[currentContainer(&generatorContext) class]] alloc] init];
+	addContainer( &generatorContext, theArrayRep );
+	pushContainer( &generatorContext, theArrayRep );
 	[theArrayRep release];
 }
 
 - (void)jsonParserDidEndArray:(NDJSON *)aParser
 {
-	popCurrentObject( &generatorContext );
+	popCurrentContainer( &generatorContext );
 }
 
 - (void)jsonParserDidStartObject:(NDJSON *)aParser
 {
-	id			theObjectRep = [[[self classForPropertyName:generatorContext.currentKey class:currentClass(&generatorContext)] alloc] init];
-	addObject( &generatorContext, theObjectRep );
+	id			theObjectRep = [[[self classForPropertyName:generatorContext.currentKey class:[currentContainer(&generatorContext) class]] alloc] init];
+	currentObject = theObjectRep;
+	addContainer( &generatorContext, theObjectRep );
 	pushKeyCurrentKey( &generatorContext );
-	pushObject( &generatorContext, theObjectRep );
+	pushContainer( &generatorContext, theObjectRep );
 	[theObjectRep release];
 }
 
 - (void)jsonParserDidEndObject:(NDJSON *)aParser
 {
+	currentObject = nil;
 	popCurrentKey( &generatorContext );
-	popCurrentObject( &generatorContext );
+	popCurrentContainer( &generatorContext );
 }
 
 - (BOOL)jsonParserShouldSkipValueForCurrentKey:(NDJSON *)aParser
 {
 	BOOL		theResult = NO;
-	Class		theClass = currentClass(&generatorContext);
+	Class		theClass = [currentContainer(&generatorContext) class];
 	if( [theClass respondsToSelector:@selector(ignoreSetJSONParser:)] )
+	{
 		theResult = [[theClass ignoreSetJSONParser:self] containsObject:currentKey(&generatorContext)];
+//		resetCurrentKey(&generatorContext);
+	}
 	else if( [theClass respondsToSelector:@selector(considerSetJSONParser:)] )
+	{
 		theResult = ![[theClass considerSetJSONParser:self] containsObject:currentKey(&generatorContext)];
+//		resetCurrentKey(&generatorContext);
+	}
 	return theResult;
 }
 
@@ -249,27 +258,27 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 
 - (void)jsonParser:(NDJSON *)aParser foundString:(NSString *)aValue
 {
-	addObject( &generatorContext, aValue );
+	addContainer( &generatorContext, aValue );
 }
 
 - (void)jsonParser:(NDJSON *)aParser foundInteger:(NSInteger)aValue
 {
-	addObject( &generatorContext, [NSNumber numberWithInteger:aValue] );
+	addContainer( &generatorContext, [NSNumber numberWithInteger:aValue] );
 }
 
 - (void)jsonParser:(NDJSON *)aParser foundFloat:(double)aValue
 {
-	addObject( &generatorContext, [NSNumber numberWithDouble:aValue] );
+	addContainer( &generatorContext, [NSNumber numberWithDouble:aValue] );
 }
 
 - (void)jsonParser:(NDJSON *)aParser foundBool:(BOOL)aValue
 {
-	addObject( &generatorContext, [NSNumber numberWithBool:aValue] );
+	addContainer( &generatorContext, [NSNumber numberWithBool:aValue] );
 }
 
 - (void)jsonParserFoundNULL:(NDJSON *)aParser
 {
-	addObject( &generatorContext, [NSNull null] );
+	addContainer( &generatorContext, [NSNull null] );
 }
 
 #pragma mark - private

@@ -10,6 +10,7 @@
 #import "TestProtocolBase.h"
 #import "NDJSONParser.h"
 #import "TestCustomObjectsSimple.h"
+#import "TestCustomObjectsExtended.h"
 
 @implementation TestCustomObjects
 
@@ -18,6 +19,7 @@
 - (void)willLoad
 {
 	[TestCustomObjectsSimple addTestsToTestGroup:self];
+    [TestCustomObjectsExtended addTestsToTestGroup:self];
 }
 
 @end
