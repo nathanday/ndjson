@@ -31,15 +31,13 @@
 - (NSUInteger)position { return currentPosition(&parserContext); }
 
 - (struct NDJSONContext	*)parserContext { return &parserContext; }
-- (NDJSONContainerType)currentContainerType { return currentContainerType(&parserContext); }
+- (NDJSONContainerType)currentContainerType { return getCurrentContainerType(&parserContext); }
 
 - (void)setDelegate:(id<NDJSONDelegate>)aDelegate
 {
 	delegate = aDelegate;
 	setDelegateForContext( self.parserContext, self.delegate );
 }
-
-- (BOOL)isCurrentContainerObject { return self.currentContainerType == NDJSONContainerObject; }
 
 #pragma mark - creation and destruction etc
 

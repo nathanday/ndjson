@@ -572,3 +572,33 @@ void NDError( NSString *aFormat, ... )
 }
 
 @end
+
+/*
+@implementation NSString (DEBUGGING)
+
+- (id)init
+{
+	NSLog( @"init %p:'%@'", self, self );
+	return [super init];
+}
+
+- (id)retain NS_AUTOMATED_REFCOUNT_UNAVAILABLE
+{
+	NSLog( @"Retaining %p:'%@', %lu", self, self, self.retainCount );
+	return [super retain];
+}
+
+- (oneway void)release NS_AUTOMATED_REFCOUNT_UNAVAILABLE
+{
+	NSLog( @"Releasing %p:'%@', %lu", self, self, self.retainCount );
+	[super release];
+}
+
+- (id)autorelease NS_AUTOMATED_REFCOUNT_UNAVAILABLE
+{
+	NSLog( @"Autorelease %p:'%@', %lu", self, self, self.retainCount );
+	return [super autorelease];
+}
+
+@end
+*/

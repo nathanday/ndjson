@@ -57,7 +57,7 @@ static NSUInteger indexOfHighestByte( struct NDBytesBuffer * aBuffer, uint8_t aB
 static BOOL appendBytesOfLen( struct NDBytesBuffer * aBuffer, uint8_t * aBytes, NSUInteger aLen );
 static void freeByte( struct NDBytesBuffer * aBuffer );
 
-static BOOL unknownParsing( struct NDJSONContext * aContext );
+static BOOL parseUnknown( struct NDJSONContext * aContext );
 static BOOL parseObject( struct NDJSONContext * aContext );
 static BOOL parseArray( struct NDJSONContext * aContext );
 static BOOL parseKey( struct NDJSONContext * aContext );
@@ -67,6 +67,7 @@ static BOOL parseNumber( struct NDJSONContext * aContext );
 static BOOL parseTrue( struct NDJSONContext * aContext );
 static BOOL parseFalse( struct NDJSONContext * aContext );
 static BOOL parseNull( struct NDJSONContext * aContext );
+static BOOL skipNextValue( struct NDJSONContext * aContext );
 
 static void foundError( struct NDJSONContext * aContext, NDJSONErrorCode aCode );
 
@@ -263,25 +264,25 @@ BOOL beginParsing( struct NDJSONContext * aContext )
 	BOOL		theResult = YES;
 	aContext->containers = NDBytesBufferInit;
 	appendByte(&aContext->containers, NDJSONContainerNone);
-	if( aContext->delegateMethod.didStartDocument != NULL && !aContext->skipParsingValue )
+	if( aContext->delegateMethod.didStartDocument != NULL )
 		aContext->delegateMethod.didStartDocument( aContext->delegate, @selector(jsonParserDidStartDocument:), aContext->parser );
 	[aContext->inputStream open];
-	theResult = unknownParsing( aContext );
+	theResult = parseUnknown( aContext );
 	[aContext->inputStream close];
 	if( !aContext->complete && theResult )
 		foundError(aContext, NDJSONTrailingGarbageError );
 
-	if( aContext->delegateMethod.didEndDocument != NULL && !aContext->skipParsingValue )
+	if( aContext->delegateMethod.didEndDocument != NULL )
 		aContext->delegateMethod.didEndDocument( aContext->delegate, @selector(jsonParserDidEndDocument:), aContext->parser );
 	freeByte(&aContext->containers);
 	return theResult;
 }
 
-NDJSONContainerType currentContainerType( struct NDJSONContext * aContext ) { return (NDJSONContainerType)topByte(&aContext->containers); }
+NDJSONContainerType getCurrentContainerType( struct NDJSONContext * aContext ) { return (NDJSONContainerType)topByte(&aContext->containers); }
 NSUInteger indexOfHighestContainerType( struct NDJSONContext * aContext, NDJSONContainerType aType ) { return indexOfHighestByte(&aContext->containers, (uint8_t)aType ); }
 NSUInteger currentPosition( struct NDJSONContext * aContext ) { return aContext->position; }
 
-BOOL unknownParsing( struct NDJSONContext * aContext )
+BOOL parseUnknown( struct NDJSONContext * aContext )
 {
 	BOOL		theResult = YES;
 	uint8_t		theChar = nextCharIgnoreWhiteSpace( aContext );
@@ -326,7 +327,7 @@ BOOL parseArray( struct NDJSONContext * aContext )
 	BOOL				theEnd = NO;
 	NSUInteger			theCount = 0;
 	appendByte(&aContext->containers, NDJSONContainerArray);
-	if( aContext->delegateMethod.didStartArray != NULL && !aContext->skipParsingValue )
+	if( aContext->delegateMethod.didStartArray != NULL )
 		aContext->delegateMethod.didStartArray( aContext->delegate, @selector(jsonParserDidStartArray:), aContext->parser );
 	
 	if( nextCharIgnoreWhiteSpace(aContext) == ']' )
@@ -334,7 +335,7 @@ BOOL parseArray( struct NDJSONContext * aContext )
 	else
 		backUp(aContext);
 	
-	while( !theEnd && (theResult = unknownParsing( aContext )) == YES )
+	while( !theEnd && (theResult = parseUnknown( aContext )) == YES )
 	{
 		uint8_t		theChar = nextCharIgnoreWhiteSpace(aContext);
 		theCount++;
@@ -355,7 +356,7 @@ BOOL parseArray( struct NDJSONContext * aContext )
 	if( theEnd )
 	{
 		NSCParameterAssert(truncateByte(&aContext->containers, NDJSONContainerArray));
-		if( aContext->delegateMethod.didEndArray != NULL && !aContext->skipParsingValue )
+		if( aContext->delegateMethod.didEndArray != NULL )
 			aContext->delegateMethod.didEndArray( aContext->delegate, @selector(jsonParserDidEndArray:), aContext->parser );
 	}
 erorOut:
@@ -367,10 +368,9 @@ BOOL parseObject( struct NDJSONContext * aContext )
 	BOOL				theResult = YES;
 	BOOL				theEnd = NO;
 	NSUInteger			theCount = 0;
-	BOOL				theResetSkipParsingValue = NO;
 
 	appendByte( &aContext->containers, NDJSONContainerObject );
-	if( aContext->delegateMethod.didStartObject != NULL && !aContext->skipParsingValue )
+	if( aContext->delegateMethod.didStartObject != NULL )
 		aContext->delegateMethod.didStartObject( aContext->delegate, @selector(jsonParserDidStartObject:), aContext->parser );
 	
 	if( nextCharIgnoreWhiteSpace(aContext) == '}' )
@@ -382,12 +382,18 @@ BOOL parseObject( struct NDJSONContext * aContext )
 	{
 		if( (theResult = parseKey(aContext)) )
 		{
-			if( aContext->delegateMethod.shouldSkipValueForCurrentKey != NULL && !aContext->skipParsingValue )
-				theResetSkipParsingValue = aContext->skipParsingValue = ((returnBoolMethodIMP)aContext->delegateMethod.shouldSkipValueForCurrentKey)( aContext->delegate, @selector(jsonParserShouldSkipValueForCurrentKey:), aContext->parser );
+			BOOL				theSkipParsingValue = NO;
+			if( aContext->delegateMethod.shouldSkipValueForCurrentKey != NULL )
+				theSkipParsingValue = ((returnBoolMethodIMP)aContext->delegateMethod.shouldSkipValueForCurrentKey)( aContext->delegate, @selector(jsonParserShouldSkipValueForCurrentKey:), aContext->parser );
 
 			if( (nextCharIgnoreWhiteSpace(aContext) == ':') == YES )
 			{
-				if( (theResult = unknownParsing( aContext )) == YES )
+				if( theSkipParsingValue )
+					theResult = skipNextValue( aContext );
+				else 
+					theResult = parseUnknown( aContext );
+
+				if( theResult == YES )
 				{
 					uint8_t		theChar = nextCharIgnoreWhiteSpace(aContext);
 					theCount++;
@@ -409,14 +415,11 @@ BOOL parseObject( struct NDJSONContext * aContext )
 			}
 			else
 				foundError( aContext, NDJSONBadFormatError );
-
-			if( theResetSkipParsingValue )
-				aContext->skipParsingValue = NO;
 		}
 		else
 			foundError( aContext, NDJSONBadFormatError );
 	}
-	if( theEnd && !aContext->skipParsingValue )
+	if( theEnd )
 	{
 		if( aContext->delegateMethod.didEndObject != NULL )
 			aContext->delegateMethod.didEndObject( aContext->delegate, @selector(jsonParserDidEndObject:), aContext->parser );
@@ -440,13 +443,9 @@ BOOL parseKey( struct NDJSONContext * aContext )
 	return theResult;
 }
 
-BOOL parseString( struct NDJSONContext * aContext )
-{
-	return parseText( aContext, NO, YES );
-}
+BOOL parseString( struct NDJSONContext * aContext ) { return parseText( aContext, NO, YES ); }
 
 BOOL parseText( struct NDJSONContext * aContext, BOOL aIsKey, BOOL aIsQuotesTerminated )
-
 {
 	BOOL					theResult = YES,
 							theEnd = NO;
@@ -537,7 +536,7 @@ BOOL parseText( struct NDJSONContext * aContext, BOOL aIsKey, BOOL aIsQuotesTerm
 			break;
 		}
 	}
-	if( theEnd && !aContext->skipParsingValue )
+	if( theEnd )
 	{
 		NSString	* theValue = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:NSUTF8StringEncoding];
 		if( aIsKey )
@@ -645,14 +644,14 @@ BOOL parseNumber( struct NDJSONContext * aContext )
 			theValue *= pow(10,theExponentValue);
 		if( theNegative )
 			theValue = -theValue;
-		if( aContext->delegateMethod.foundFloat != NULL && !aContext->skipParsingValue)
+		if( aContext->delegateMethod.foundFloat != NULL )
 			aContext->delegateMethod.foundFloat( aContext->delegate, @selector(jsonParser:foundFloat:), aContext->parser, theValue );
 	}
 	else if( theDecimalPlaces > 0 )
 	{
 		if( theNegative )
 			theIntegerValue = -theIntegerValue;
-		if( aContext->delegateMethod.foundInteger != NULL && !aContext->skipParsingValue )
+		if( aContext->delegateMethod.foundInteger != NULL )
 			aContext->delegateMethod.foundInteger( aContext->delegate, @selector(jsonParser:foundInteger:), aContext->parser, theIntegerValue );
 	}
 	else
@@ -669,7 +668,7 @@ BOOL parseTrue( struct NDJSONContext * aContext )
 	uint8_t		theChar;
 	if( (theChar = nextChar(aContext)) == 'r' && (theChar = nextChar(aContext)) == 'u' && (theChar = nextChar(aContext)) == 'e' )
 	{
-		if( aContext->delegateMethod.foundBool != NULL && !aContext->skipParsingValue )
+		if( aContext->delegateMethod.foundBool != NULL )
 			aContext->delegateMethod.foundBool( aContext->delegate, @selector(jsonParser:foundBool:), aContext->parser, YES );
 	}
 	else if( theChar == '\0' )
@@ -685,7 +684,7 @@ BOOL parseFalse( struct NDJSONContext * aContext )
 	uint8_t		theChar;
 	if( (theChar = nextChar(aContext)) == 'a' && (theChar = nextChar(aContext)) == 'l' && (theChar = nextChar(aContext)) == 's' && (theChar = nextChar(aContext)) == 'e' )
 	{
-		if( aContext->delegateMethod.foundBool != NULL && !aContext->skipParsingValue )
+		if( aContext->delegateMethod.foundBool != NULL )
 			aContext->delegateMethod.foundBool( aContext->delegate, @selector(jsonParser:foundBool:), aContext->parser, NO );
 	}
 	else if( theChar == '\0' )
@@ -701,7 +700,7 @@ BOOL parseNull( struct NDJSONContext * aContext )
 	uint8_t		theChar;
 	if( (theChar = nextChar(aContext)) == 'u' && (theChar = nextChar(aContext)) == 'l' && (theChar = nextChar(aContext)) == 'l' )
 	{
-		if( aContext->delegateMethod.foundNULL != NULL && !aContext->skipParsingValue )
+		if( aContext->delegateMethod.foundNULL != NULL )
 			aContext->delegateMethod.foundNULL( aContext->delegate, @selector(jsonParserFoundNULL:), aContext->parser );
 	}
 	else if( theChar == '\0' )
@@ -709,6 +708,70 @@ BOOL parseNull( struct NDJSONContext * aContext )
 	else
 		foundError( aContext, NDJSONBadTokenError );
 	return theResult;
+}
+
+BOOL skipNextValue( struct NDJSONContext * aContext )
+{
+	NSUInteger		theBracesDepth = 0,
+					theBracketsDepth = 0;
+	BOOL			theInQuotes = NO;
+	BOOL			theEnd = NO;
+	uint8_t			theChar = '\n';
+
+	fprintf( stderr, "\nskipping : " );
+	while( !theEnd )
+	{
+		switch( (theChar = nextCharIgnoreWhiteSpace( aContext )) )
+		{
+		case '{':
+			theBracesDepth++;
+			break;
+		case '}':
+			if( theBracesDepth > 0 )
+				theBracesDepth--;
+			else
+			{
+				backUp(aContext);
+				theEnd = YES;
+			}
+			break;
+		case '[':
+			theBracketsDepth++;
+			break;
+		case ']':
+			if( theBracketsDepth > 0 )
+				theBracketsDepth--;
+			else
+			{
+				backUp(aContext);
+				theEnd = YES;
+			}
+			break;
+		case ',':
+			if( theBracesDepth == 0 && theBracketsDepth == 0 )
+			{
+				backUp(aContext);
+				theEnd = YES;
+			}
+			break;
+		case '\0':
+			theEnd = YES;
+			break;
+		case '"':
+			while( (theChar = nextCharIgnoreWhiteSpace( aContext )) != '"' )
+			{
+				if( theChar == '\\' )
+					theChar = nextChar(aContext);
+			}
+			break;
+		default:
+			break;
+		}
+		fprintf( stderr, "%c", theChar );
+	}
+
+	fprintf( stderr, "\n" );
+	return theChar != '\0' && theBracesDepth == 0 && theBracketsDepth == 0 && theInQuotes == NO;
 }
 
 void foundError( struct NDJSONContext * aContext, NDJSONErrorCode aCode )
@@ -740,7 +803,7 @@ void foundError( struct NDJSONContext * aContext, NDJSONErrorCode aCode )
 	case NDJSONPrematureEndError:
 		break;
 	}
-	if( aContext->delegateMethod.foundError != NULL && !aContext->skipParsingValue )
+	if( aContext->delegateMethod.foundError != NULL )
 		aContext->delegateMethod.foundError( aContext->delegate, @selector(jsonParser:error:), aContext->parser, [NSError errorWithDomain:NDJSONErrorDomain code:aCode userInfo:theUserInfo] );
 	[theUserInfo release];
 }
@@ -890,102 +953,3 @@ void freeByte( struct NDBytesBuffer * aBuffer )
 	aBuffer->length = 0;
 	aBuffer->capacity = 0;
 }
-
-#pragma mark - functions used by NDJSONParser
-void initGeneratorContext( struct NDJSONGeneratorContext * aContext )
-{
-	aContext->previousKeys = [[NSMutableArray alloc] init];
-	aContext->previousContainer = [[NSMutableArray alloc] init];
-	aContext->currentContainer = nil;
-	aContext->currentKey = nil;
-	aContext->root = nil;
-}
-
-void freeGeneratorContext( struct NDJSONGeneratorContext * aContext )
-{
-	[aContext->previousKeys release];
-	[aContext->previousContainer release];
-}
-
-id currentContainer( struct NDJSONGeneratorContext * aContext ) { return aContext->currentContainer; }
-
-void pushContainer( struct NDJSONGeneratorContext * aContext, id aContainer )
-{
-	NSCParameterAssert( aContainer != nil );
-	NSCParameterAssert( aContext->previousContainer != nil );
-	if( aContext->currentContainer != nil )
-	{
-		[aContext->previousContainer addObject:aContext->currentContainer];
-	}
-	aContext->currentContainer = [aContainer retain];
-}
-
-void popCurrentContainer( struct NDJSONGeneratorContext * aContext )
-{
-	[aContext->currentContainer release], aContext->currentContainer = nil;
-	NSCParameterAssert( aContext->previousContainer != nil );
-	if( [aContext->previousContainer count] > 0 )
-	{
-		aContext->currentContainer = [aContext->previousContainer lastObject];
-		[aContext->previousContainer removeLastObject];
-	}
-}
-
-id currentKey( struct NDJSONGeneratorContext * aContext ) { return aContext->currentKey; }
-void setCurrentKey( struct NDJSONGeneratorContext * aContext, NSString * aKey )
-{
-	NSCParameterAssert(aContext->currentKey == nil);
-	aContext->currentKey = [aKey retain];
-}
-
-void resetCurrentKey( struct NDJSONGeneratorContext * aContext )
-{
-	NSCParameterAssert(aContext->currentKey != nil);
-	[aContext->currentKey release], aContext->currentKey = nil;
-}
-
-void pushKeyCurrentKey( struct NDJSONGeneratorContext * aContext )
-{
-	if( aContext->currentKey != nil )
-	{
-		NSCParameterAssert(aContext->previousKeys != nil );
-		[aContext->previousKeys addObject:aContext->currentKey];
-		[aContext->currentKey release], aContext->currentKey = nil;
-	}
-}
-
-void popCurrentKey( struct NDJSONGeneratorContext * aContext )
-{
-	NSCParameterAssert( aContext->currentKey == nil);
-	aContext->currentKey = [aContext->previousKeys lastObject];
-	if( aContext->currentKey == [NSNull null] )
-		aContext->currentKey = nil;
-	[aContext->currentKey retain];
-	if( [aContext->previousKeys count] > 0 )
-		[aContext->previousKeys removeLastObject];
-}
-
-void addContainer( struct NDJSONGeneratorContext * aContext, id aContainer )
-{
-	if( aContext->currentContainer != nil )
-	{
-		if( aContext->currentKey == nil )
-		{
-			NSCParameterAssert( [aContext->currentContainer respondsToSelector:@selector(addObject:)] );
-			[aContext->currentContainer addObject:aContainer];
-		}
-		else
-		{
-			NSCParameterAssert( [aContext->currentContainer respondsToSelector:@selector(setValue:forKey:)] );
-			[aContext->currentContainer setValue:aContainer forKey:aContext->currentKey];
-			[aContext->currentKey release], aContext->currentKey = nil;
-		}
-	}
-	else
-	{
-		NSCParameterAssert( aContext->root == nil );
-		aContext->root = [aContainer retain];
-	}
-}
-
-

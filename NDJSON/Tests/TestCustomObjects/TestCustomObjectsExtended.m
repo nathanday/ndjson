@@ -27,8 +27,11 @@
 
 + (void)addTestsToTestGroup:(TestGroup *)aTestGroup
 {
-    [aTestGroup addTest:[self testCustomObjectsSimpleWithName:@"Extended Test"
-                                             jsonSourceString:@"{child:{every_child:[{name:\"Beta Object\"}],ignoredValue:20},doubleValue:3.1415,ignoredValue:10}"
+    [aTestGroup addTest:[self testCustomObjectsSimpleWithName:@"Extended Test One"
+                                             jsonSourceString:@"{doubleValue:3.1415,ignoredValueA:10,child:{every_child:[{name:\"Beta Object 1\"},{name:\"Beta Object 2\"}],ignoredValueB:20}}"
+                                                    rootClass:[RootAlpha class]]];
+    [aTestGroup addTest:[self testCustomObjectsSimpleWithName:@"Extended Test Two"
+                                             jsonSourceString:@"{child:{every_child:[{name:\"Beta Object 1\"},{name:\"Beta Object 2\"}],ignoredValueA:20},doubleValue:3.1415,ignoredValueB:10}"
                                                     rootClass:[RootAlpha class]]];
 }
 
@@ -49,13 +52,14 @@
 
 - (NSString *)details
 {
-	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\n", jsonSourceString, self.lastResult];
+	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", jsonSourceString, self.lastResult, self.expectedResult];
 }
 
 - (id)run
 {
 	NSError						* theError = nil;
 	NDJSONParser		* theJSON = [[NDJSONParser alloc] initWithRootClass:rootClass rootCollectionClass:Nil];
+	theJSON.convertKeysToMedialCapital = YES;
 	
 	self.lastResult = [theJSON propertyListForJSONString:jsonSourceString error:&theError];
 	self.error = theError;
@@ -64,10 +68,30 @@
 	return lastResult;
 }
 
+- (id)expectedResult
+{
+	RootAlpha		* theResult = [[RootAlpha alloc] init];
+	ChildAlpha		* theChildAlpha = [[ChildAlpha alloc] init];
+	ChildBeta		* theChildBeta1 = [[ChildBeta alloc] init],
+					* theChildBeta2 = [[ChildBeta alloc] init];
+
+	theResult.child = theChildAlpha;
+	theResult.value = 3.1415;
+	theChildAlpha.everyChild = [NSSet setWithObjects:theChildBeta1, theChildBeta2, nil];
+	theChildBeta1.name = @"Beta Object 1";
+	theChildBeta2.name = @"Beta Object 2";
+	[theChildAlpha release];
+	[theChildBeta1 release];
+	[theChildBeta2 release];
+	return [theResult autorelease];
+}
+
 @end
 
 @implementation ChildBeta
 @synthesize     name;
+
+- (NSString *)description { return [NSString stringWithFormat:@"{name:\"%@\"}", self.name]; }
 
 @end
 
@@ -77,8 +101,37 @@
 {
     static NSSet       * kIgnoreSet = nil;
     if( kIgnoreSet == nil )
-        kIgnoreSet = [[NSSet alloc] initWithObjects:@"ignoredValue", nil];
+        kIgnoreSet = [[NSSet alloc] initWithObjects:@"ignoredValueB", nil];
     return kIgnoreSet;
+}
+
++ (NSDictionary *)collectionClassesForPropertyNamesJSONParser:(NDJSONParser *)aParser
+{
+    static NSDictionary     * kClassesForKeys = nil;
+    if( kClassesForKeys == nil )
+		kClassesForKeys = [NSDictionary dictionaryWithObjectsAndKeys:[NSSet class], @"everyChild", nil];
+	return kClassesForKeys;
+}
+
++ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONParser *)aParser
+{
+    static NSDictionary     * kClassesForKeys = nil;
+    if( kClassesForKeys == nil )
+        kClassesForKeys = [[NSDictionary alloc] initWithObjectsAndKeys:[ChildBeta class], @"everyChild", nil];
+    return kClassesForKeys;
+}
+
+- (NSString *)description
+{
+	NSMutableString		* theEveryChild = nil;
+	for( id theChild in self.everyChild )
+	{
+		if( theEveryChild == nil )
+			theEveryChild = [NSMutableString stringWithFormat:@"%@",theChild];
+		else
+			[theEveryChild appendFormat:@",%@",theChild];
+	}
+	return [NSString stringWithFormat:@"{everyChild:[%@]}", theEveryChild ? theEveryChild : @""];
 }
 
 @end
@@ -100,7 +153,7 @@
 {
     static NSDictionary     * kNamesForKeys = nil;
     if( kNamesForKeys == nil )
-        kNamesForKeys = [[NSDictionary alloc] initWithObjectsAndKeys:@"doubleValue", @"value", nil];
+        kNamesForKeys = [[NSDictionary alloc] initWithObjectsAndKeys:@"value", @"doubleValue", nil];
     return kNamesForKeys;
 }
 
@@ -111,5 +164,7 @@
         kClassesForKeys = [[NSDictionary alloc] initWithObjectsAndKeys:[ChildAlpha class], @"child", nil];
     return kClassesForKeys;
 }
+
+- (NSString *)description { return [NSString stringWithFormat:@"{child:%@,doubleValue:%.4f}", self.child, self.value]; }
 
 @end

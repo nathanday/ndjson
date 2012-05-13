@@ -14,7 +14,6 @@
 
 @property(readonly,nonatomic)		NSUInteger		position;
 @property(assign,nonatomic)		id<NDJSONDelegate>	delegate;
-@property(assign,nonatomic)			BOOL			isCurrentContainerObject;
 
 /**
 	intialise a *NDJSON* instance with a delegate
