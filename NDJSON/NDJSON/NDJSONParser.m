@@ -82,8 +82,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 				ignoreUnknownPropertyName,
 				convertKeysToMedialCapital,
 				removeIsAdjective,
-				currentProperty,
-				result;
+				currentProperty;
 
 #pragma mark - manually implemented properties
 - (id)currentContainer { return containerStack.count > 0 ? containerStack.bytes[containerStack.count-1].container : nil; }
@@ -214,7 +213,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	NSAssert( aParser != nil, @"nil JSON parser" );
 	aParser.delegate = self;
 	if( [aParser parse] )
-		theResult = self.result;
+		theResult = result;
 	return theResult;
 }
 

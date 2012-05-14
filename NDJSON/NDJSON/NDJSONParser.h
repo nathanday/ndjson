@@ -23,7 +23,6 @@ extern NSString		* const NDJSONBadCollectionClassException,
 @property(readonly,nonatomic)	id			currentContainer;
 @property(readonly,nonatomic)	id			currentObject;
 @property(readonly,nonatomic)	NSString	* currentProperty;
-@property(readonly,nonatomic)	id			result;
 
 - (id)init;
 - (id)initWithRootClass:(Class)rootClass;
