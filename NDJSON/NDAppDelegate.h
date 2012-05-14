@@ -20,6 +20,8 @@ void NDError( NSString *format, ... ) NS_FORMAT_FUNCTION(1,2);
 	IBOutlet	NSButton	* runStopButton;
 	IBOutlet	NSButton	* detailsButton;
 	IBOutlet	NSButton	* showMessagesCheckBoxButton;
+	IBOutlet	NSButton	* checkButton;
+	IBOutlet	NSButton	* uncheckButton;
 }
 
 @property (assign)		NSWindow	* window;

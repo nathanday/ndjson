@@ -14,7 +14,7 @@
 
 struct ContainerStackStruct
 {
-	NSString	* key;
+	NSString	* propertyName;
 	id			container;
 	BOOL		isObject;
 };
@@ -28,7 +28,7 @@ struct NDJSONGeneratorContext
 		struct ContainerStackStruct		* bytes;
 	}								containerStack;
 	id								root;
-	NSString						* currentKey;
+	NSString						* currentProperty;
 	BOOL							ignoreUnknownPropertyName,
 									convertKeysToMedialCapital,
 									removeIsAdjective;
@@ -47,12 +47,8 @@ NSString	* const NDJSONBadCollectionClassException = @"NDJSONBadCollectionClassE
 
 id getCurrentContainer( struct NDJSONGeneratorContext * context );
 id getCurrentObject( struct NDJSONGeneratorContext * context );
-id getRootContainer( struct NDJSONGeneratorContext * context );
 void pushContainer( struct NDJSONGeneratorContext * context, id container, BOOL isObject );
 void popCurrentContainer( struct NDJSONGeneratorContext * context );
-id getCurrentKey( struct NDJSONGeneratorContext * context );
-void setCurrentKey( struct NDJSONGeneratorContext * context, NSString * key );
-void resetCurrentKey( struct NDJSONGeneratorContext * context );
 void addValue( struct NDJSONGeneratorContext * context, id value );
 
 static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, const char * aPropertyAttributes )
@@ -94,8 +90,19 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 				convertKeysToMedialCapital,
 				removeIsAdjective;
 
+#pragma mark - manually implemented properties
 - (id)currentContainer { return getCurrentContainer(&generatorContext); }
 - (id)currentObject { return getCurrentObject(&generatorContext); }
+- (NSString *)currentContainerPropertyName
+{
+	NSString			* theResult = self.currentProperty;
+	if( theResult == nil && generatorContext.containerStack.count > 0 )
+		theResult = generatorContext.containerStack.bytes[generatorContext.containerStack.count-1].propertyName;
+	return theResult;
+}
+- (NSString *)currentProperty { return generatorContext.currentProperty; }
+
+#pragma mark - creation and destruction
 - (id)init { return [self initWithRootClass:Nil]; }
 - (id)initWithRootClass:(Class)aRootClass { return [self initWithRootClass:aRootClass rootCollectionClass:Nil]; }
 - (id)initWithRootClass:(Class)aRootClass rootCollectionClass:(Class)aRootCollectionClass
@@ -109,6 +116,19 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 		removeIsAdjective = kRemoveIsAdjectiveDefaultValue;
 	}
 	return self;
+}
+
+- (void)dealloc
+{
+	for( NSUInteger i = 0; i < generatorContext.containerStack.count; i++ )
+	{
+		[generatorContext.containerStack.bytes[i].propertyName release];
+		[generatorContext.containerStack.bytes[i].container release];
+	}
+	[generatorContext.currentProperty release];
+	[generatorContext.root autorelease];
+	free(generatorContext.containerStack.bytes);
+	[super dealloc];
 }
 
 #pragma mark - parsing methods
@@ -189,7 +209,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	NSAssert( aParser != nil, @"nil JSON parser" );
 	aParser.delegate = self;
 	if( [aParser parse] )
-		theResult = getRootContainer(&generatorContext);
+		theResult = generatorContext.root;
 	return theResult;
 }
 
@@ -198,8 +218,11 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 {
 	generatorContext.containerStack.size = 256;
 	generatorContext.containerStack.count = 0;
+	if( generatorContext.containerStack.bytes != NULL )
+		free( generatorContext.containerStack.bytes );
 	generatorContext.containerStack.bytes = calloc(generatorContext.containerStack.size,sizeof(struct ContainerStackStruct));
-	generatorContext.currentKey = nil;
+	[generatorContext.currentProperty release], generatorContext.currentProperty = nil;
+	[generatorContext.root autorelease], generatorContext.root = nil;
 	generatorContext.ignoreUnknownPropertyName = self.ignoreUnknownPropertyName;
 	generatorContext.convertKeysToMedialCapital = self.convertKeysToMedialCapital;
 	generatorContext.removeIsAdjective = self.removeIsAdjective;
@@ -208,19 +231,22 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 {
 	for( NSUInteger i = 0; i < generatorContext.containerStack.count; i++ )
 	{
-		[generatorContext.containerStack.bytes[i].key release];
+		[generatorContext.containerStack.bytes[i].propertyName release];
 		[generatorContext.containerStack.bytes[i].container release];
 	}
-	[generatorContext.currentKey release];
-	[generatorContext.root autorelease];
-	free(generatorContext.containerStack.bytes);
+	generatorContext.containerStack.count = 0;
+	[generatorContext.currentProperty release], generatorContext.currentProperty = nil;
+	if( generatorContext.containerStack.bytes != NULL )
+		free(generatorContext.containerStack.bytes);
+	generatorContext.containerStack.bytes = NULL;
 }
 
 - (void)jsonParserDidStartArray:(NDJSON *)aParser
 {
-	id		theArrayRep = [[[self collectionClassForPropertyName:getCurrentKey(&generatorContext) class:[getCurrentObject(&generatorContext) class]] alloc] init];
+	id		theArrayRep = [[[self collectionClassForPropertyName:generatorContext.currentProperty class:[getCurrentObject(&generatorContext) class]] alloc] init];
 	addValue( &generatorContext, theArrayRep );
 	pushContainer( &generatorContext, theArrayRep, NO );
+	[generatorContext.currentProperty release], generatorContext.currentProperty = nil;
 	[theArrayRep release];
 }
 
@@ -228,9 +254,10 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 
 - (void)jsonParserDidStartObject:(NDJSON *)aParser
 {
-	id			theObjectRep = [[[self classForPropertyName:getCurrentKey(&generatorContext) class:[getCurrentObject(&generatorContext) class]] alloc] init];
+	id			theObjectRep = [[[self classForPropertyName:self.currentContainerPropertyName class:[getCurrentObject(&generatorContext) class]] alloc] init];
 	addValue( &generatorContext, theObjectRep );
 	pushContainer( &generatorContext, theObjectRep, YES );
+	[generatorContext.currentProperty release], generatorContext.currentProperty = nil;
 	[theObjectRep release];
 }
 
@@ -241,11 +268,14 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	BOOL		theResult = NO;
 	Class		theClass = [getCurrentObject(&generatorContext) class];
 	if( [theClass respondsToSelector:@selector(ignoreSetJSONParser:)] )
-		theResult = [[theClass ignoreSetJSONParser:self] containsObject:getCurrentKey(&generatorContext)];
+		theResult = [[theClass ignoreSetJSONParser:self] containsObject:generatorContext.currentProperty];
 	else if( [theClass respondsToSelector:@selector(considerSetJSONParser:)] )
-		theResult = ![[theClass considerSetJSONParser:self] containsObject:getCurrentKey(&generatorContext)];
+		theResult = ![[theClass considerSetJSONParser:self] containsObject:generatorContext.currentProperty];
 	if( theResult )
-		resetCurrentKey(&generatorContext);
+	{
+		NSCParameterAssert(generatorContext.currentProperty != nil);
+		[generatorContext.currentProperty release], generatorContext.currentProperty = nil;;
+	}
 	return theResult;
 }
 
@@ -296,14 +326,16 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 
 - (void)jsonParser:(NDJSON *)aParser foundKey:(NSString *)aValue
 {
+	NSCParameterAssert(generatorContext.currentProperty == nil);
+	NSCParameterAssert( generatorContext.containerStack.count == 0 || generatorContext.containerStack.bytes[generatorContext.containerStack.count-1].isObject );
 	NSString	* theKey = stringByConvertingPropertyName( aValue, self.removeIsAdjective, self.convertKeysToMedialCapital );
-	setCurrentKey( &generatorContext, theKey );
+	generatorContext.currentProperty = [theKey retain];
 }
-- (void)jsonParser:(NDJSON *)aParser foundString:(NSString *)aValue { addValue( &generatorContext, aValue ); }
-- (void)jsonParser:(NDJSON *)aParser foundInteger:(NSInteger)aValue { addValue( &generatorContext, [NSNumber numberWithInteger:aValue] ); }
-- (void)jsonParser:(NDJSON *)aParser foundFloat:(double)aValue { addValue( &generatorContext, [NSNumber numberWithDouble:aValue] ); }
-- (void)jsonParser:(NDJSON *)aParser foundBool:(BOOL)aValue { addValue( &generatorContext, [NSNumber numberWithBool:aValue] ); }
-- (void)jsonParserFoundNULL:(NDJSON *)aParser { addValue( &generatorContext, [NSNull null] ); }
+- (void)jsonParser:(NDJSON *)aParser foundString:(NSString *)aValue { addValue( &generatorContext, aValue ); [generatorContext.currentProperty release], generatorContext.currentProperty = nil; }
+- (void)jsonParser:(NDJSON *)aParser foundInteger:(NSInteger)aValue { addValue( &generatorContext, [NSNumber numberWithInteger:aValue] ); [generatorContext.currentProperty release], generatorContext.currentProperty = nil; }
+- (void)jsonParser:(NDJSON *)aParser foundFloat:(double)aValue { addValue( &generatorContext, [NSNumber numberWithDouble:aValue] ); [generatorContext.currentProperty release], generatorContext.currentProperty = nil; }
+- (void)jsonParser:(NDJSON *)aParser foundBool:(BOOL)aValue { addValue( &generatorContext, [NSNumber numberWithBool:aValue] ); [generatorContext.currentProperty release], generatorContext.currentProperty = nil; }
+- (void)jsonParserFoundNULL:(NDJSON *)aParser { addValue( &generatorContext, [NSNull null] ); [generatorContext.currentProperty release], generatorContext.currentProperty = nil; }
 
 #pragma mark - private
 
@@ -413,18 +445,15 @@ id getCurrentContainer( struct NDJSONGeneratorContext * aContext )
 
 id getCurrentObject( struct NDJSONGeneratorContext * aContext )
 {
-	id		theResult = nil;
-	for( NSInteger i = aContext->containerStack.count-1 && theResult == nil; i >= 0; i-- )
+	id				theResult = nil;
+	NSInteger		theIndex = aContext->containerStack.count;
+	while( theResult == nil && theIndex > 0 )
 	{
-		if( aContext->containerStack.bytes[i].isObject )
-			theResult = aContext->containerStack.bytes[i].container;
+		theIndex--;
+		if( aContext->containerStack.bytes[theIndex].isObject )
+			theResult = aContext->containerStack.bytes[theIndex].container;
 	}
 	return theResult;
-}
-
-id getRootContainer( struct NDJSONGeneratorContext * aContext )
-{
-	return aContext->root;
 }
 
 void pushContainer( struct NDJSONGeneratorContext * aContext, id aContainer, BOOL anIsObject )
@@ -441,9 +470,9 @@ void pushContainer( struct NDJSONGeneratorContext * aContext, id aContainer, BOO
 		aContext->containerStack.bytes = theBytes;
 	}
 	aContext->containerStack.bytes[aContext->containerStack.count].container = [aContainer retain];
-	aContext->containerStack.bytes[aContext->containerStack.count].key = aContext->currentKey;
+	aContext->containerStack.bytes[aContext->containerStack.count].propertyName = aContext->currentProperty;
+	aContext->currentProperty = nil;
 	aContext->containerStack.bytes[aContext->containerStack.count].isObject = anIsObject;
-	aContext->currentKey = nil;
 	aContext->containerStack.count++;
 }
 
@@ -452,24 +481,10 @@ void popCurrentContainer( struct NDJSONGeneratorContext * aContext )
 	if( aContext->containerStack.count > 0 )
 	{
 		aContext->containerStack.count--;
-		[aContext->currentKey release];
-		aContext->currentKey = aContext->containerStack.bytes[aContext->containerStack.count].key;
+		[aContext->currentProperty release];
+//		aContext->currentProperty = aContext->containerStack.bytes[aContext->containerStack.count].propertyName;
 		[aContext->containerStack.bytes[aContext->containerStack.count].container release];
 	}
-}
-
-id getCurrentKey( struct NDJSONGeneratorContext * aContext ) { return aContext->currentKey; }
-void setCurrentKey( struct NDJSONGeneratorContext * aContext, NSString * aKey )
-{
-	NSCParameterAssert(aContext->currentKey == nil);
-	NSCParameterAssert( aContext->containerStack.count == 0 || aContext->containerStack.bytes[aContext->containerStack.count-1].isObject );
-	aContext->currentKey = [aKey retain];
-}
-
-void resetCurrentKey( struct NDJSONGeneratorContext * aContext )
-{
-	NSCParameterAssert(aContext->currentKey != nil);
-	[aContext->currentKey release], aContext->currentKey = nil;
 }
 
 void addValue( struct NDJSONGeneratorContext * aContext, id aValue )
@@ -477,23 +492,23 @@ void addValue( struct NDJSONGeneratorContext * aContext, id aValue )
 	if( aContext->root != nil )
 	{
 		id			theCurrentContainer = getCurrentContainer(aContext);
-		if( aContext->currentKey == nil )
+		if( aContext->currentProperty == nil )
 		{
 			NSCParameterAssert( [theCurrentContainer respondsToSelector:@selector(addObject:)] );
 			[theCurrentContainer addObject:aValue];
 		}
 		else
 		{
-			NSCParameterAssert( [theCurrentContainer respondsToSelector:@selector(setValue:forKey:)] );
 			@try
 			{
-				NSString	* thePropertyName = getCurrentKey(aContext);
+				NSString	* thePropertyName = aContext->currentProperty;
 				if( [[theCurrentContainer class] respondsToSelector:@selector(propertyNamesForKeysJSONParser:)] )
 				{
 					NSString	* theNewPropertyName = [[[theCurrentContainer class] propertyNamesForKeysJSONParser:nil] objectForKey:thePropertyName];
 					if( theNewPropertyName != nil )
 						thePropertyName = theNewPropertyName;
 				}
+				NSCParameterAssert( [theCurrentContainer respondsToSelector:@selector(setValue:forKey:)] );
 				[theCurrentContainer setValue:aValue forKey:thePropertyName];
 			}
 			@catch( NSException * anException )
@@ -501,7 +516,6 @@ void addValue( struct NDJSONGeneratorContext * aContext, id aValue )
 				if( !aContext->ignoreUnknownPropertyName || ![[anException name] isEqualToString:NSUndefinedKeyException] )
 					@throw anException;
 			}
-			[aContext->currentKey release], aContext->currentKey = nil;
 		}
 	}
 	else

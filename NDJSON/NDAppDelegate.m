@@ -154,7 +154,7 @@ void NDError( NSString *aFormat, ... )
 		 TestGroup		* theGroup = (TestGroup*)anObject;
 		 [theGroup.everyTest enumerateObjectsUsingBlock:^(id anObject, NSUInteger anIndex, BOOL *aStop)
 		  {
-			  if( [[[self.checkForTestGroups objectForKey:[theGroup name]] valueForTestName:[anObject name]] boolValue] )
+			  if( [[[self.checkForTestGroups objectForKey:theGroup.name] valueForTestName:[anObject name]] boolValue] )
 				  [theResult addObject:anObject];
 		  }];
 
@@ -232,24 +232,48 @@ void NDError( NSString *aFormat, ... )
 
 - (IBAction)checkAllTests:(NSButton *)aSender
 {
-	for( TestGroup * theGroup in self.everyTestGroup )
+	if( testsOutlineView.selectedRow < 0 )
 	{
-		[[self.checkForTestGroups objectForKey:[theGroup name]] setValue:[NSNumber numberWithBool:YES]];
-		 for( id<TestProtocol> theTest in theGroup.everyTest )
-			  [[self.checkForTestGroups objectForKey:[theGroup name]] setValue:[NSNumber numberWithBool:YES] forTestName:[theTest name]];
-		 
+		for( TestGroup * theGroup in self.everyTestGroup )
+		{
+			[[self.checkForTestGroups objectForKey:theGroup.name] setValue:[NSNumber numberWithBool:YES]];
+			 for( id<TestProtocol> theTest in theGroup.everyTest )
+				  [[self.checkForTestGroups objectForKey:theGroup.name] setValue:[NSNumber numberWithBool:YES] forTestName:theTest.name];
+			 
+		}
+	}
+	else
+	{
+		[testsOutlineView.selectedRowIndexes enumerateIndexesUsingBlock:^(NSUInteger anIndex, BOOL * aStop )
+		 {
+			 id<TestProtocol>		theTest = [testsOutlineView itemAtRow:anIndex];
+			 if( [theTest conformsToProtocol:@protocol(TestProtocol)] )
+				 [[self.checkForTestGroups objectForKey:theTest.testGroup.name] setValue:[NSNumber numberWithBool:YES] forTestName:theTest.name];
+		 }];
 	}
 	[testsOutlineView setNeedsDisplay:YES];
 }
 
 - (IBAction)uncheckAllTests:(NSButton *)aSender
 {
-	for( TestGroup * theGroup in self.everyTestGroup )
+	if( testsOutlineView.selectedRow < 0 )
 	{
-		[[self.checkForTestGroups objectForKey:[theGroup name]] setValue:[NSNumber numberWithBool:NO]];
-		for( id<TestProtocol> theTest in theGroup.everyTest )
-			[[self.checkForTestGroups objectForKey:[theGroup name]] setValue:[NSNumber numberWithBool:NO] forTestName:[theTest name]];
-		
+		for( TestGroup * theGroup in self.everyTestGroup )
+		{
+			[[self.checkForTestGroups objectForKey:theGroup.name] setValue:[NSNumber numberWithBool:NO]];
+			for( id<TestProtocol> theTest in theGroup.everyTest )
+				[[self.checkForTestGroups objectForKey:theGroup.name] setValue:[NSNumber numberWithBool:NO] forTestName:theTest.name];
+			
+		}
+	}
+	else
+	{
+		[testsOutlineView.selectedRowIndexes enumerateIndexesUsingBlock:^(NSUInteger anIndex, BOOL * aStop )
+		 {
+			 id<TestProtocol>		theTest = [testsOutlineView itemAtRow:anIndex];
+			 if( [theTest conformsToProtocol:@protocol(TestProtocol)] )
+				 [[self.checkForTestGroups objectForKey:theTest.testGroup.name] setValue:[NSNumber numberWithBool:NO] forTestName:theTest.name];
+		 }];
 	}
 	[testsOutlineView setNeedsDisplay:YES];
 }
@@ -392,6 +416,7 @@ void NDError( NSString *aFormat, ... )
 }
 
 #pragma mark - NSOutlineViewDelegate protocol methods
+
 - (void)outlineView:(NSOutlineView *)anOutlineView willDisplayCell:(id)aCell forTableColumn:(NSTableColumn *)aTableColumn item:(id)anItem
 {
 	if( [aTableColumn.identifier isEqual:kNameColumnIdentifier] )
@@ -439,6 +464,16 @@ void NDError( NSString *aFormat, ... )
 - (void)outlineViewSelectionDidChange:(NSNotification *)aNotification
 {
 	detailsButton.enabled = testsOutlineView.selectedRow > -1;
+	if( testsOutlineView.selectedRow > -1 )
+	{
+		checkButton.title = NSLocalizedString(@"Check Selected", @"Check button title");
+		uncheckButton.title = NSLocalizedString(@"Uncheck Selected", @"Check button title");
+	}
+	else
+	{
+		checkButton.title = NSLocalizedString(@"Check All", @"Check button title");
+		uncheckButton.title = NSLocalizedString(@"Uncheck All", @"Check button title");
+	}
 }
 
 #pragma mark - NSSplitViewDelegate methods
@@ -572,33 +607,3 @@ void NDError( NSString *aFormat, ... )
 }
 
 @end
-
-/*
-@implementation NSString (DEBUGGING)
-
-- (id)init
-{
-	NSLog( @"init %p:'%@'", self, self );
-	return [super init];
-}
-
-- (id)retain NS_AUTOMATED_REFCOUNT_UNAVAILABLE
-{
-	NSLog( @"Retaining %p:'%@', %lu", self, self, self.retainCount );
-	return [super retain];
-}
-
-- (oneway void)release NS_AUTOMATED_REFCOUNT_UNAVAILABLE
-{
-	NSLog( @"Releasing %p:'%@', %lu", self, self, self.retainCount );
-	[super release];
-}
-
-- (id)autorelease NS_AUTOMATED_REFCOUNT_UNAVAILABLE
-{
-	NSLog( @"Autorelease %p:'%@', %lu", self, self, self.retainCount );
-	return [super autorelease];
-}
-
-@end
-*/

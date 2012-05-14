@@ -15,13 +15,14 @@ extern NSString		* const NDJSONBadCollectionClassException,
 
 @interface NDJSONParser : NSObject
 
-@property(readonly,nonatomic)	Class	rootClass,
-										rootCollectionClass;
-@property(assign,nonatomic)		BOOL	ignoreUnknownPropertyName;
-@property(assign,nonatomic)		BOOL	convertKeysToMedialCapital;
-@property(assign,nonatomic)		BOOL	removeIsAdjective;
-@property(readonly,nonatomic)	id		currentContainer;
-@property(readonly,nonatomic)	id		currentObject;
+@property(readonly,nonatomic)	Class		rootClass,
+											rootCollectionClass;
+@property(assign,nonatomic)		BOOL		ignoreUnknownPropertyName;
+@property(assign,nonatomic)		BOOL		convertKeysToMedialCapital;
+@property(assign,nonatomic)		BOOL		removeIsAdjective;
+@property(readonly,nonatomic)	id			currentContainer;
+@property(readonly,nonatomic)	id			currentObject;
+@property(readonly,nonatomic)	NSString	* currentProperty;
 
 - (id)init;
 - (id)initWithRootClass:(Class)rootClass;
