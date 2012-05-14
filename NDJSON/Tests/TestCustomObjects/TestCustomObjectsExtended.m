@@ -33,7 +33,7 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
                                              jsonSourceString:@"{\"doubleValue\":3.1415,\"ignoredValueA\":10,\"child\":{\"every_child\":[{\"name\":\"Beta Object 1\"},{\"name\":\"Beta Object 2\"}],\"ignoredValueB\":20}}"
                                                     rootClass:[RootAlpha class]]];
     [aTestGroup addTest:[self testCustomObjectsSimpleWithName:@"Extended Test Two"
-                                             jsonSourceString:@"{\"child\":{\"every_child\":[{\"name\":\"Beta Object 1\"},{\"name\":\"Beta Object 2\"}],\"ignoredValueA\":20},\"doubleValue\":3.1415,\"ignoredValueB\":10}"
+                                             jsonSourceString:@"{\"child\":{\"every_child\":[{\"name\":\"Beta Object 1\"},{\"name\":\"Beta Object 2\"}],\"ignoredValueB\":20},\"doubleValue\":3.1415,\"ignoredValueA\":10}"
                                                     rootClass:[RootAlpha class]]];
 }
 
