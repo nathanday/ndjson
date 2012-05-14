@@ -8,7 +8,6 @@
 
 #import "NDJSON.h"
 #import "NDJSONParser.h"
-#import "NDJSONCore.h"
 
 #import <objc/objc-class.h>
 
@@ -462,8 +461,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 	if( containerStack.count > 0 )
 	{
 		containerStack.count--;
-		[currentProperty release];
-//		currentProperty = containerStack.bytes[containerStack.count].propertyName;
+		[currentProperty release], currentProperty = nil;
 		[containerStack.bytes[containerStack.count].container release];
 	}
 }
