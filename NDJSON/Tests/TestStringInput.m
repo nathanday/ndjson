@@ -56,6 +56,7 @@
 	[self addName:@"Escaped Forward Slashs in String" jsonString:@"\"http:\\/\\/rhtv.cdn.launchpad6.tv\\/thumbnails\\/small\\/100.png\"" expectedResult:@"http://rhtv.cdn.launchpad6.tv/thumbnails/small/100.png"];
 	[self addName:@"Scientific Notation Number" jsonString:@"314159265358979e-14" expectedResult:REALNUM(3.14159265358979)];
 	[self addName:@"Array" jsonString:@"[1,2,\"three\",-4,-5.5,true,false,null]" expectedResult:ARRAY(INTNUM(1),INTNUM(2),@"three",INTNUM(-4),REALNUM(-5.5),BOOLNUM(YES),BOOLNUM(NO),NULLOBJ)];
+	[self addName:@"Array with trailing comma" jsonString:@"{\"array\":[1,\"two\",],\"number\":2}" expectedResult:DICT(ARRAY(INTNUM(1),@"two"),@"array",INTNUM(2),@"number")];
 	[self addName:@"Nested Array" jsonString:@"[1,[\"array\"]]" expectedResult:ARRAY(INTNUM(1),ARRAY(@"array"))];
 	[self addName:@"Empty Array" jsonString:@"[]" expectedResult:[NSArray array]];
 	[self addName:@"Empty Object" jsonString:@"{}" expectedResult:[NSDictionary dictionary]];

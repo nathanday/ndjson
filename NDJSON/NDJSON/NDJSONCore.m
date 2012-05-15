@@ -78,6 +78,7 @@ BOOL contextWithNullTermiantedString( struct NDJSONContext * aContext, NDJSON * 
 	aContext->bytes = (uint8_t*)aString;
 	aContext->complete = NO;
 	aContext->useBackUpByte = NO;
+	aContext->strictJSONOnly = NO;
 	aContext->parser = aParser;
 	aContext->delegate = aDelegate;
 	aContext->inputStream = NULL;
@@ -93,6 +94,7 @@ BOOL contextWithBytes( struct NDJSONContext * aContext, NDJSON * aParser, const 
 	aContext->bytes = (uint8_t*)aBytes;
 	aContext->complete = NO;
 	aContext->useBackUpByte = NO;
+	aContext->strictJSONOnly = NO;
 	aContext->parser = aParser;
 	aContext->delegate = aDelegate;
 	aContext->inputStream = NULL;
@@ -109,6 +111,7 @@ BOOL contextWithInputStream( struct NDJSONContext * aContext, NDJSON * aParser, 
 	aContext->bytes = malloc(kBufferSize);
 	aContext->complete = NO;
 	aContext->useBackUpByte = NO;
+	aContext->strictJSONOnly = NO;
 	aContext->parser = aParser;
 	aContext->delegate = aDelegate;
 	aContext->inputStream = [aStream retain];
@@ -313,6 +316,7 @@ BOOL parseUnknown( struct NDJSONContext * aContext )
 			break;
 		default:
 			foundError(aContext, NDJSONBadFormatError );
+			theResult = NO;
 			break;
 	}
 	
@@ -345,6 +349,13 @@ BOOL parseArray( struct NDJSONContext * aContext )
 				theEnd = YES;
 				break;
 			case ',':
+				if( !aContext->strictJSONOnly )
+				{
+					if( nextCharIgnoreWhiteSpace(aContext) == ']' )		// should we allow trailing comma
+						theEnd = YES;
+					else
+						backUp(aContext);
+				}
 				break;
 			default:
 				foundError( aContext, NDJSONBadFormatError );

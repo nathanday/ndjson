@@ -52,7 +52,8 @@ struct NDJSONContext
 	BOOL					complete,
 							useBackUpByte;
 	BOOL					convertKeysToMedialCapital,
-							removeIsAdjective;
+							removeIsAdjective,
+							strictJSONOnly;
 	NDJSON					* parser;
 	id<NDJSONDelegate>		delegate;
 	NSInputStream			* inputStream;
