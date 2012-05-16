@@ -349,9 +349,9 @@ BOOL parseArray( struct NDJSONContext * aContext )
 				theEnd = YES;
 				break;
 			case ',':
-				if( !aContext->strictJSONOnly )
+				if( !aContext->strictJSONOnly )		// allow trailing comma
 				{
-					if( nextCharIgnoreWhiteSpace(aContext) == ']' )		// should we allow trailing comma
+					if( nextCharIgnoreWhiteSpace(aContext) == ']' )
 						theEnd = YES;
 					else
 						backUp(aContext);
@@ -445,12 +445,13 @@ BOOL parseKey( struct NDJSONContext * aContext )
 	BOOL			theResult = YES;
 	if( nextCharIgnoreWhiteSpace(aContext) == '"' )
 		theResult = parseText( aContext, YES, YES );
-	else
+	else if( !aContext->strictJSONOnly )				// keys don't have to be quoted
 	{
 		backUp(aContext);
 		theResult = parseText( aContext, YES, NO );
-		foundError( aContext, NDJSONBadFormatError );
 	}
+	else
+		foundError( aContext, NDJSONBadFormatError );
 	return theResult;
 }
 
