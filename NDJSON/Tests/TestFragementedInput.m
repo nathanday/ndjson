@@ -85,7 +85,7 @@
 {
 	NSError							* theError = nil;
 	NDJSONParser		* theJSON = [[NDJSONParser alloc] init];
-	self.lastResult = [theJSON propertyListForInputStream:[FragementedInputStream fragementedInputWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize] error:&theError];
+	self.lastResult = [theJSON objectForInputStream:[FragementedInputStream fragementedInputWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize] options:NDJSONOptionNone error:&theError];
 	self.error = theError;
 	[theJSON release];
 	return lastResult;

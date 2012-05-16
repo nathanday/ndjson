@@ -56,9 +56,12 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 		struct ContainerStackStruct		* bytes;
 	}								containerStack;
 	NSString						* currentProperty;
-	BOOL							ignoreUnknownPropertyName,
-									convertKeysToMedialCapital,
-									removeIsAdjective;
+	struct
+	{
+		int								ignoreUnknownPropertyName	: 1;
+		int								convertKeysToMedialCapital	: 1;
+		int								removeIsAdjective			: 1;
+	}								options;
 	Class							rootClass,
 									rootCollectionClass;
 	id								result;
@@ -80,9 +83,6 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 
 @synthesize		rootClass,
 				rootCollectionClass,
-				ignoreUnknownPropertyName,
-				convertKeysToMedialCapital,
-				removeIsAdjective,
 				currentProperty;
 
 #pragma mark - manually implemented properties
@@ -116,9 +116,6 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	{
 		rootClass = aRootClass;
 		rootCollectionClass = aRootCollectionClass;
-		ignoreUnknownPropertyName = kIgnoreUnknownPropertyNameDefaultValue;
-		convertKeysToMedialCapital = kConvertKeysToMedialCapitalDefaultValue;
-		removeIsAdjective = kRemoveIsAdjectiveDefaultValue;
 	}
 	return self;
 }
@@ -138,7 +135,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 
 #pragma mark - parsing methods
 
-- (id)propertyListForJSONString:(NSString *)aString error:(__autoreleasing NSError **)aError
+- (id)objectForJSONString:(NSString *)aString options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)aError
 {
 	id					theResult =  nil;
 	NSAssert( aString != nil, @"nil input JSON string" );
@@ -146,13 +143,13 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	if( theJSONParser != nil )
 	{
 		if( [theJSONParser setJSONString:aString error:aError] )
-			theResult = [self propertyListForJSONParser:theJSONParser];
+			theResult = [self objectForJSONParser:theJSONParser options:anOptions];
 	}
 	[theJSONParser release];
 	return theResult;
 }
 
-- (id)propertyListForContentsOfFile:(NSString *)aPath error:(__autoreleasing NSError **)aError
+- (id)objectForContentsOfFile:(NSString *)aPath options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)aError
 {
 	id					theResult =  nil;
 	NSAssert( aPath != nil, @"nil input path" );
@@ -160,13 +157,13 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	if( theJSONParser != nil )
 	{
 		if( [theJSONParser setContentsOfFile:aPath error:aError] )
-			theResult = [self propertyListForJSONParser:theJSONParser];
+			theResult = [self objectForJSONParser:theJSONParser options:anOptions];
 	}
 	[theJSONParser release];
 	return theResult;
 }
 
-- (id)propertyListForContentsOfURL:(NSURL *)aURL error:(__autoreleasing NSError **)anError
+- (id)objectForContentsOfURL:(NSURL *)aURL options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)anError
 {
 	id					theResult =  nil;
 	NSAssert( aURL != nil, @"nil input file url" );
@@ -174,13 +171,13 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	if( theJSONParser != nil )
 	{
 		if( [theJSONParser setContentsOfURL:aURL error:anError] )
-			theResult = [self propertyListForJSONParser:theJSONParser];
+			theResult = [self objectForJSONParser:theJSONParser options:anOptions];
 	}
 	[theJSONParser release];
 	return theResult;
 }
 
-- (id)propertyListForContentsOfURLRequest:(NSURLRequest *)aURLRequest error:(__autoreleasing NSError **)aError
+- (id)objectForURLRequest:(NSURLRequest *)aURLRequest options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)aError
 {
 	id					theResult =  nil;
 	NSAssert( aURLRequest != nil, @"nil URL request" );
@@ -188,13 +185,13 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	if( theJSONParser != nil )
 	{
 		if( [theJSONParser setURLRequest:aURLRequest error:aError] )
-			theResult = [self propertyListForJSONParser:theJSONParser];
+			theResult = [self objectForJSONParser:theJSONParser options:anOptions];
 	}
 	[theJSONParser release];
 	return theResult;
 }
 
-- (id)propertyListForInputStream:(NSInputStream *)aStream error:(__autoreleasing NSError **)aError
+- (id)objectForInputStream:(NSInputStream *)aStream options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)aError
 {
 	id					theResult =  nil;
 	NSAssert( aStream != nil, @"nil input JSON stream" );
@@ -202,18 +199,21 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	if( theJSONParser != nil )
 	{
 		if( [theJSONParser setInputStream:aStream error:aError] )
-			theResult = [self propertyListForJSONParser:theJSONParser];
+			theResult = [self objectForJSONParser:theJSONParser options:anOptions];
 	}
 	[theJSONParser release];
 	return theResult;
 }
 
-- (id)propertyListForJSONParser:(NDJSON *)aParser
+- (id)objectForJSONParser:(NDJSON *)aParser options:(NDJSONOptionFlags)anOptions
 {
 	id		theResult = nil;
 	NSAssert( aParser != nil, @"nil JSON parser" );
 	aParser.delegate = self;
-	if( [aParser parse] )
+	options.ignoreUnknownPropertyName = anOptions&NDJSONOptionIgnoreUnknownProperties ? YES : NO;
+	options.convertKeysToMedialCapital = anOptions&NDJSONOptionConvertKeysToMedialCapitals ? YES : NO;
+	options.removeIsAdjective = anOptions&NDJSONOptionConvertRemoveIsAdjective ? YES : NO;
+	if( [aParser parseWithOptions:anOptions] )
 		theResult = result;
 	return theResult;
 }
@@ -228,9 +228,6 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	containerStack.bytes = calloc(containerStack.size,sizeof(struct ContainerStackStruct));
 	[currentProperty release], currentProperty = nil;
 	[result autorelease], result = nil;
-	ignoreUnknownPropertyName = self.ignoreUnknownPropertyName;
-	convertKeysToMedialCapital = self.convertKeysToMedialCapital;
-	removeIsAdjective = self.removeIsAdjective;
 }
 - (void)jsonParserDidEndDocument:(NDJSON *)aParser
 {
@@ -333,7 +330,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 {
 	NSCParameterAssert(currentProperty == nil);
 	NSCParameterAssert( containerStack.count == 0 || containerStack.bytes[containerStack.count-1].isObject );
-	NSString	* theKey = stringByConvertingPropertyName( aValue, self.removeIsAdjective, self.convertKeysToMedialCapital );
+	NSString	* theKey = stringByConvertingPropertyName( aValue, options.removeIsAdjective, options.convertKeysToMedialCapital );
 	currentProperty = [theKey retain];
 }
 - (void)jsonParser:(NDJSON *)aParser foundString:(NSString *)aValue { [self addValue:aValue]; [currentProperty release], currentProperty = nil; }
@@ -494,7 +491,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 			}
 			@catch( NSException * anException )
 			{
-				if( !ignoreUnknownPropertyName || ![[anException name] isEqualToString:NSUndefinedKeyException] )
+				if( !options.ignoreUnknownPropertyName || ![[anException name] isEqualToString:NSUndefinedKeyException] )
 					@throw anException;
 			}
 		}

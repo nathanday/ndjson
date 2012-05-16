@@ -84,7 +84,7 @@
 	NSError						* theError = nil;
 	NDJSONParser		* theJSON = [[NDJSONParser alloc] initWithRootClass:rootClass rootCollectionClass:rootCollectionClass];
 	
-	self.lastResult = [theJSON propertyListForJSONString:jsonSourceString error:&theError];
+	self.lastResult = [theJSON objectForJSONString:jsonSourceString options:NDJSONOptionNone error:&theError];
 	self.error = theError;
 	
 	[theJSON release];

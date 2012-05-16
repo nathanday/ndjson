@@ -8,10 +8,27 @@
 
 #import <Foundation/Foundation.h>
 
+typedef NSUInteger		NDJSONOptionFlags;
+
+enum {
+	NDJSONOptionNone = 0,
+/**
+	 determines whether the JSON source has to adhere to strict JSON or not.
+	 
+	 #Non strict JSON features
+	 - object keys do not have to be quoted.
+	 - arrays may have a trailing comment.
+ */
+	NDJSONOptionStrict = 1<<1
+};
+
 extern NSString	* const NDJSONErrorDomain;
 
 @protocol		NDJSONDelegate;
 
+/**
+ Instances of this class parse JSON documents in an event-driven manner. An NDJSON notifies its delegate about the JSON items (objects, arrays, strings, integers, floats, booleans and nulls) that it encounters as it processes an JSON document. It does not itself do anything with those parsed items except report them. It also reports parsing errors. NDJSON does not need to have the entire source JSON document in memory.
+ */
 @interface NDJSON : NSObject
 
 /**
@@ -19,45 +36,44 @@ extern NSString	* const NDJSONErrorDomain;
  */
 @property(assign,nonatomic)		id<NDJSONDelegate>	delegate;
 /**
-	determines whether the JSON source has to adhere to strict JSON or not.
-
-	#Non strict JSON features
-	- object keys do not have to be quoted.
-	- arrays may have a trailing comment.
- */
-@property(assign,nonatomic)			BOOL			strictJSONOnly;
-
-/**
 	intialise a *NDJSON* instance with a delegate
  */
 - (id)initWithDelegate:(id<NDJSONDelegate>)delegate;
 
 /**
-	equivelent to `-[NDJSON setJSONString:error:]` and `-[NDJSON parse]`
+ equivelent to `-[NDJSON setJSONString:error:]` and `-[NDJSON parseWithOptions:]`
  */
-- (BOOL)parseJSONString:(NSString *)string error:(NSError **)error;
+- (BOOL)parseJSONString:(NSString *)string options:(NDJSONOptionFlags)options error:(NSError **)error;
 /**
-	equivelent to `-[NDJSON setContentsOfFile:error:]` and `-[NDJSON parse]`
+ equivelent to `-[NDJSON setJSONData:error:]` and `-[NDJSON parseWithOptions:]`
  */
-- (BOOL)parseContentsOfFile:(NSString *)path error:(NSError **)error;
+- (BOOL)parseJSONData:(NSData *)data options:(NDJSONOptionFlags)options error:(NSError **)error;
 /**
-	equivelent to `-[NDJSON setContentsOfURL:error:]` and `-[NDJSON parse]`
+	equivelent to `-[NDJSON setContentsOfFile:error:]` and `-[NDJSON parseWithOptions:]`
  */
-- (BOOL)parseContentsOfURL:(NSURL *)url error:(NSError **)error;
+- (BOOL)parseContentsOfFile:(NSString *)path options:(NDJSONOptionFlags)options error:(NSError **)error;
 /**
-	equivelent to `-[NDJSON setURLRequest:error:]` and `-[NDJSON parse]`
-	Important: URLRequests are not parsed asyncronisly, see `-[NDJSON parse]`.
+	equivelent to `-[NDJSON setContentsOfURL:error:]` and `-[NDJSON parseWithOptions:]`
  */
-- (BOOL)parseURLRequest:(NSURLRequest *)urlRequest error:(NSError **)error;
+- (BOOL)parseContentsOfURL:(NSURL *)url options:(NDJSONOptionFlags)options error:(NSError **)error;
 /**
-	equivelent to `-[NDJSON parseInputStream:error:]` and `-[NDJSON parse]`
+	equivelent to `-[NDJSON setURLRequest:error:]` and `-[NDJSON parseWithOptions:]`
+	Important: URLRequests are not parsed asyncronisly, see `-[NDJSON parseWithOptions:]`.
  */
-- (BOOL)parseInputStream:(NSInputStream *)stream error:(NSError **)error;
+- (BOOL)parseURLRequest:(NSURLRequest *)urlRequest options:(NDJSONOptionFlags)options error:(NSError **)error;
+/**
+	equivelent to `-[NDJSON parseInputStream:error:]` and `-[NDJSON parseWithOptions:]`
+ */
+- (BOOL)parseInputStream:(NSInputStream *)stream options:(NDJSONOptionFlags)options error:(NSError **)error;
 
 /**
-	set a JSON string to parse
+ set a JSON string to parse
  */
 - (BOOL)setJSONString:(NSString *)string error:(NSError **)error;
+/**
+ set a JSON UTF8 string data to parse
+ */
+- (BOOL)setJSONData:(NSData *)data error:(NSError **)error;
 /**
 	set a JSON file to parse specified using a string path
  */
@@ -68,7 +84,7 @@ extern NSString	* const NDJSONErrorDomain;
 - (BOOL)setContentsOfURL:(NSURL *)url error:(NSError **)error;
 /**
 	set a JSON URLRequest to parse
-	Important: URLRequests are not parsed asyncronisly, see `-[NDJSON parse]`.
+	Important: URLRequests are not parsed asyncronisly, see `-[NDJSON parseWithOptions:]`.
  */
 - (BOOL)setURLRequest:(NSURLRequest *)urlRequest error:(NSError **)error;
 /**
@@ -80,7 +96,7 @@ extern NSString	* const NDJSONErrorDomain;
 	parses the JSON source set up by one other the set methods, setJSONString:error:, setContentsOfFile:error:, setContentsOfURL:error, setURLRequest:error:
 	Important: This method does not return until parsing is complete, this method can be called within another thread as long as you do not change the reciever until after the method has finished.
  */
-- (BOOL)parse;
+- (BOOL)parseWithOptions:(NDJSONOptionFlags)options;
 
 @end
 

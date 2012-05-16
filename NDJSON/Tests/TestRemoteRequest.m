@@ -78,7 +78,7 @@
 	NDJSONParser	* theJSON = [[NDJSONParser alloc] init];
 	NSURLRequest			* theURLRequest = [[NSURLRequest alloc] initWithURL:self.url];
 
-	self.lastResult = [theJSON propertyListForContentsOfURLRequest:theURLRequest error:&theError];
+	self.lastResult = [theJSON objectForURLRequest:theURLRequest options:NDJSONOptionNone error:&theError];
 	self.error = theError;
 
 	[theJSON release];

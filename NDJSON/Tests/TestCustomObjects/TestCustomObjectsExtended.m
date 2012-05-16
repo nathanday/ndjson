@@ -61,9 +61,8 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 {
 	NSError						* theError = nil;
 	NDJSONParser		* theJSON = [[NDJSONParser alloc] initWithRootClass:rootClass rootCollectionClass:Nil];
-	theJSON.convertKeysToMedialCapital = YES;
 	
-	self.lastResult = [theJSON propertyListForJSONString:jsonSourceString error:&theError];
+	self.lastResult = [theJSON objectForJSONString:jsonSourceString options:NDJSONOptionConvertKeysToMedialCapitals error:&theError];
 	self.error = theError;
 	
 	[theJSON release];

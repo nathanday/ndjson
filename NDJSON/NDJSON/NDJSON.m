@@ -94,14 +94,16 @@ static void foundError( NDJSON * self, NDJSONErrorCode aCode );
 	__weak id<NDJSONDelegate>	delegate;
 	NSUInteger					position,
 								length;
-	uint8_t						* bytes;
+	uint8_t						* bytes;				// may represent the entire JSON document or just a part of
 	uint8_t						backUpByte;
 	BOOL						complete,
 								useBackUpByte;
-	BOOL						convertKeysToMedialCapital,
-								removeIsAdjective,
-								strictJSONOnly;
+	struct
+	{
+		int							strictJSONOnly		: 1;
+	}							options;
 	NSInputStream				* inputStream;
+	NSData						* inputData;
 	struct NDBytesBuffer		containers;
 	struct
 	{
@@ -128,8 +130,7 @@ static void foundError( NDJSON * self, NDJSONErrorCode aCode );
 
 @implementation NDJSON
 
-@synthesize		delegate,
-				strictJSONOnly;
+@synthesize		delegate;
 
 #pragma mark - manually implemented properties
 
@@ -156,22 +157,29 @@ static void foundError( NDJSON * self, NDJSONErrorCode aCode );
 
 #pragma mark - parsing methods
 
-- (BOOL)parseJSONString:(NSString *)aString error:(NSError **)anError { return [self setJSONString:aString error:anError] && [self parse]; }
-- (BOOL)parseContentsOfFile:(NSString *)aPath error:(NSError **)anError { return [self setContentsOfFile:aPath error:anError] && [self parse]; }
-- (BOOL)parseContentsOfURL:(NSURL *)aURL error:(NSError **)anError { return [self setContentsOfURL:aURL error:anError] && [self parse]; }
-- (BOOL)parseURLRequest:(NSURLRequest *)aURLRequest error:(NSError **)anError { return [self setURLRequest:aURLRequest error:anError] && [self parse]; }
-- (BOOL)parseInputStream:(NSInputStream *)aStream error:(NSError **)anError { return [self setInputStream:aStream error:anError] && [self parse]; }
+- (BOOL)parseJSONString:(NSString *)aString options:(NDJSONOptionFlags)anOptions error:(NSError **)anError { return [self setJSONString:aString error:anError] && [self parseWithOptions:anOptions]; }
+- (BOOL)parseJSONData:(NSData *)aData options:(NDJSONOptionFlags)anOptions error:(NSError **)anError { return [self setJSONData:aData error:anError] && [self parseWithOptions:anOptions]; }
+- (BOOL)parseContentsOfFile:(NSString *)aPath options:(NDJSONOptionFlags)anOptions error:(NSError **)anError { return [self setContentsOfFile:aPath error:anError] && [self parseWithOptions:anOptions]; }
+- (BOOL)parseContentsOfURL:(NSURL *)aURL options:(NDJSONOptionFlags)anOptions error:(NSError **)anError { return [self setContentsOfURL:aURL error:anError] && [self parseWithOptions:anOptions]; }
+- (BOOL)parseURLRequest:(NSURLRequest *)aURLRequest options:(NDJSONOptionFlags)anOptions error:(NSError **)anError { return [self setURLRequest:aURLRequest error:anError] && [self parseWithOptions:anOptions]; }
+- (BOOL)parseInputStream:(NSInputStream *)aStream options:(NDJSONOptionFlags)anOptions error:(NSError **)anError { return [self setInputStream:aStream error:anError] && [self parseWithOptions:anOptions]; }
 
 - (BOOL)setJSONString:(NSString *)aString error:(__autoreleasing NSError **)anError
 {
 	NSAssert( aString != nil, @"nil input JSON string" );
+	return [self setJSONData:[aString dataUsingEncoding:NSUTF8StringEncoding] error:anError];
+}
+
+- (BOOL)setJSONData:(NSData *)aData error:(__autoreleasing NSError **)anError
+{
+	NSAssert( aData != nil, @"nil input JSON data" );
 	position = 0;
-	length = [aString lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-	bytes = (uint8_t*)[aString UTF8String];
+	length = aData.length;
+	bytes = (uint8_t*)[aData bytes];
 	complete = NO;
 	useBackUpByte = NO;
-	strictJSONOnly = NO;
 	inputStream = NULL;
+	inputData = [aData retain];
 	return bytes != NULL;
 }
 
@@ -217,16 +225,17 @@ static void foundError( NDJSON * self, NDJSONErrorCode aCode );
 	bytes = malloc(kBufferSize);
 	complete = NO;
 	useBackUpByte = NO;
-	strictJSONOnly = NO;
 	inputStream = [aStream retain];
+	inputData = nil;
 	return inputStream != NULL && bytes != NULL;
 }
 
-- (BOOL)parse
+- (BOOL)parseWithOptions:(NDJSONOptionFlags)anOptions
 {
 	BOOL		theResult = NO;
 	if( inputStream != nil || bytes != NULL )
 	{
+		options.strictJSONOnly = NO;
 		containers = NDBytesBufferInit;
 		appendByte(&containers, NDJSONContainerNone);
 		if( delegateMethod.didStartDocument != NULL )
@@ -243,6 +252,7 @@ static void foundError( NDJSON * self, NDJSONErrorCode aCode );
 		freeByte(&containers);
 	}
 	[inputStream release], inputStream = nil;
+	[inputData release], inputData = nil;
 	return theResult;
 }
 
@@ -438,7 +448,7 @@ BOOL parseArray( NDJSON * self )
 			theEnd = YES;
 			break;
 		case ',':
-			if( !self->strictJSONOnly )		// allow trailing comma
+			if( !self->options.strictJSONOnly )		// allow trailing comma
 			{
 				if( nextCharIgnoreWhiteSpace(self) == ']' )
 					theEnd = YES;
@@ -534,7 +544,7 @@ BOOL parseKey( NDJSON * self )
 	BOOL			theResult = YES;
 	if( nextCharIgnoreWhiteSpace(self) == '"' )
 		theResult = parseText( self, YES, YES );
-	else if( !self->strictJSONOnly )				// keys don't have to be quoted
+	else if( !self->options.strictJSONOnly )				// keys don't have to be quoted
 	{
 		backUp(self);
 		theResult = parseText( self, YES, NO );
