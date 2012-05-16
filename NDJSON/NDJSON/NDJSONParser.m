@@ -64,6 +64,8 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	id								result;
 }
 
+@property(readonly,nonatomic)	id			currentObject;
+
 - (Class)classForPropertyName:(NSString *)name class:(Class)class;
 - (Class)collectionClassForPropertyName:(NSString *)name class:(Class)class;
 
@@ -185,7 +187,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	NDJSON			* theJSONParser = [[NDJSON alloc] init];
 	if( theJSONParser != nil )
 	{
-		if( [theJSONParser setContentsOfURLRequest:aURLRequest error:aError] )
+		if( [theJSONParser setURLRequest:aURLRequest error:aError] )
 			theResult = [self propertyListForJSONParser:theJSONParser];
 	}
 	[theJSONParser release];

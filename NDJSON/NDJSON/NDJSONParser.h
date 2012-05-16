@@ -17,11 +17,19 @@ extern NSString		* const NDJSONBadCollectionClassException,
 
 @property(readonly,nonatomic)	Class		rootClass,
 											rootCollectionClass;
+/**
+	determines if the parser will fail if an attempt to setValue:forKey: fails because the property does not exist.
+ */
 @property(assign,nonatomic)		BOOL		ignoreUnknownPropertyName;
+/**
+	determines if object keys are converted to medial capitals (cammel case) with the first character converted to cammel case, for example Cammel-case becomes cammelCase. can be used with *removeIsAdjective*
+ */
 @property(assign,nonatomic)		BOOL		convertKeysToMedialCapital;
+/**
+	determines if _is_ prefix is removed from object keys, for example isPrefix becoms Prefix. Can be used with *convertKeysToMedialCapital*
+ */
 @property(assign,nonatomic)		BOOL		removeIsAdjective;
 @property(readonly,nonatomic)	id			currentContainer;
-@property(readonly,nonatomic)	id			currentObject;
 @property(readonly,nonatomic)	NSString	* currentProperty;
 
 - (id)init;
@@ -38,6 +46,10 @@ extern NSString		* const NDJSONBadCollectionClassException,
 
 @end
 
+/**
+	NSObject+NDJSONParser is an informal protocol for methods that objects which can be generated from parsing can implement to control how parsing of child onjects and arrays.
+	NDJSONParser can determine the class types for properties at runtime, but the methods of NSObject+NDJSONParser can be used to override this behavor or help in situations where the type information is not available, for exmaple the class types used for the elements in a JSON array or if the type is *id*.
+ */
 @interface NSObject (NDJSONParser)
 
 + (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONParser *)aParser;

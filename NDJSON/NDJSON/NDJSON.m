@@ -129,7 +129,7 @@ static void foundError( NDJSON * self, NDJSONErrorCode aCode );
 @implementation NDJSON
 
 @synthesize		delegate,
-				position;
+				strictJSONOnly;
 
 #pragma mark - manually implemented properties
 
@@ -159,7 +159,7 @@ static void foundError( NDJSON * self, NDJSONErrorCode aCode );
 - (BOOL)parseJSONString:(NSString *)aString error:(NSError **)anError { return [self setJSONString:aString error:anError] && [self parse]; }
 - (BOOL)parseContentsOfFile:(NSString *)aPath error:(NSError **)anError { return [self setContentsOfFile:aPath error:anError] && [self parse]; }
 - (BOOL)parseContentsOfURL:(NSURL *)aURL error:(NSError **)anError { return [self setContentsOfURL:aURL error:anError] && [self parse]; }
-- (BOOL)parseContentsOfURLRequest:(NSURLRequest *)aURLRequest error:(NSError **)anError { return [self setContentsOfURLRequest:aURLRequest error:anError] && [self parse]; }
+- (BOOL)parseURLRequest:(NSURLRequest *)aURLRequest error:(NSError **)anError { return [self setURLRequest:aURLRequest error:anError] && [self parse]; }
 - (BOOL)parseInputStream:(NSInputStream *)aStream error:(NSError **)anError { return [self setInputStream:aStream error:anError] && [self parse]; }
 
 - (BOOL)setJSONString:(NSString *)aString error:(__autoreleasing NSError **)anError
@@ -195,7 +195,7 @@ static void foundError( NDJSON * self, NDJSONErrorCode aCode );
 	return theResult;
 }
 
-- (BOOL)setContentsOfURLRequest:(NSURLRequest *)aURLRequest error:(__autoreleasing NSError **)anError
+- (BOOL)setURLRequest:(NSURLRequest *)aURLRequest error:(__autoreleasing NSError **)anError
 {
 	BOOL			theResult = NO;
 	CFHTTPMessageRef	theMessageRef = CFHTTPMessageCreateRequest( kCFAllocatorDefault, (CFStringRef)aURLRequest.HTTPMethod, (CFURLRef)aURLRequest.URL, kCFHTTPVersion1_1 );
@@ -549,7 +549,7 @@ BOOL parseString( NDJSON * self ) { return parseText( self, NO, YES ); }
 BOOL parseText( NDJSON * self, BOOL aIsKey, BOOL aIsQuotesTerminated )
 {
 	BOOL					theResult = YES,
-	theEnd = NO;
+							theEnd = NO;
 	struct NDBytesBuffer	theBuffer = NDBytesBufferInit;
 	
 	while( theResult  && !theEnd)
