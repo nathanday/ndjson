@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+extern NSString	* const NDJSONErrorDomain;
+
 @protocol		NDJSONDelegate;
 
 @interface NDJSON : NSObject
