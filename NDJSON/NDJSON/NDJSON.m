@@ -357,31 +357,111 @@ static uint8_t nextChar( NDJSON * self )
 	return self->backUpByte;
 }
 
-static uint8_t nextCharIgnoreWhiteSpace( NDJSON * self )
+static uint8_t nextCharFollowingChar( NDJSON * self, uint8_t aChar )
 {
 	uint8_t		theResult;
 	do
 		theResult = nextChar( self );
-	while( isspace(theResult) );
+	while( theResult != '\0' && theResult != aChar );
+	
+	if( theResult != '\0' )
+		theResult = nextChar( self );
 	return theResult;
 }
 
+static uint8_t nextCharFollowingNext2Chars( NDJSON * self, uint8_t aChar1, uint8_t aChar2 )
+{
+	uint8_t		theNextChar = '\0';
+	do
+		theNextChar = nextCharFollowingChar( self, aChar1 );
+	while( theNextChar != aChar2 && theNextChar != '\0' );
+	
+	if( theNextChar != '\0' )
+		theNextChar = nextChar(self);
+	return theNextChar;
+}
+
+static uint8_t nextCharIgnoreWhiteSpace( NDJSON * self )
+{
+	uint8_t		theResult;
+	if( self->options.strictJSONOnly )
+	{
+		do
+			theResult = nextChar( self );
+		while( isspace(theResult) );
+	}
+	else											// skip comments as well
+	{
+		do
+		{
+			theResult = nextChar( self );
+			while( theResult == '/' )
+			{
+				if( currentChar(self) == '/' )		// single line comment
+				{
+					do
+						theResult = nextChar( self );
+					while( theResult != '\n' );
+				}
+				else if( currentChar(self) == '*' )		// multiline commentß
+				{
+					BOOL		theCommentEnd = NO;
+					theResult = nextChar(self);
+					while( !theCommentEnd )
+					{
+						if( theResult == '\0' )
+							goto end;
+						theResult = nextChar(self);
+						if( theResult == '*' && (theResult = nextChar(self)) == '/' )
+							theCommentEnd = YES;
+					}
+					theResult = nextChar(self);
+				}
+			}
+		}
+		while( isspace(theResult) );
+	}
+end:
+	return theResult;
+}
+/*
 static uint8_t skipWhiteSpace( NDJSON * self )
 {
 	BOOL		theEnd = NO;
 	uint8_t		theResult;
-	do
+	if( self->options.strictJSONOnly )
 	{
-		theResult = currentChar( self );
-		if( isspace(theResult) && theResult != '\0' )
-			self->position++;
-		else
-			theEnd = YES;
+		do
+		{
+			theResult = currentChar( self );
+			if( isspace(theResult) && theResult != '\0' )
+				self->position++;
+			else
+				theEnd = YES;
+		}
+		while( !theEnd );
 	}
-	while( !theEnd );
+	else											// skip comments as well
+	{
+		do
+		{
+			if( theResult == '/' )
+			{
+				theResult = nextChar(self);
+				if( theResult == '/' )
+					theResult = nextCharFollowingChar(self, '\n');
+				else if( theResult == '*' )
+					theResult = nextCharFollowingNext2Chars(self, '*', '/');
+			}
+			do
+				theResult = nextChar( self );
+			while( isspace(theResult) );
+		}
+		while( theResult == '/');
+	}
 	return theResult;
 }
-
+*/
 static void backUp( NDJSON * self ) { self->useBackUpByte = YES; }
 
 BOOL parseUnknown( NDJSON * self )
@@ -419,8 +499,8 @@ BOOL parseUnknown( NDJSON * self )
 		break;
 	}
 	
-	if( theResult )
-		skipWhiteSpace(self);
+//	if( theResult )
+//		skipWhiteSpace(self);
 	return theResult;
 }
 
@@ -824,7 +904,7 @@ BOOL parseNull( NDJSON * self )
 BOOL skipNextValue( NDJSON * self )
 {
 	NSUInteger		theBracesDepth = 0,
-	theBracketsDepth = 0;
+					theBracketsDepth = 0;
 	BOOL			theInQuotes = NO;
 	BOOL			theEnd = NO;
 	uint8_t			theChar = '\n';

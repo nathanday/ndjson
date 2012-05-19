@@ -9,8 +9,12 @@
 #import <Foundation/Foundation.h>
 #import "NDJSON.h"
 
-extern NSString		* const NDJSONBadCollectionClassException,
-					* const NDJSONAttributeNameUserInfoKey;
+extern NSString		* const NDJSONBadCollectionClassException;
+extern NSString		* const NDJSONUnrecongnisedPropertyNameException;
+
+extern NSString		* const NDJSONAttributeNameUserInfoKey;
+extern NSString		* const NDJSONObjectUserInfoKey;
+extern NSString		* const NDJSONPropertyNameUserInfoKey;
 
 enum {
 //	NDJSONOptionNone = 0,				// defined in NDJSON
@@ -35,8 +39,8 @@ enum {
  */
 @interface NDJSONParser : NSObject
 
-@property(readonly,nonatomic)	Class		rootClass,
-											rootCollectionClass;
+@property(readonly,nonatomic)	Class		rootClass;
+@property(readonly,nonatomic)	Class		rootCollectionClass;
 @property(readonly,nonatomic)	id			currentContainer;
 @property(readonly,nonatomic)	NSString	* currentProperty;
 

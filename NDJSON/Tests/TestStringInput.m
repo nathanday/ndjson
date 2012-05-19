@@ -69,6 +69,8 @@
 	[self addName:@"Nested Object" jsonString:@"{ \"alpha\" : { \"beta\" : 2 }}" expectedResult:DICT(DICT(INTNUM(2),@"beta"),@"alpha")];
 	[self addName:@"Nested Object with Array" jsonString:@"{ \"alpha\" : { \"beta\" : 2 }, \"gama\":[3,4]}" expectedResult:DICT(DICT(INTNUM(2),@"beta"),@"alpha",ARRAY(INTNUM(3),INTNUM(4)), @"gama")];
 	[self addName:@"Nested Object with nested Array" jsonString:@"{ \"alpha\" : { \"beta\" : [3,4] }}" expectedResult:DICT(DICT(ARRAY(INTNUM(3),INTNUM(4)),@"beta"),@"alpha")];
+	[self addName:@"Comments single line" jsonString:@"//\ta\n[//\tbc\n1//\td\n,//\te\n{//ab\n\"two\"//cde\n://fghi\n2//jk\n}//\n,//\tf/gh\n\"three\"//\tij*klm\n//\tsecond in a row\n,//\top\n-4//\tqr\n,-5.5,true,false,null//\tstw\n]//\txyz\n" expectedResult:ARRAY(INTNUM(1),DICT(INTNUM(2),@"two"),@"three",INTNUM(-4),REALNUM(-5.5),BOOLNUM(YES),BOOLNUM(NO),NULLOBJ)];
+	[self addName:@"Comments multi line" jsonString:@"/*\na\n*/[/*\nbc\n*/1/*\nd\n*/,/*\ne\n*/{/*ab*/\"two\"/*cde*/:/*fghi*/2/*jk*/}/**/,/*\nf/gh\n*/\"three\"/*\nij*klm\n*//*\nsecond in a row\n*/,/*\nop\n*/-4/*\nqr\n*/,-5.5,true,false,null/*\nstw\n*/]/*\nxyz\n*/" expectedResult:ARRAY(INTNUM(1),DICT(INTNUM(2),@"two"),@"three",INTNUM(-4),REALNUM(-5.5),BOOLNUM(YES),BOOLNUM(NO),NULLOBJ)];
 	[self addName:@"UnBalanced Nested Object, Shallower End" jsonString:@"{\"one\":1,\"two\":2,\"three\":{\"four\":4}" expectedResult:DICT(INTNUM(1),@"one",INTNUM(2),@"two",DICT(INTNUM(4),@"four"), @"three")];
 	[self addName:@"UnBalanced Nested Object, Deeper End" jsonString:@"{\"one\":1,\"two\":2},\"three\":3,\"four\":4}" expectedResult:DICT(INTNUM(1),@"one",INTNUM(2),@"two")];
 	NSDictionary	* theDict = [NSDictionary dictionaryWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"file4" ofType:@"plist"]];

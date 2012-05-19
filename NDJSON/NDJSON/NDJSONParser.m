@@ -23,14 +23,17 @@ static const BOOL		kIgnoreUnknownPropertyNameDefaultValue = NO,
 						kRemoveIsAdjectiveDefaultValue = NO;
 
 NSString	* const NDJSONBadCollectionClassException = @"NDJSONBadCollectionClassException",
-			* const NDJSONAttributeNameUserInfoKey = @"AttributeName";
+			* const NDJSONUnrecongnisedPropertyNameException = @"NDJSONUnrecongnisedPropertyName",
+			* const NDJSONAttributeNameUserInfoKey = @"AttributeName",
+			* const NDJSONObjectUserInfoKey = @"Object",
+			* const NDJSONPropertyNameUserInfoKey = @"PropertyName";
 
 /**
  functions used by NDJSONParser to build tree
  */
 
-void popCurrentContainer( NDJSONParser * self );
-void addValue( NDJSONParser * self, id value );
+static void popCurrentContainer( NDJSONParser * self );
+static void addValue( NDJSONParser * self, id value );
 
 static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, const char * aPropertyAttributes )
 {
@@ -73,8 +76,6 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 - (Class)collectionClassForPropertyName:(NSString *)name class:(Class)class;
 
 - (void)pushContainer:(id)container isObject:(BOOL)isObject;
-- (void)popCurrentContainer;
-- (void)addValue:(id)value;
 
 @end
 
@@ -246,24 +247,24 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 - (void)jsonParserDidStartArray:(NDJSON *)aParser
 {
 	id		theArrayRep = [[[self collectionClassForPropertyName:currentProperty class:[self.currentObject class]] alloc] init];
-	[self addValue:theArrayRep];
+	addValue( self, theArrayRep );
 	[self pushContainer:theArrayRep isObject:NO];
 	[currentProperty release], currentProperty = nil;
 	[theArrayRep release];
 }
 
-- (void)jsonParserDidEndArray:(NDJSON *)aParser { [self popCurrentContainer]; }
+- (void)jsonParserDidEndArray:(NDJSON *)aParser { popCurrentContainer( self ); }
 
 - (void)jsonParserDidStartObject:(NDJSON *)aParser
 {
 	id			theObjectRep = [[[self classForPropertyName:self.currentContainerPropertyName class:[self.currentObject class]] alloc] init];
-	[self addValue:theObjectRep];
+	addValue( self, theObjectRep );
 	[self pushContainer:theObjectRep isObject:YES];
 	[currentProperty release], currentProperty = nil;
 	[theObjectRep release];
 }
 
-- (void)jsonParserDidEndObject:(NDJSON *)aParser { [self popCurrentContainer]; }
+- (void)jsonParserDidEndObject:(NDJSON *)aParser { popCurrentContainer( self ); }
 
 - (BOOL)jsonParserShouldSkipValueForCurrentKey:(NDJSON *)aParser
 {
@@ -333,11 +334,31 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 	NSString	* theKey = stringByConvertingPropertyName( aValue, options.removeIsAdjective, options.convertKeysToMedialCapital );
 	currentProperty = [theKey retain];
 }
-- (void)jsonParser:(NDJSON *)aParser foundString:(NSString *)aValue { [self addValue:aValue]; [currentProperty release], currentProperty = nil; }
-- (void)jsonParser:(NDJSON *)aParser foundInteger:(NSInteger)aValue { [self addValue:[NSNumber numberWithInteger:aValue]]; [currentProperty release], currentProperty = nil; }
-- (void)jsonParser:(NDJSON *)aParser foundFloat:(double)aValue { [self addValue:[NSNumber numberWithDouble:aValue]]; [currentProperty release], currentProperty = nil; }
-- (void)jsonParser:(NDJSON *)aParser foundBool:(BOOL)aValue { [self addValue:[NSNumber numberWithBool:aValue]]; [currentProperty release], currentProperty = nil; }
-- (void)jsonParserFoundNULL:(NDJSON *)aParser { [self addValue:[NSNull null]]; [currentProperty release], currentProperty = nil; }
+- (void)jsonParser:(NDJSON *)aParser foundString:(NSString *)aValue
+{
+	addValue( self, aValue );
+	[currentProperty release], currentProperty = nil;
+}
+- (void)jsonParser:(NDJSON *)aParser foundInteger:(NSInteger)aValue
+{
+	addValue( self, [NSNumber numberWithInteger:aValue] );
+	[currentProperty release], currentProperty = nil;
+}
+- (void)jsonParser:(NDJSON *)aParser foundFloat:(double)aValue
+{
+	addValue( self, [NSNumber numberWithDouble:aValue] );
+	[currentProperty release], currentProperty = nil;
+}
+- (void)jsonParser:(NDJSON *)aParser foundBool:(BOOL)aValue
+{
+	addValue( self, [NSNumber numberWithBool:aValue] );
+	[currentProperty release], currentProperty = nil;
+}
+- (void)jsonParserFoundNULL:(NDJSON *)aParser
+{
+	addValue( self, [NSNull null] );
+	[currentProperty release], currentProperty = nil;
+}
 
 #pragma mark - private
 
@@ -455,31 +476,31 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 	containerStack.count++;
 }
 
-- (void)popCurrentContainer
+void popCurrentContainer( NDJSONParser * self )
 {
-	if( containerStack.count > 0 )
+	if( self->containerStack.count > 0 )
 	{
-		containerStack.count--;
-		[currentProperty release], currentProperty = nil;
-		[containerStack.bytes[containerStack.count].container release];
+		self->containerStack.count--;
+		[self->currentProperty release], self->currentProperty = nil;
+		[self->containerStack.bytes[self->containerStack.count].container release];
 	}
 }
 
-- (void)addValue:(id)aValue
+void addValue( NDJSONParser * self, id aValue )
 {
-	if( result != nil )
+	if( self->result != nil )
 	{
 		id			theCurrentContainer = self.currentContainer;;
-		if( currentProperty == nil )
+		if( self->currentProperty == nil )
 		{
 			NSCParameterAssert( [theCurrentContainer respondsToSelector:@selector(addObject:)] );
 			[theCurrentContainer addObject:aValue];
 		}
 		else
 		{
+			NSString	* thePropertyName = self->currentProperty;
 			@try
 			{
-				NSString	* thePropertyName = currentProperty;
 				if( [[theCurrentContainer class] respondsToSelector:@selector(propertyNamesForKeysJSONParser:)] )
 				{
 					NSString	* theNewPropertyName = [[[theCurrentContainer class] propertyNamesForKeysJSONParser:nil] objectForKey:thePropertyName];
@@ -491,13 +512,25 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 			}
 			@catch( NSException * anException )
 			{
-				if( !options.ignoreUnknownPropertyName || ![[anException name] isEqualToString:NSUndefinedKeyException] )
+				if( [[anException name] isEqualToString:NSUndefinedKeyException] )
+				{
+					if( !self->options.ignoreUnknownPropertyName )
+					{
+						NSString		* theReasonString = [[NSString alloc] initWithFormat:@"Failed to set value for property name '%@'", thePropertyName];
+						NSDictionary	* theUserInfo = [[NSDictionary alloc] initWithObjectsAndKeys:self.currentObject, NDJSONObjectUserInfoKey, thePropertyName, NDJSONPropertyNameUserInfoKey, nil];
+						NSException		* theException = [NSException exceptionWithName:NDJSONUnrecongnisedPropertyNameException reason:theReasonString userInfo:theUserInfo];
+						[theReasonString release];
+						[theUserInfo release];
+						@throw theException;
+					}
+				}
+				else
 					@throw anException;
 			}
 		}
 	}
 	else
-		result = [aValue retain];
+		self->result = [aValue retain];
 }
 
 @end
