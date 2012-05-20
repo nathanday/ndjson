@@ -3,6 +3,9 @@
 
 Parsing to you own classes works by supplying the root class the parser is supposed to use, it then uses property runtime introspection to determine what the class type should be. For situation where the class type can not be determined or if you want to override the default classes used, you can implement the class method **classesForPropertyNamesJSONParser:** to return a NSDictionary mapping property names to class objects.
 
+## Licensing
+**NDJSON** using an MIT-style license which means use as you wish just give me credit where appropriate.
+
 ## Automatic Reference Counting.
 **NDJSON** can be used in *Automatic Reference Counting* projects by setting the flag *-fno-objc-arc* for the files *NDSJSON.m* and *NDJSONParser.m*, this turns of *Automatic Reference Counting* for just these files.
 
