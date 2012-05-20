@@ -1,29 +1,21 @@
-{\rtf1\ansi\ansicpg1252\cocoartf1172\cocoasubrtf100
-\cocoascreenfonts1{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Regular;}
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf470
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Regular;}
 {\colortbl;\red255\green255\blue255;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww17140\viewh10800\viewkind0
+\paperw11900\paperh16840\margl1440\margr1440\vieww19040\viewh14640\viewkind0
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
 
 \f0\b\fs28 \cf0 To Do\
 
-\b0\fs24 - zip stream\
-- for mismatching type, look for <key>String property, for example date -> dateString, alternatively could look for a initWithString: method, could support both mechanisms. Could also extend to support other JSON types other than just strings.\
-- since its possible to have quoted object keys in JSON that can not be used a legal property names, have some mechanism to convert them or alternatively through an exceptions, currently uses setValue:forKey:s behaviour.\
-- Through NDJSON exception instead of passing of setValue:forKey: if the key is for an unknown property name.\
+\b0\fs24 - compressed\
+- for mismatching type, look for <key>String property, for example date -> dateString, alternatively could look for a initWithString: method, could support both mechanisms. Could also extend to support other JSON types other than just strings. Alternatively class method that returns a dictionary of blocks for property names.\
 - unit tests for strict JSON only.\
 - better bad JSON handling.\
 - clean up how keys and string are parsed with the common function parseText, this could help with the next issue.\
 - 
 \f1\fs22 \CocoaLigature0 jsonParserShouldSkipValueForCurrentKey:
 \f0\fs24 \CocoaLigature1  should be replaced with method that passes the actual key so the delegate does not need to know which key it is unto.\
-- change some properties to parse option flags, key conversion, missing property, strict\
-- 
-\f1\fs22 \CocoaLigature0 NDJSONParser
-\f0\fs24 \CocoaLigature1  
-\f1\fs22 \CocoaLigature0 propertyList\'85
-\f0\fs24 \CocoaLigature1  methods names don't make sense any more.\
 - work with 
 \f1\fs22 \CocoaLigature0 NSURLConnection
 \f0\fs24 \CocoaLigature1 .\
-- Garbage Collection support\
-- Parse function call/block?}
+- Garbage Collection support? (probable not since Apple have deprecated this)\
+- Parse function call/block}

@@ -384,7 +384,7 @@ static uint8_t nextCharFollowingNext2Chars( NDJSON * self, uint8_t aChar1, uint8
 static uint8_t nextCharIgnoreWhiteSpace( NDJSON * self )
 {
 	uint8_t		theResult;
-	if( self->options.strictJSONOnly )
+	if( self->options.strictJSONOnly )				// skip white space only
 	{
 		do
 			theResult = nextChar( self );
@@ -424,44 +424,7 @@ static uint8_t nextCharIgnoreWhiteSpace( NDJSON * self )
 end:
 	return theResult;
 }
-/*
-static uint8_t skipWhiteSpace( NDJSON * self )
-{
-	BOOL		theEnd = NO;
-	uint8_t		theResult;
-	if( self->options.strictJSONOnly )
-	{
-		do
-		{
-			theResult = currentChar( self );
-			if( isspace(theResult) && theResult != '\0' )
-				self->position++;
-			else
-				theEnd = YES;
-		}
-		while( !theEnd );
-	}
-	else											// skip comments as well
-	{
-		do
-		{
-			if( theResult == '/' )
-			{
-				theResult = nextChar(self);
-				if( theResult == '/' )
-					theResult = nextCharFollowingChar(self, '\n');
-				else if( theResult == '*' )
-					theResult = nextCharFollowingNext2Chars(self, '*', '/');
-			}
-			do
-				theResult = nextChar( self );
-			while( isspace(theResult) );
-		}
-		while( theResult == '/');
-	}
-	return theResult;
-}
-*/
+
 static void backUp( NDJSON * self ) { self->useBackUpByte = YES; }
 
 BOOL parseUnknown( NDJSON * self )
@@ -499,8 +462,6 @@ BOOL parseUnknown( NDJSON * self )
 		break;
 	}
 	
-//	if( theResult )
-//		skipWhiteSpace(self);
 	return theResult;
 }
 

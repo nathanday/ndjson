@@ -512,7 +512,7 @@ void NDError( NSString *aFormat, ... )
 {
 	@synchronized(self.queue)
 	{
-		NDMessage( @"Test %@ started...", aTest.name );
+		NDMessage( @"Test '%@' started...", aTest.name );
 		testsToComplete++;
 	}
 	[[self.checkForTestGroups objectForKey:[[aTest testGroup] name]] setState:aTest.operationState forTestName:aTest.name];
@@ -524,7 +524,7 @@ void NDError( NSString *aFormat, ... )
 	@synchronized(self.queue)
 	{
 		testsToComplete--;
-		NDMessage( @"...Test %@ finshed", aTest.name );
+		NDMessage( @"...Test '%@' finshed", aTest.name );
 		if( aTest.hasError )
 			NSLog(@"%@", aTest.error );
 		if( testsToComplete == 0 )

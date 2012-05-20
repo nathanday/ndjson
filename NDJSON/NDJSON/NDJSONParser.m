@@ -286,43 +286,47 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 {
 	NSString	* theResult = aString;
 	NSUInteger	theBufferLen = aString.length;
-	unichar		theBuffer[theBufferLen];
-	unichar		* theResultingBytes = theBuffer;
-	[aString getCharacters:theBuffer range:NSMakeRange(0, theBufferLen)];
-	if( aRemoveIs && theResultingBytes[0] == 'i' && theResultingBytes[1] == 's' && isupper(theResultingBytes[2]) )
+	if( theBufferLen > 0 )
 	{
-		theResultingBytes[2] += 'a' - 'A';
-		theBufferLen -= 2;
-		theResultingBytes += 2;
-	}
-	
-	if( aConvertToCamelCase )
-	{
-		for( NSUInteger i = 0, o = 0, theSourceLen = theBufferLen; i < theSourceLen; i++, o++ )
+		unichar		theBuffer[theBufferLen];
+		unichar		* theResultingBytes = theBuffer;
+		[aString getCharacters:theBuffer range:NSMakeRange(0, theBufferLen)];
+		if( aRemoveIs && theResultingBytes[0] == 'i' && theResultingBytes[1] == 's' && isupper(theResultingBytes[2]) )
 		{
-			if( i == 0 )
-			{
-				if(  isupper(theResultingBytes[i]) )
-					theResultingBytes[o] = theResultingBytes[i] + ('a' - 'A');
-				else
-					theResultingBytes[o] = theResultingBytes[i];
-			}
-			else if( theResultingBytes[i] == '_' )
-			{
-				i++;
-				theBufferLen--;
-				if( islower(theResultingBytes[i]) )
-					theResultingBytes[o] = theResultingBytes[i] - ('a' - 'A');
-				else
-					theResultingBytes[o] = theResultingBytes[i];
-			}
-			else
-				theResultingBytes[o] = theResultingBytes[i];
+			theResultingBytes[2] += 'a' - 'A';
+			theBufferLen -= 2;
+			theResultingBytes += 2;
 		}
+		
+		if( aConvertToCamelCase )
+		{
+			BOOL		theIsFirstChar = YES,
+						theCaptializeNext = NO;
+			for( NSUInteger i = 0, o = 0, theSourceLen = theBufferLen; i < theSourceLen; i++ )
+			{
+				if( isalpha(theResultingBytes[i]) || (!theIsFirstChar && isalnum(theResultingBytes[i])) )
+				{
+					if( islower(theResultingBytes[i]) && theCaptializeNext && !theIsFirstChar )
+						theResultingBytes[o] = theResultingBytes[i] - ('a' - 'A');
+					else if( isupper(theResultingBytes[i]) && (!theCaptializeNext || theIsFirstChar) )
+						theResultingBytes[o] = theResultingBytes[i] + ('a' - 'A');
+					else
+						theResultingBytes[o] = theResultingBytes[i];
+					o++;
+					theIsFirstChar = NO;
+					theCaptializeNext = NO;
+				}
+				else
+				{
+					theCaptializeNext = YES;
+					theBufferLen --;
+				}
+			}
+		}
+		
+		if( aRemoveIs || aConvertToCamelCase )
+			theResult = [NSString stringWithCharacters:theResultingBytes length:theBufferLen];
 	}
-	
-	if( aRemoveIs || aConvertToCamelCase )
-		theResult = [NSString stringWithCharacters:theResultingBytes length:theBufferLen];
 	
 	return theResult;
 }
@@ -331,7 +335,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 {
 	NSCParameterAssert(currentProperty == nil);
 	NSCParameterAssert( containerStack.count == 0 || containerStack.bytes[containerStack.count-1].isObject );
-	NSString	* theKey = stringByConvertingPropertyName( aValue, options.removeIsAdjective, options.convertKeysToMedialCapital );
+	NSString	* theKey = stringByConvertingPropertyName( aValue, options.removeIsAdjective != 0, options.convertKeysToMedialCapital != 0 );
 	currentProperty = [theKey retain];
 }
 - (void)jsonParser:(NDJSON *)aParser foundString:(NSString *)aValue
