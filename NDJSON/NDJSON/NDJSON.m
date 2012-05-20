@@ -51,7 +51,7 @@ struct NDBytesBuffer
 					capacity;
 };
 
-typedef BOOL (*returnBoolMethodIMP)( id, SEL, id);
+typedef BOOL (*_ReturnBoolMethodIMP)( id, SEL, id, ...);
 
 static const size_t		kBufferSize = 64;
 
@@ -81,7 +81,7 @@ static BOOL parseObject( NDJSON * self );
 static BOOL parseArray( NDJSON * self );
 static BOOL parseKey( NDJSON * self );
 static BOOL parseString( NDJSON * self );
-static BOOL parseText( NDJSON * self, BOOL aIsKey, BOOL aIsQuotesTerminated );
+static BOOL parseText( NDJSON * self, struct NDBytesBuffer * valueBuffer, BOOL aIsKey, BOOL aIsQuotesTerminated );
 static BOOL parseNumber( NDJSON * self );
 static BOOL parseTrue( NDJSON * self );
 static BOOL parseFalse( NDJSON * self );
@@ -105,6 +105,7 @@ static void foundError( NDJSON * self, NDJSONErrorCode aCode );
 	NSInputStream				* inputStream;
 	NSData						* inputData;
 	struct NDBytesBuffer		containers;
+	NSString					* lastKey;
 	struct
 	{
 		IMP						didStartDocument,
@@ -113,7 +114,7 @@ static void foundError( NDJSON * self, NDJSONErrorCode aCode );
 									didEndArray,
 									didStartObject,
 									didEndObject,
-									shouldSkipValueForCurrentKey,
+									shouldSkipValueForKey,
 									foundKey,
 									foundString,
 									foundInteger,
@@ -249,6 +250,7 @@ static void foundError( NDJSON * self, NDJSONErrorCode aCode );
 		if( delegateMethod.didEndDocument != NULL )
 			delegateMethod.didEndDocument( delegate, @selector(jsonParserDidEndDocument:), self );
 
+		[lastKey release], lastKey = nil;
 		freeByte(&containers);
 	}
 	[inputStream release], inputStream = nil;
@@ -281,8 +283,8 @@ static void foundError( NDJSON * self, NDJSONErrorCode aCode );
 	delegateMethod.didEndObject = [theDelegate respondsToSelector:@selector(jsonParserDidEndObject:)]
 										? [theDelegate methodForSelector:@selector(jsonParserDidEndObject:)]
 										: NULL;
-	delegateMethod.shouldSkipValueForCurrentKey = [theDelegate respondsToSelector:@selector(jsonParserShouldSkipValueForCurrentKey:)]
-										? [theDelegate methodForSelector:@selector(jsonParserShouldSkipValueForCurrentKey:)]
+	delegateMethod.shouldSkipValueForKey = [theDelegate respondsToSelector:@selector(jsonParser:shouldSkipValueForKey:)]
+										? [theDelegate methodForSelector:@selector(jsonParser:shouldSkipValueForKey:)]
 										: NULL;
 	delegateMethod.foundKey = [theDelegate respondsToSelector:@selector(jsonParser:foundKey:)]
 										? [theDelegate methodForSelector:@selector(jsonParser:foundKey:)]
@@ -534,9 +536,8 @@ BOOL parseObject( NDJSON * self )
 		if( (theResult = parseKey(self)) )
 		{
 			BOOL				theSkipParsingValue = NO;
-			if( self->delegateMethod.shouldSkipValueForCurrentKey != NULL )
-				theSkipParsingValue = ((returnBoolMethodIMP)self->delegateMethod.shouldSkipValueForCurrentKey)( self->delegate, @selector(jsonParserShouldSkipValueForCurrentKey:), self );
-			
+			if( self->delegateMethod.shouldSkipValueForKey != NULL )
+				theSkipParsingValue = ((_ReturnBoolMethodIMP)self->delegateMethod.shouldSkipValueForKey)( self->delegate, @selector(jsonParser:shouldSkipValueForKey:), self, self->lastKey	);		
 			if( (nextCharIgnoreWhiteSpace(self) == ':') == YES )
 			{
 				if( theSkipParsingValue )
@@ -582,26 +583,50 @@ BOOL parseObject( NDJSON * self )
 
 BOOL parseKey( NDJSON * self )
 {
-	BOOL			theResult = YES;
+	struct NDBytesBuffer	theBuffer = NDBytesBufferInit;
+	BOOL					theResult = YES;
 	if( nextCharIgnoreWhiteSpace(self) == '"' )
-		theResult = parseText( self, YES, YES );
+		theResult = parseText( self, &theBuffer, YES, YES );
 	else if( !self->options.strictJSONOnly )				// keys don't have to be quoted
 	{
 		backUp(self);
-		theResult = parseText( self, YES, NO );
+		theResult = parseText( self, &theBuffer, YES, NO );
 	}
 	else
 		foundError( self, NDJSONBadFormatError );
+	if( theResult != NO )
+	{
+		[self->lastKey release], self->lastKey = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:NSASCIIStringEncoding];
+		NDJSONLog( @"Found key: '%@'", theValue );
+		if( self->delegateMethod.foundKey != NULL )
+			self->delegateMethod.foundKey( self->delegate, @selector(jsonParser:foundKey:), self, self->lastKey );
+	}
+	freeByte( &theBuffer );
+
 	return theResult;
 }
 
-BOOL parseString( NDJSON * self ) { return parseText( self, NO, YES ); }
+BOOL parseString( NDJSON * self )
+{
+	struct NDBytesBuffer	theBuffer = NDBytesBufferInit;
+	BOOL					theResult = parseText( self, &theBuffer, NO, YES );
+	if( theResult != NO )
+	{
+		NSString	* theValue = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:NSUTF8StringEncoding];
+		if( self->delegateMethod.foundString != NULL )
+			self->delegateMethod.foundString( self->delegate, @selector(jsonParser:foundString:), self, theValue );
+		[theValue release];
+	}
+	freeByte( &theBuffer );
+	return theResult;
+}
 
-BOOL parseText( NDJSON * self, BOOL aIsKey, BOOL aIsQuotesTerminated )
+BOOL parseText( NDJSON * self, struct NDBytesBuffer * aValueBuffer, BOOL aIsKey, BOOL aIsQuotesTerminated )
 {
 	BOOL					theResult = YES,
 							theEnd = NO;
-	struct NDBytesBuffer	theBuffer = NDBytesBufferInit;
+
+	NSCParameterAssert(aValueBuffer != NULL);
 	
 	while( theResult  && !theEnd)
 	{
@@ -621,31 +646,31 @@ BOOL parseText( NDJSON * self, BOOL aIsKey, BOOL aIsQuotesTerminated )
 				break;
 			case '"':
 			case '\\':
-				if( !appendByte( &theBuffer, theChar ) )
+				if( !appendByte( aValueBuffer, theChar ) )
 					foundError( self, NDJSONMemoryErrorError );
 				break;
 			case '/':
-				if( !appendByte( &theBuffer, theChar ) )
+				if( !appendByte( aValueBuffer, theChar ) )
 					foundError( self, NDJSONMemoryErrorError );
 				break;
 			case 'b':
-				if( !appendByte( &theBuffer, '\b' ) )
+				if( !appendByte( aValueBuffer, '\b' ) )
 					foundError( self, NDJSONMemoryErrorError );
 				break;
 			case 'f':
-				if( !appendByte( &theBuffer, '\b' ) )
+				if( !appendByte( aValueBuffer, '\b' ) )
 					foundError( self, NDJSONMemoryErrorError );
 				break;
 			case 'n':
-				if( !appendByte( &theBuffer, '\n' ) )
+				if( !appendByte( aValueBuffer, '\n' ) )
 					foundError( self, NDJSONMemoryErrorError );
 				break;
 			case 'r':
-				if( !appendByte( &theBuffer, '\r' ) )
+				if( !appendByte( aValueBuffer, '\r' ) )
 					foundError( self, NDJSONMemoryErrorError );
 				break;
 			case 't':
-				if( !appendByte( &theBuffer, '\t' ) )
+				if( !appendByte( aValueBuffer, '\t' ) )
 					foundError( self, NDJSONMemoryErrorError );
 				break;
 			case 'u':
@@ -662,7 +687,7 @@ BOOL parseText( NDJSON * self, BOOL aIsKey, BOOL aIsQuotesTerminated )
 					else
 						break;
 				}
-				if( !appendCharacter( &theBuffer, theCharacterValue) )
+				if( !appendCharacter( aValueBuffer, theCharacterValue) )
 					foundError( self, NDJSONMemoryErrorError );
 			}
 				break;
@@ -683,30 +708,13 @@ BOOL parseText( NDJSON * self, BOOL aIsKey, BOOL aIsQuotesTerminated )
 				theEnd = YES;
 				backUp(self);
 			}
-			else if( !appendByte( &theBuffer, theChar ) )
+			else if( !appendByte( aValueBuffer, theChar ) )
 				foundError( self, NDJSONMemoryErrorError );
 			break;
 		}
 	}
-	if( theEnd )
-	{
-		NSString	* theValue = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:NSUTF8StringEncoding];
-		if( aIsKey )
-		{
-			NDJSONLog( @"Found key: '%@'", theValue );
-			if( self->delegateMethod.foundKey != NULL )
-				self->delegateMethod.foundKey( self->delegate, @selector(jsonParser:foundKey:), self, theValue );
-		}
-		else
-		{
-			if( self->delegateMethod.foundString != NULL )
-				self->delegateMethod.foundString( self->delegate, @selector(jsonParser:foundString:), self, theValue );
-		}
-		[theValue release];
-	}
-	else
+	if( !theEnd )
 		foundError( self, NDJSONBadFormatError );
-	freeByte( &theBuffer );
 	return theResult;
 }
 

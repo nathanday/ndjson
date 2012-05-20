@@ -133,7 +133,7 @@ extern NSString	* const NDJSONErrorDomain;
 /**
 	Sent by a parser object to its delegate to give the delegate a chance to tell the parser to skip parsing the value for the current key.
  */
-- (BOOL)jsonParserShouldSkipValueForCurrentKey:(NDJSON *)parser;
+- (BOOL)sonParser:(NDJSON *)parser shouldSkipValueForKey:(NDJSON *)parser;
 /**
 	Sent by a parser object to its delegate when it encounters a JSON key in the JSON source.
  */

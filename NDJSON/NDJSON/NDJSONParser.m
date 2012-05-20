@@ -266,7 +266,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 
 - (void)jsonParserDidEndObject:(NDJSON *)aParser { popCurrentContainer( self ); }
 
-- (BOOL)jsonParserShouldSkipValueForCurrentKey:(NDJSON *)aParser
+- (BOOL)jsonParser:(NDJSON *)parser shouldSkipValueForKey:(NSString *)aKey
 {
 	BOOL		theResult = NO;
 	Class		theClass = [self.currentObject class];
@@ -308,7 +308,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 				{
 					if( islower(theResultingBytes[i]) && theCaptializeNext && !theIsFirstChar )
 						theResultingBytes[o] = theResultingBytes[i] - ('a' - 'A');
-					else if( isupper(theResultingBytes[i]) && (!theCaptializeNext || theIsFirstChar) )
+					else if( isupper(theResultingBytes[i]) && theCaptializeNext && theIsFirstChar )
 						theResultingBytes[o] = theResultingBytes[i] + ('a' - 'A');
 					else
 						theResultingBytes[o] = theResultingBytes[i];
