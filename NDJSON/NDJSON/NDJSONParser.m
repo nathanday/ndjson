@@ -59,6 +59,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 		struct ContainerStackStruct		* bytes;
 	}								containerStack;
 	NSString						* currentProperty;
+	NSString						* currentKey;
 	struct
 	{
 		int								ignoreUnknownPropertyName	: 1;
@@ -129,6 +130,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 		[containerStack.bytes[i].container release];
 	}
 	[currentProperty release];
+	[currentKey release];
 	[result autorelease];
 	free(containerStack.bytes);
 	[super dealloc];
@@ -228,6 +230,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 		free( containerStack.bytes );
 	containerStack.bytes = calloc(containerStack.size,sizeof(struct ContainerStackStruct));
 	[currentProperty release], currentProperty = nil;
+	[currentKey release], currentKey = nil;
 	[result autorelease], result = nil;
 }
 - (void)jsonParserDidEndDocument:(NDJSON *)aParser
@@ -239,6 +242,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	}
 	containerStack.count = 0;
 	[currentProperty release], currentProperty = nil;
+	[currentKey release], currentKey = nil;
 	if( containerStack.bytes != NULL )
 		free(containerStack.bytes);
 	containerStack.bytes = NULL;
@@ -337,6 +341,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 	NSCParameterAssert( containerStack.count == 0 || containerStack.bytes[containerStack.count-1].isObject );
 	NSString	* theKey = stringByConvertingPropertyName( aValue, options.removeIsAdjective != 0, options.convertKeysToMedialCapital != 0 );
 	currentProperty = [theKey retain];
+	[currentKey release], currentKey = [aValue retain];
 }
 - (void)jsonParser:(NDJSON *)aParser foundString:(NSString *)aValue
 {
@@ -507,7 +512,7 @@ void addValue( NDJSONParser * self, id aValue, NDJSONValueType aType )
 			{
 				if( [[theCurrentContainer class] respondsToSelector:@selector(propertyNamesForKeysJSONParser:)] )
 				{
-					NSString	* theNewPropertyName = [[[theCurrentContainer class] propertyNamesForKeysJSONParser:nil] objectForKey:thePropertyName];
+					NSString	* theNewPropertyName = [[[theCurrentContainer class] propertyNamesForKeysJSONParser:nil] objectForKey:self->currentKey];
 					if( theNewPropertyName != nil )
 						thePropertyName = theNewPropertyName;
 				}

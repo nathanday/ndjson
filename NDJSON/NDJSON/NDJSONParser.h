@@ -45,15 +45,39 @@ enum {
 @property(readonly,nonatomic)	NSString	* currentProperty;
 
 - (id)init;
+/**
+	initalize with the classes type to represent the root JSON object, if the root of the JSON document is an array, the the class type is what is used for the objects within the array.
+ */
 - (id)initWithRootClass:(Class)rootClass;
+/**
+	initalize with the classes type to represent the root JSON object and the class type used for root collection type (array, set etc), if the root of the JSON document is an array then the root collection class is used and the class type is what is used for the objects within the array.
+ */
 - (id)initWithRootClass:(Class)rootClass rootCollectionClass:(Class)rootCollectionClass;
 
+/**
+	return the root object by parsing the JSON string.
+ */
 - (id)objectForJSONString:(NSString *)string options:(NDJSONOptionFlags)options error:(NSError **)error;
+/**
+	return the root object by parsing the contents of the JSON file.
+ */
 - (id)objectForContentsOfFile:(NSString *)path options:(NDJSONOptionFlags)options error:(NSError **)error;
+/**
+	return the root object by parsing the contents of the JSON file.
+ */
 - (id)objectForContentsOfURL:(NSURL *)url options:(NDJSONOptionFlags)options error:(NSError **)error;
+/**
+	return the root object by parsing the contents of the JSON document returned from the URL requerst.
+ */
 - (id)objectForURLRequest:(NSURLRequest *)urlRequest options:(NDJSONOptionFlags)options error:(NSError **)error;
+/**
+	return the root object by parsing the contents of the JSON document returned from the input stream.
+ */
 - (id)objectForInputStream:(NSInputStream *)stream options:(NDJSONOptionFlags)options error:(NSError **)error;
 
+/**
+	return the root object generted from the parsers output.
+ */
 - (id)objectForJSONParser:(NDJSON *)parser options:(NDJSONOptionFlags)options;
 
 @end
@@ -64,12 +88,27 @@ enum {
  */
 @interface NSObject (NDJSONParser)
 
+/**
+	implemented by classes to override the default mechanism for determining the class type used for a property, if the property is a collection type (array, set etc), then this method is used to determine the types used in the collection, by default an NSDictionat will be used but any method which implements the method setObject:forKey: method.
+ */
 + (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONParser *)aParser;
+/**
+	implemented by classed to override the default mechanism for determining the class type used for a property collection, by default an NSArray will be used but any mehtod which implements the method addObject: method.
+ */
 + (NSDictionary *)collectionClassesForPropertyNamesJSONParser:(NDJSONParser *)aParser;
 
+/**
+	return a set of property names to ignore, this can speed up parsing as the parsing will just scan pass the valuing in the JSON.
+ */
 + (NSSet *)ignoreSetJSONParser:(NDJSONParser *)aParser;
+/**
+	return a set of property names to only consider, this can speed up parsing as the parsing will just scan pass the valuing in the JSON.
+ */
 + (NSSet *)considerSetJSONParser:(NDJSONParser *)aParser;
 
+/**
+	return a dictionary used to map property names as determined
+ */
 + (NSDictionary *)propertyNamesForKeysJSONParser:(NDJSONParser *)aParser;
 
 - (NSString *)jsonStringJSONParser:(NDJSONParser *)aParser;
