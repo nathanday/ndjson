@@ -34,8 +34,8 @@ enum {
 };
 
 /**
- The NDJSONParser class provides methods that convert a JSON document into an object tree representation. NDJSONParser can either generate property list type objects, NSDictionarys, NSArrays, NSStrings and NSNumbers as well as NSNull for the JSON value null, or by supplying your own root object and maybe implementing the methods defined in the anyomnous protocol NSObject+NDJSONParser in your own classes, NDJSONParser will generate a tree if your own classes.
- When generating classes of your own type, NDJSONParser will determine the correct class type for properties by quering the Objective-C runetime, NSObject+NDJSONParser methods can be used when the information is not avaialable, for example what classes to insert in an array.
+ The *NDJSONParser* class provides methods that convert a JSON document into an object tree representation. *NDJSONParser* can either generate property list type objects, *NSDictionary*s, *NSArrays*, *NSStrings* and *NSNumber*s as well as *NSNull* for the JSON value null, or by supplying your own root object and maybe implementing the methods defined in the anyomnous protocol NSObject+NDJSONParser in your own classes, NDJSONParser will generate a tree if your own classes.
+ When generating classes of your own type, *NDJSONParser* will determine the correct class type for properties by quering the Objective-C runetime, NSObject+NDJSONParser methods can be used when the information is not avaialable, for example what classes to insert in an array.
  */
 @interface NDJSONParser : NSObject
 
@@ -84,7 +84,7 @@ enum {
 
 /**
 	NSObject+NDJSONParser is an informal protocol for methods that objects which can be generated from parsing can implement to control how parsing of child onjects and arrays.
-	NDJSONParser can determine the class types for properties at runtime, but the methods of NSObject+NDJSONParser can be used to override this behavor or help in situations where the type information is not available, for exmaple the class types used for the elements in a JSON array or if the type is *id*.
+	*NDJSONParser* can determine the class types for properties at runtime, but the methods of NSObject+NDJSONParser can be used to override this behavor or help in situations where the type information is not available, for exmaple the class types used for the elements in a JSON array or if the type is *id*.
  */
 @interface NSObject (NDJSONParser)
 
@@ -111,6 +111,6 @@ enum {
  */
 + (NSDictionary *)propertyNamesForKeysJSONParser:(NDJSONParser *)aParser;
 
-- (NSString *)jsonStringJSONParser:(NDJSONParser *)aParser;
+//- (NSString *)jsonStringJSONParser:(NDJSONParser *)aParser;
 
 @end
