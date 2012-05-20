@@ -23,25 +23,6 @@
 #define NDJSONLog(...)
 #endif
 
-typedef enum
-{
-	NDJSONContainerNone,
-	NDJSONContainerArray,
-	NDJSONContainerObject
-}		NDJSONContainerType;
-
-typedef enum
-{
-	NDJSONGeneralError,
-	NDJSONBadTokenError,
-	NDJSONBadFormatError,
-	NDJSONBadEscapeSequenceError,
-	NDJSONTrailingGarbageError,
-	NDJSONMemoryErrorError,
-	NDJSONPrematureEndError,
-	NDJSONBadNumberError
-}		NDJSONErrorCode;
-
 @protocol NDJSONDelegate;
 
 struct NDBytesBuffer
@@ -238,7 +219,7 @@ static void foundError( NDJSON * self, NDJSONErrorCode aCode );
 	{
 		options.strictJSONOnly = NO;
 		containers = NDBytesBufferInit;
-		appendByte(&containers, NDJSONContainerNone);
+		appendByte(&containers, NDJSONValueNone);
 		if( delegateMethod.didStartDocument != NULL )
 			delegateMethod.didStartDocument( delegate, @selector(jsonParserDidStartDocument:), self );
 		[inputStream open];
@@ -472,7 +453,7 @@ BOOL parseArray( NDJSON * self )
 	BOOL				theResult = YES;
 	BOOL				theEnd = NO;
 	NSUInteger			theCount = 0;
-	appendByte(&self->containers, NDJSONContainerArray);
+	appendByte(&self->containers, NDJSONValueArray);
 	if( self->delegateMethod.didStartArray != NULL )
 		self->delegateMethod.didStartArray( self->delegate, @selector(jsonParserDidStartArray:), self );
 	
@@ -508,7 +489,7 @@ BOOL parseArray( NDJSON * self )
 	}
 	if( theEnd )
 	{
-		NSCParameterAssert(truncateByte(&self->containers, NDJSONContainerArray));
+		NSCParameterAssert(truncateByte(&self->containers, NDJSONValueArray));
 		if( self->delegateMethod.didEndArray != NULL )
 			self->delegateMethod.didEndArray( self->delegate, @selector(jsonParserDidEndArray:), self );
 	}
@@ -522,7 +503,7 @@ BOOL parseObject( NDJSON * self )
 	BOOL				theEnd = NO;
 	NSUInteger			theCount = 0;
 	
-	appendByte( &self->containers, NDJSONContainerObject );
+	appendByte( &self->containers, NDJSONValueObject );
 	if( self->delegateMethod.didStartObject != NULL )
 		self->delegateMethod.didStartObject( self->delegate, @selector(jsonParserDidStartObject:), self );
 	
@@ -575,7 +556,7 @@ BOOL parseObject( NDJSON * self )
 	{
 		if( self->delegateMethod.didEndObject != NULL )
 			self->delegateMethod.didEndObject( self->delegate, @selector(jsonParserDidEndObject:), self );
-		NSCParameterAssert(truncateByte(&self->containers, NDJSONContainerObject));
+		NSCParameterAssert(truncateByte(&self->containers, NDJSONValueObject));
 	}
 	
 	return theResult;

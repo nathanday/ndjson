@@ -33,7 +33,7 @@ NSString	* const NDJSONBadCollectionClassException = @"NDJSONBadCollectionClassE
  */
 
 static void popCurrentContainer( NDJSONParser * self );
-static void addValue( NDJSONParser * self, id value );
+static void addValue( NDJSONParser * self, id value, NDJSONValueType type );
 
 static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, const char * aPropertyAttributes )
 {
@@ -247,7 +247,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 - (void)jsonParserDidStartArray:(NDJSON *)aParser
 {
 	id		theArrayRep = [[[self collectionClassForPropertyName:currentProperty class:[self.currentObject class]] alloc] init];
-	addValue( self, theArrayRep );
+	addValue( self, theArrayRep, NDJSONValueArray );
 	[self pushContainer:theArrayRep isObject:NO];
 	[currentProperty release], currentProperty = nil;
 	[theArrayRep release];
@@ -258,7 +258,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 - (void)jsonParserDidStartObject:(NDJSON *)aParser
 {
 	id			theObjectRep = [[[self classForPropertyName:self.currentContainerPropertyName class:[self.currentObject class]] alloc] init];
-	addValue( self, theObjectRep );
+	addValue( self, theObjectRep, NDJSONValueObject );
 	[self pushContainer:theObjectRep isObject:YES];
 	[currentProperty release], currentProperty = nil;
 	[theObjectRep release];
@@ -340,27 +340,27 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 }
 - (void)jsonParser:(NDJSON *)aParser foundString:(NSString *)aValue
 {
-	addValue( self, aValue );
+	addValue( self, aValue, NDJSONValueString );
 	[currentProperty release], currentProperty = nil;
 }
 - (void)jsonParser:(NDJSON *)aParser foundInteger:(NSInteger)aValue
 {
-	addValue( self, [NSNumber numberWithInteger:aValue] );
+	addValue( self, [NSNumber numberWithInteger:aValue], NDJSONValueInteger );
 	[currentProperty release], currentProperty = nil;
 }
 - (void)jsonParser:(NDJSON *)aParser foundFloat:(double)aValue
 {
-	addValue( self, [NSNumber numberWithDouble:aValue] );
+	addValue( self, [NSNumber numberWithDouble:aValue], NDJSONValueFloat );
 	[currentProperty release], currentProperty = nil;
 }
 - (void)jsonParser:(NDJSON *)aParser foundBool:(BOOL)aValue
 {
-	addValue( self, [NSNumber numberWithBool:aValue] );
+	addValue( self, [NSNumber numberWithBool:aValue], NDJSONValueBoolean );
 	[currentProperty release], currentProperty = nil;
 }
 - (void)jsonParserFoundNULL:(NDJSON *)aParser
 {
-	addValue( self, [NSNull null] );
+	addValue( self, [NSNull null], NDJSONValueBoolean );
 	[currentProperty release], currentProperty = nil;
 }
 
@@ -490,7 +490,7 @@ void popCurrentContainer( NDJSONParser * self )
 	}
 }
 
-void addValue( NDJSONParser * self, id aValue )
+void addValue( NDJSONParser * self, id aValue, NDJSONValueType aType )
 {
 	if( self->result != nil )
 	{

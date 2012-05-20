@@ -18,19 +18,19 @@ extern NSString		* const NDJSONPropertyNameUserInfoKey;
 
 enum {
 //	NDJSONOptionNone = 0,				// defined in NDJSON
-//	NDJSONOptionStrict = 1<<1,			// defined in NDJSON
+//	NDJSONOptionStrict = 1<<0,			// defined in NDJSON
 /**
 	determines if the parser will fail if an attempt to setValue:forKey: fails because the property does not exist.
  */
-	NDJSONOptionIgnoreUnknownProperties = 1<<2,
+	NDJSONOptionIgnoreUnknownProperties = 1<<16,
 /**
 	determines if object keys are converted to medial capitals (cammel case) with the first character converted to cammel case, for example Cammel-case becomes cammelCase. can be used with *removeIsAdjective*
  */
-	NDJSONOptionConvertKeysToMedialCapitals = 1<<3,
+	NDJSONOptionConvertKeysToMedialCapitals = 1<<17,
 /**
 	determines if _is_ prefix is removed from object keys, for example isPrefix becoms Prefix. Can be used with *convertKeysToMedialCapital*
  */
-	NDJSONOptionConvertRemoveIsAdjective = 1<<4
+	NDJSONOptionConvertRemoveIsAdjective = 1<<18
 };
 
 /**

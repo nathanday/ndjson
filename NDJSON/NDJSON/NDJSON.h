@@ -8,6 +8,30 @@
 
 #import <Foundation/Foundation.h>
 
+typedef enum
+{
+	NDJSONValueNone,
+	NDJSONValueArray,
+	NDJSONValueObject,
+	NDJSONValueString,
+	NDJSONValueInteger,
+	NDJSONValueFloat,
+	NDJSONValueBoolean,
+	NDJSONValueNull
+}		NDJSONValueType;
+
+typedef enum
+{
+	NDJSONGeneralError,
+	NDJSONBadTokenError,
+	NDJSONBadFormatError,
+	NDJSONBadEscapeSequenceError,
+	NDJSONTrailingGarbageError,
+	NDJSONMemoryErrorError,
+	NDJSONPrematureEndError,
+	NDJSONBadNumberError
+}		NDJSONErrorCode;
+
 typedef NSUInteger		NDJSONOptionFlags;
 
 enum {
@@ -19,7 +43,7 @@ enum {
 	 - object keys do not have to be quoted.
 	 - arrays may have a trailing comment.
  */
-	NDJSONOptionStrict = 1<<1
+	NDJSONOptionStrict = 1<<0
 };
 
 extern NSString	* const NDJSONErrorDomain;
