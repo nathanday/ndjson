@@ -22,7 +22,7 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 
 @interface RootAlpha : NSObject
 @property(retain,nonatomic)     id      child;
-@property(assign,nonatomic)     double  value;
+@property(assign,nonatomic)     double  doubleValue;
 @end
 
 @implementation TestCustomObjectsExtended
@@ -30,10 +30,10 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 + (void)addTestsToTestGroup:(TestGroup *)aTestGroup
 {
     [aTestGroup addTest:[self testCustomObjectsSimpleWithName:@"Extended Test One"
-                                             jsonSourceString:@"{\"doubleValue\":3.1415,\"ignoredValueA\":10,\"child\":{\"every_child\":[{\"name\":\"Beta Object 1\"},{\"name\":\"Beta Object 2\"}],\"ignoredValueB\":20}}"
+                                             jsonSourceString:@"{\"value\":3.1415,\"ignoredValueA\":10,\"child\":{\"every_child\":[{\"name\":\"Beta Object 1\"},{\"name\":\"Beta Object 2\"}],\"ignoredValueB\":20}}"
                                                     rootClass:[RootAlpha class]]];
     [aTestGroup addTest:[self testCustomObjectsSimpleWithName:@"Extended Test Two"
-                                             jsonSourceString:@"{\"child\":{\"every_child\":[{\"name\":\"Beta Object 1\"},{\"name\":\"Beta Object 2\"}],\"ignoredValueB\":20},\"doubleValue\":3.1415,\"ignoredValueA\":10}"
+                                             jsonSourceString:@"{\"child\":{\"every_child\":[{\"name\":\"Beta Object 1\"},{\"name\":\"Beta Object 2\"}],\"ignoredValueB\":20},\"value\":3.1415,\"ignoredValueA\":10}"
                                                     rootClass:[RootAlpha class]]];
 }
 
@@ -77,7 +77,7 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 					* theChildBeta2 = [[ChildBeta alloc] init];
 
 	theResult.child = theChildAlpha;
-	theResult.value = 3.1415;
+	theResult.doubleValue = 3.1415;
 	theChildAlpha.everyChild = [NSSet setWithObjects:theChildBeta1, theChildBeta2, nil];
 	theChildBeta1.name = @"Beta Object 1";
 	theChildBeta2.name = @"Beta Object 2";
@@ -104,7 +104,7 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 
 @implementation ChildAlpha
 @synthesize     everyChild;
-+ (NSSet *)ignoreSetJSONParser:(NDJSONParser *)aParser
++ (NSSet *)keysIgnoreSetJSONParser:(NDJSONParser *)aParser
 {
     static NSSet       * kIgnoreSet = nil;
     if( kIgnoreSet == nil )
@@ -151,24 +151,32 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 @implementation RootAlpha
 
 @synthesize     child,
-                value;
+                doubleValue;
 
-+ (NSSet *)considerSetJSONParser:(NDJSONParser *)aParser
+NDJSONKeysConsiderSet(@"child", @"value");
+/*
++ (NSSet *)keysConsiderSetJSONParser:(NDJSONParser *)aParser
 {
     static NSSet       * kConsiderSet = nil;
     if( kConsiderSet == nil )
-        kConsiderSet = [[NSSet alloc] initWithObjects:@"child", @"doubleValue", nil];
+        kConsiderSet = [[NSSet alloc] initWithObjects:@"child", @"value", nil];
     return kConsiderSet;
 }
+*/
 
+NDJSONPropertyNamesForKeys(@"doubleValue", @"value");
+/*
 + (NSDictionary *)propertyNamesForKeysJSONParser:(NDJSONParser *)aParser
 {
     static NSDictionary     * kNamesForKeys = nil;
     if( kNamesForKeys == nil )
-        kNamesForKeys = [[NSDictionary alloc] initWithObjectsAndKeys:@"value", @"doubleValue", nil];
+        kNamesForKeys = [[NSDictionary alloc] initWithObjectsAndKeys:@"doubleValue", @"value", nil];
     return kNamesForKeys;
 }
+*/
 
+NDJSONClassesForPropertyNames([ChildAlpha class], @"child");
+/*
 + (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONParser *)aParser
 {
     static NSDictionary     * kClassesForKeys = nil;
@@ -176,13 +184,14 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
         kClassesForKeys = [[NSDictionary alloc] initWithObjectsAndKeys:[ChildAlpha class], @"child", nil];
     return kClassesForKeys;
 }
+ */
 
-- (NSString *)description { return [NSString stringWithFormat:@"{child:%@,doubleValue:%.4f}", self.child, self.value]; }
+- (NSString *)description { return [NSString stringWithFormat:@"{child:%@,doubleValue:%.4f}", self.child, self.doubleValue]; }
 
 - (BOOL)isEqual:(id)anObject
 {
 	RootAlpha		* theRootAlpha = anObject;
-	return magn(theRootAlpha.value-self.value) < 0.00001 && [theRootAlpha.child isEqual:self.child];
+	return magn(theRootAlpha.doubleValue-self.doubleValue) < 0.00001 && [theRootAlpha.child isEqual:self.child];
 }
 
 @end

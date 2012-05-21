@@ -73,7 +73,7 @@ extern NSString	* const NDJSONErrorDomain;
 @interface NDJSON : NSObject
 
 /**
-	The JSON parser’s delegate object.
+	The JSON parser’s delegate object. The delegate must conform to the NDJSONDelegate Protocol protocol.
  */
 @property(assign,nonatomic)		id<NDJSONDelegate>	delegate;
 /**

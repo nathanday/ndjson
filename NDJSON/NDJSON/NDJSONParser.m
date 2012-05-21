@@ -274,10 +274,10 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 {
 	BOOL		theResult = NO;
 	Class		theClass = [self.currentObject class];
-	if( [theClass respondsToSelector:@selector(ignoreSetJSONParser:)] )
-		theResult = [[theClass ignoreSetJSONParser:self] containsObject:currentProperty];
-	else if( [theClass respondsToSelector:@selector(considerSetJSONParser:)] )
-		theResult = ![[theClass considerSetJSONParser:self] containsObject:currentProperty];
+	if( [theClass respondsToSelector:@selector(keysIgnoreSetJSONParser:)] )
+		theResult = [[theClass keysIgnoreSetJSONParser:self] containsObject:currentProperty];
+	else if( [theClass respondsToSelector:@selector(keysConsiderSetJSONParser:)] )
+		theResult = ![[theClass keysConsiderSetJSONParser:self] containsObject:currentProperty];
 	if( theResult )
 	{
 		NSCParameterAssert(currentProperty != nil);
@@ -512,7 +512,7 @@ void addValue( NDJSONParser * self, id aValue, NDJSONValueType aType )
 			{
 				if( [[theCurrentContainer class] respondsToSelector:@selector(propertyNamesForKeysJSONParser:)] )
 				{
-					NSString	* theNewPropertyName = [[[theCurrentContainer class] propertyNamesForKeysJSONParser:nil] objectForKey:self->currentKey];
+					NSString	* theNewPropertyName = [[[theCurrentContainer class] propertyNamesForKeysJSONParser:self] objectForKey:self->currentKey];
 					if( theNewPropertyName != nil )
 						thePropertyName = theNewPropertyName;
 				}

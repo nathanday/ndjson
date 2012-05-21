@@ -24,7 +24,7 @@ enum {
  */
 	NDJSONOptionIgnoreUnknownProperties = 1<<16,
 /**
-	determines if object keys are converted to medial capitals (cammel case) with the first character converted to cammel case, for example Cammel-case becomes cammelCase. can be used with *removeIsAdjective*
+	determines if object keys are converted to medial capitals (cammelCase) with the first character converted to cammel case, for example Cammel-case becomes cammelCase. can be used with *removeIsAdjective*
  */
 	NDJSONOptionConvertKeysToMedialCapitals = 1<<17,
 /**
@@ -100,11 +100,11 @@ enum {
 /**
 	return a set of property names to ignore, this can speed up parsing as the parsing will just scan pass the valuing in the JSON.
  */
-+ (NSSet *)ignoreSetJSONParser:(NDJSONParser *)aParser;
++ (NSSet *)keysIgnoreSetJSONParser:(NDJSONParser *)aParser;
 /**
 	return a set of property names to only consider, this can speed up parsing as the parsing will just scan pass the valuing in the JSON.
  */
-+ (NSSet *)considerSetJSONParser:(NDJSONParser *)aParser;
++ (NSSet *)keysConsiderSetJSONParser:(NDJSONParser *)aParser;
 
 /**
 	return a dictionary used to map property names as determined
@@ -114,3 +114,53 @@ enum {
 //- (NSString *)jsonStringJSONParser:(NDJSONParser *)aParser;
 
 @end
+
+/*
+	implements the class method `+[NSObject classesForPropertyNamesJSONParser:]` returning a dictionary with the supplied arguemnts.
+ */
+#define NDJSONClassesForPropertyNames(...) \
++ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONParser *)aParser { \
+	static NSDictionary     * kClassesForPropertyName = nil; \
+	if( kClassesForPropertyName == nil ) kClassesForPropertyName = [[NSDictionary alloc] initWithObjectsAndKeys:__VA_ARGS__, nil]; \
+	return kClassesForPropertyName; \
+}
+
+/*
+ implements the class method `+[NSObject collectionClassesForPropertyNamesJSONParser:]` returning a dictionary with the supplied arguemnts.
+ */
+#define NDJSONCollectionClassesForPropertyNames(...) \
++ (NSDictionary *)collectionClassesForPropertyNamesJSONParser:(NDJSONParser *)aParser { \
+	static NSDictionary     * kClassesForPropertyName = nil; \
+	if( kClassesForPropertyName == nil ) kClassesForPropertyName = [[NSDictionary alloc] initWithObjectsAndKeys:__VA_ARGS__, nil]; \
+	return kClassesForPropertyName; \
+}
+
+/*
+ implements the class method `+[NSObject keysConsiderSetJSONParser:]` returning a set with the supplied arguemnts.
+ */
+#define NDJSONKeysConsiderSet(...) \
++ (NSSet *)keysConsiderSetJSONParser:(NDJSONParser *)aParser { \
+    static NSSet       * kSet = nil; \
+    if( kSet == nil ) kSet = [[NSSet alloc] initWithObjects:__VA_ARGS__, nil]; \
+	return kSet; \
+}
+
+/*
+ implements the class method `+[NSObject keysIgnoreSetJSONParser:]` returning a set with the supplied arguemnts.
+ */
+#define NDJSONKeysIgnoreSet(...) \
++ (NSSet *)keysIgnoreSetJSONParser:(NDJSONParser *)aParser { \
+	static NSSet       * kSet = nil; \
+	if( kSet == nil ) kSet = [[NSSet alloc] initWithObjects:__VA_ARGS__, nil]; \
+	return kSet; \
+}
+
+/*
+ implements the class method `+[NSObject propertyNamesForKeysJSONParser:]` returning a dictionary with the supplied arguemnts.
+ */
+#define NDJSONPropertyNamesForKeys(...) \
++ (NSDictionary *)propertyNamesForKeysJSONParser:(NDJSONParser *)aParser { \
+    static NSDictionary     * kNamesForKeys = nil; \
+    if( kNamesForKeys == nil ) kNamesForKeys = [[NSDictionary alloc] initWithObjectsAndKeys:__VA_ARGS__, nil]; \
+	return kNamesForKeys; \
+}
