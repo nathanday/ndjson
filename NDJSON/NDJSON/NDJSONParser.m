@@ -55,7 +55,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	struct
 	{
 		NSUInteger						size,
-		count;
+										count;
 		struct ContainerStackStruct		* bytes;
 	}								containerStack;
 	NSString						* currentProperty;
@@ -72,6 +72,8 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 }
 
 @property(readonly,nonatomic)	id			currentObject;
+@property(readonly,nonatomic)	id			currentContainer;
+@property(readonly,nonatomic)	NSString	* currentProperty;
 
 - (Class)classForPropertyName:(NSString *)name class:(Class)class;
 - (Class)collectionClassForPropertyName:(NSString *)name class:(Class)class;

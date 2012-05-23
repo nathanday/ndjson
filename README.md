@@ -44,7 +44,7 @@ because `classesForPropertyNamesJSONParser:` may be called many times you will w
 
 To simplify the process there is a macro called NDJSONClassesForPropertyNames() for example
 	NDJSONClassesForPropertyNames([MyElement class], @"jsonElementKey");
-is equivalent to the thing as  code above.
+is equivalent to the same code above.
 
 ### Using custom classes for elements in a collection property
 If you have a property which is used to represent a JSON array, NSArray, NSSet or any class that implements *addObject:*, there is no way for **NDJSONParser** to determine which class you want for element in that array. The mechanism for telling **NDJSONParser** what class to use as elements within a collection is very similar to overriding the default mechanism for determining the class for properties its just a different class method name +[NSObject collectionClassesForPropertyNamesJSONParser:], otherwise it is identical and also may be called many times, it also has a macro to simplify thing `NDJSONCollectionClassesForPropertyNames(...)`

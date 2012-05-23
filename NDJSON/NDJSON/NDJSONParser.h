@@ -39,10 +39,14 @@ enum {
  */
 @interface NDJSONParser : NSObject
 
+/**
+	Class used for root JSON object
+ */
 @property(readonly,nonatomic)	Class		rootClass;
+/**
+ Class used for root JSON arrays
+ */
 @property(readonly,nonatomic)	Class		rootCollectionClass;
-@property(readonly,nonatomic)	id			currentContainer;
-@property(readonly,nonatomic)	NSString	* currentProperty;
 
 - (id)init;
 /**
