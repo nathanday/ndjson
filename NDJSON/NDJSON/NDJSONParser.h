@@ -30,7 +30,11 @@ enum {
 /**
 	determines if _is_ prefix is removed from object keys, for example isPrefix becoms Prefix. Can be used with *convertKeysToMedialCapital*
  */
-	NDJSONOptionConvertRemoveIsAdjective = 1<<18
+	NDJSONOptionConvertRemoveIsAdjective = 1<<18,
+/**
+	checks the type of primitive types and attempts to convert it to the correct type if required.
+ */
+	NDJSONOptionCovertPrimitiveTypes = 1<<19
 };
 
 /**
@@ -42,13 +46,14 @@ enum {
 /**
 	Class used for root JSON object
  */
-@property(readonly,nonatomic)	Class		rootClass;
+@property(readonly,nonatomic)	Class					rootClass;
 /**
  Class used for root JSON arrays
  */
-@property(readonly,nonatomic)	Class		rootCollectionClass;
+@property(readonly,nonatomic)	Class					rootCollectionClass;
 
-- (id)init;
+@property(retain,nonatomic)		NSManagedObjectContext	* managedObjectContext;
+
 /**
 	initalize with the classes type to represent the root JSON object, if the root of the JSON document is an array, the the class type is what is used for the objects within the array.
  */
