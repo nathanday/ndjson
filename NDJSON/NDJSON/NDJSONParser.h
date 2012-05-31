@@ -52,7 +52,8 @@ enum {
  */
 @property(readonly,nonatomic)	Class					rootCollectionClass;
 
-@property(retain,nonatomic)		NSManagedObjectContext	* managedObjectContext;
+@property(readonly,nonatomic)	NSManagedObjectContext	* managedObjectContext;
+@property(readonly,nonatomic)	NSString				* rootEntityName;
 
 /**
 	initalize with the classes type to represent the root JSON object, if the root of the JSON document is an array, the the class type is what is used for the objects within the array.
@@ -62,6 +63,8 @@ enum {
 	initalize with the classes type to represent the root JSON object and the class type used for root collection type (array, set etc), if the root of the JSON document is an array then the root collection class is used and the class type is what is used for the objects within the array.
  */
 - (id)initWithRootClass:(Class)rootClass rootCollectionClass:(Class)rootCollectionClass;
+
+- (id)initWithManagedObjectContext:(NSManagedObjectContext *)managedObjectContext rootEntityName:(NSString *)rootEntityName;
 
 /**
 	return the root object by parsing the JSON string.

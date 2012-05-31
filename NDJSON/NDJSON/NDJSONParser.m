@@ -9,7 +9,7 @@
 #import "NDJSON.h"
 #import "NDJSONParser.h"
 
-#import <objc/objc-class.h>
+#import <objc/runtime.h>
 
 struct ContainerStackStruct
 {
@@ -69,7 +69,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 
 @property(readonly,nonatomic)	id				currentObject;
 @property(readonly,nonatomic)	id				currentContainer;
-@property(readonly,nonatomic)	NSString		* currentProperty;
+@property(readonly,nonatomic)	NSString		* currentContainerPropertyName;
 
 - (void)pushContainer:(id)container isObject:(BOOL)isObject;
 - (void)addValue:(id)value type:(NDJSONValueType)type;
@@ -89,35 +89,25 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 
 @end
 
+#pragma mark - NDJSONCoreDataParser interface
+@interface NDJSONCoreDataParser : NDJSONParser
+{
+	NSManagedObjectContext			* managedObjectContext;
+	NSString						* rootEntityName;
+}
+
+@end
+
 #pragma mark - NDJSONParser implementation
 @implementation NDJSONParser
 
-@synthesize		currentProperty;
-
 #pragma mark - manually implemented properties
-- (id)currentContainer { return containerStack.count > 0 ? containerStack.bytes[containerStack.count-1].container : nil; }
-- (id)currentObject
-{
-	id				theResult = nil;
-	NSInteger		theIndex = containerStack.count;
-	while( theResult == nil && theIndex > 0 )
-	{
-		theIndex--;
-		if( containerStack.bytes[theIndex].isObject )
-			theResult = containerStack.bytes[theIndex].container;
-	}
-	return theResult;
-}
-- (NSString *)currentContainerPropertyName
-{
-	NSString			* theResult = self.currentProperty;
-	if( theResult == nil && containerStack.count > 0 )
-		theResult = containerStack.bytes[containerStack.count-1].propertyName;
-	return theResult;
-}
 
 - (Class)rootClass { return Nil; }
 - (Class)rootCollectionClass { return Nil; }
+
+- (NSManagedObjectContext *)managedObjectContext { return nil; }
+- (NSString *)rootEntityName { return nil; }
 
 
 #pragma mark - creation and destruction
@@ -126,6 +116,12 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 {
 	[self release];
 	return [[NDJSONCustomParser alloc] initWithRootClass:aRootClass rootCollectionClass:aRootCollectionClass];
+}
+
+- (id)initWithManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext rootEntityName:(NSString *)aRootEntityName;
+{
+	[self release];
+	return [[NDJSONCoreDataParser alloc] initWithManagedObjectContext:aManagedObjectContext rootEntityName:aRootEntityName];
 }
 
 - (void)dealloc
@@ -227,7 +223,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	return theResult;
 }
 
-#pragma mark - delegate methods
+#pragma mark - NDJSONDelegate methods
 - (void)jsonParserDidStartDocument:(NDJSON *)aParser
 {
 	containerStack.size = 256;
@@ -362,6 +358,27 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 
 #pragma mark - private
 
+- (id)currentContainer { return containerStack.count > 0 ? containerStack.bytes[containerStack.count-1].container : nil; }
+- (id)currentObject
+{
+	id				theResult = nil;
+	NSInteger		theIndex = containerStack.count;
+	while( theResult == nil && theIndex > 0 )
+	{
+		theIndex--;
+		if( containerStack.bytes[theIndex].isObject )
+			theResult = containerStack.bytes[theIndex].container;
+	}
+	return theResult;
+}
+- (NSString *)currentContainerPropertyName
+{
+	NSString			* theResult = currentProperty;
+	if( theResult == nil && containerStack.count > 0 )
+		theResult = containerStack.bytes[containerStack.count-1].propertyName;
+	return theResult;
+}
+
 - (void)pushContainer:(id)aContainer isObject:(BOOL)anIsObject
 {
 	NSCParameterAssert( aContainer != nil );
@@ -418,6 +435,8 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 
 @synthesize		rootClass,
 				rootCollectionClass;
+
+#pragma mark - creation and destruction
 - (id)initWithRootClass:(Class)aRootClass { return [self initWithRootClass:aRootClass rootCollectionClass:Nil]; }
 - (id)initWithRootClass:(Class)aRootClass rootCollectionClass:(Class)aRootCollectionClass
 {
@@ -427,6 +446,13 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 		rootCollectionClass = aRootCollectionClass;
 	}
 	return self;
+}
+
+- (void)dealloc
+{
+	[rootClass release];
+	[rootCollectionClass release];
+	[super dealloc];
 }
 
 - (void)jsonParserDidStartArray:(NDJSON *)aParser
@@ -606,3 +632,101 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 }
 
 @end
+
+@implementation NDJSONCoreDataParser
+
+@synthesize		managedObjectContext,
+				rootEntityName;
+
+#pragma mark - creation and destruction
+- (id)initWithManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext rootEntityName:(NSString *)aRootEntityName
+{
+	if( (self = [super init]) != nil )
+	{
+		managedObjectContext = [aManagedObjectContext retain];
+		rootEntityName = [aRootEntityName retain];
+	}
+	return self;
+}
+
+- (void)dealloc
+{
+	[managedObjectContext release];
+	[rootEntityName release];
+	[super dealloc];
+}
+
+- (void)jsonParserDidStartDocument:(NDJSON *)parser
+{
+	
+}
+
+- (void)jsonParserDidEndDocument:(NDJSON *)parser
+{
+	
+}
+
+- (void)jsonParserDidStartArray:(NDJSON *)parser
+{
+	
+}
+
+- (void)jsonParserDidEndArray:(NDJSON *)parser
+{
+	
+}
+
+- (void)jsonParserDidStartObject:(NDJSON *)parser
+{
+	
+}
+
+- (void)jsonParserDidEndObject:(NDJSON *)parser
+{
+	
+}
+
+- (BOOL)sonParser:(NDJSON *)parser shouldSkipValueForKey:(NDJSON *)parser
+{
+	
+}
+
+- (void)jsonParser:(NDJSON *)parser foundKey:(NSString *)aValue
+{
+	
+}
+
+- (void)jsonParser:(NDJSON *)parser foundString:(NSString *)aValue
+{
+	
+}
+
+- (void)jsonParser:(NDJSON *)parser foundInteger:(NSInteger)aValue
+{
+	
+}
+
+- (void)jsonParser:(NDJSON *)parser foundFloat:(double)aValue
+{
+	
+}
+
+- (void)jsonParser:(NDJSON *)parser foundBool:(BOOL)aValue
+{
+	
+}
+
+- (void)jsonParserFoundNULL:(NDJSON *)parser
+{
+	
+}
+
+- (void)jsonParser:(NDJSON *)parser error:(NSError *)error
+{
+	
+}
+
+
+@end
+
+
