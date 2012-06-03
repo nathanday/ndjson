@@ -89,6 +89,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 
 @end
 
+/*
 #pragma mark - NDJSONCoreDataParser interface
 @interface NDJSONCoreDataParser : NDJSONParser
 {
@@ -97,7 +98,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 }
 
 @end
-
+*/
 #pragma mark - NDJSONParser implementation
 @implementation NDJSONParser
 
@@ -118,12 +119,13 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	return [[NDJSONCustomParser alloc] initWithRootClass:aRootClass rootCollectionClass:aRootCollectionClass];
 }
 
+/*
 - (id)initWithManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext rootEntityName:(NSString *)aRootEntityName;
 {
 	[self release];
 	return [[NDJSONCoreDataParser alloc] initWithManagedObjectContext:aManagedObjectContext rootEntityName:aRootEntityName];
 }
-
+*/
 - (void)dealloc
 {
 	for( NSUInteger i = 0; i < containerStack.count; i++ )
@@ -140,70 +142,84 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 
 #pragma mark - parsing methods
 
-- (id)objectForJSONString:(NSString *)aString options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)aError
+- (id)objectForJSONString:(NSString *)aString options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)anError
 {
 	id					theResult =  nil;
 	NSAssert( aString != nil, @"nil input JSON string" );
 	NDJSON			* theJSONParser = [[NDJSON alloc] init];
 	if( theJSONParser != nil )
 	{
-		if( [theJSONParser setJSONString:aString error:aError] )
+		if( [theJSONParser setJSONString:aString error:anError] )
 			theResult = [self objectForJSONParser:theJSONParser options:anOptions];
 	}
 	[theJSONParser release];
 	return theResult;
 }
 
-- (id)objectForContentsOfFile:(NSString *)aPath options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)aError
+- (id)objectForJSONData:(NSData *)aData encoding:(NSStringEncoding)anEncoding options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
+{
+	id					theResult =  nil;
+	NSAssert( aData != nil, @"nil input JSON string" );
+	NDJSON			* theJSONParser = [[NDJSON alloc] init];
+	if( theJSONParser != nil )
+	{
+		if( [theJSONParser setJSONData:aData encoding:anEncoding error:anError] )
+			theResult = [self objectForJSONParser:theJSONParser options:anOptions];
+	}
+	[theJSONParser release];
+	return theResult;
+}
+
+- (id)objectForContentsOfFile:(NSString *)aPath encoding:(NSStringEncoding)anEncoding options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)anError
 {
 	id					theResult =  nil;
 	NSAssert( aPath != nil, @"nil input path" );
 	NDJSON			* theJSONParser = [[NDJSON alloc] init];
 	if( theJSONParser != nil )
 	{
-		if( [theJSONParser setContentsOfFile:aPath error:aError] )
+		if( [theJSONParser setContentsOfFile:aPath encoding:anEncoding error:anError] )
 			theResult = [self objectForJSONParser:theJSONParser options:anOptions];
 	}
 	[theJSONParser release];
 	return theResult;
 }
 
-- (id)objectForContentsOfURL:(NSURL *)aURL options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)anError
+- (id)objectForContentsOfURL:(NSURL *)aURL encoding:(NSStringEncoding)anEncoding options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)anError
 {
 	id					theResult =  nil;
 	NSAssert( aURL != nil, @"nil input file url" );
 	NDJSON			* theJSONParser = [[NDJSON alloc] init];
 	if( theJSONParser != nil )
 	{
-		if( [theJSONParser setContentsOfURL:aURL error:anError] )
+		if( [theJSONParser setContentsOfURL:aURL encoding:anEncoding error:anError] )
 			theResult = [self objectForJSONParser:theJSONParser options:anOptions];
 	}
 	[theJSONParser release];
 	return theResult;
 }
 
-- (id)objectForURLRequest:(NSURLRequest *)aURLRequest options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)aError
+- (id)objectForURLRequest:(NSURLRequest *)aURLRequest options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)anError
 {
 	id					theResult =  nil;
 	NSAssert( aURLRequest != nil, @"nil URL request" );
 	NDJSON			* theJSONParser = [[NDJSON alloc] init];
 	if( theJSONParser != nil )
 	{
-		if( [theJSONParser setURLRequest:aURLRequest error:aError] )
+		if( [theJSONParser setURLRequest:aURLRequest error:anError] )
 			theResult = [self objectForJSONParser:theJSONParser options:anOptions];
 	}
 	[theJSONParser release];
 	return theResult;
 }
 
-- (id)objectForInputStream:(NSInputStream *)aStream options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)aError
+- (id)objectForInputStream:(NSInputStream *)aStream encoding:(NSStringEncoding)anEncoding options:(NDJSONOptionFlags)anOptions error:(__autoreleasing NSError **)anError
 {
 	id					theResult =  nil;
 	NSAssert( aStream != nil, @"nil input JSON stream" );
 	NDJSON			* theJSONParser = [[NDJSON alloc] init];
 	if( theJSONParser != nil )
 	{
-		if( [theJSONParser setInputStream:aStream error:aError] )
+		if( [theJSONParser setInputStream:aStream encoding:anEncoding error:anError] )
 			theResult = [self objectForJSONParser:theJSONParser options:anOptions];
 	}
 	[theJSONParser release];
@@ -633,6 +649,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 
 @end
 
+/*
 @implementation NDJSONCoreDataParser
 
 @synthesize		managedObjectContext,
@@ -729,4 +746,4 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 
 @end
 
-
+*/

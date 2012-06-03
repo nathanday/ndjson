@@ -6,6 +6,7 @@
 	<array>
 		<string>TestStringInput</string>
 		<string>TestUnicharEscapeSquence</string>
+		<string>TestStringEncodings</string>
 		<string>TestFileInput</string>
 		<string>TestFragementedInput</string>
 		<string>TestRemoteRequest</string>

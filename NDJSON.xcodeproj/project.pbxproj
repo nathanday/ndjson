@@ -27,6 +27,7 @@
 		D8D6024D1414FD91007F8A29 /* NDAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D6024C1414FD91007F8A29 /* NDAppDelegate.m */; };
 		D8D602501414FD92007F8A29 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8D6024E1414FD92007F8A29 /* MainMenu.xib */; };
 		D8E25AE714C0328C001B02DA /* TestUnicharEscapeSquence.m in Sources */ = {isa = PBXBuildFile; fileRef = D8E25AE614C0328C001B02DA /* TestUnicharEscapeSquence.m */; };
+		D8E7E870157B4157002538D9 /* TestStringEncodings.m in Sources */ = {isa = PBXBuildFile; fileRef = D8E7E86F157B4157002538D9 /* TestStringEncodings.m */; };
 		D8F022641425EB3000504B84 /* TestFileInput.m in Sources */ = {isa = PBXBuildFile; fileRef = D8F022631425EB3000504B84 /* TestFileInput.m */; };
 		D8F022711425F44000504B84 /* file1.json in Resources */ = {isa = PBXBuildFile; fileRef = D8F0226B1425F44000504B84 /* file1.json */; };
 		D8F022721425F44000504B84 /* file2.json in Resources */ = {isa = PBXBuildFile; fileRef = D8F0226C1425F44000504B84 /* file2.json */; };
@@ -74,6 +75,8 @@
 		D8D6024F1414FD92007F8A29 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		D8E25AE514C0328C001B02DA /* TestUnicharEscapeSquence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestUnicharEscapeSquence.h; sourceTree = "<group>"; };
 		D8E25AE614C0328C001B02DA /* TestUnicharEscapeSquence.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestUnicharEscapeSquence.m; sourceTree = "<group>"; };
+		D8E7E86E157B4157002538D9 /* TestStringEncodings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestStringEncodings.h; sourceTree = "<group>"; };
+		D8E7E86F157B4157002538D9 /* TestStringEncodings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestStringEncodings.m; sourceTree = "<group>"; };
 		D8F022621425EB3000504B84 /* TestFileInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestFileInput.h; sourceTree = "<group>"; };
 		D8F022631425EB3000504B84 /* TestFileInput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestFileInput.m; sourceTree = "<group>"; };
 		D8F0226B1425F44000504B84 /* file1.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = file1.json; sourceTree = "<group>"; };
@@ -184,6 +187,8 @@
 			children = (
 				D81676FE141624E30082CEB6 /* TestStringInput.h */,
 				D8CCFCF91489B0390015DF1E /* TestStringInput.m */,
+				D8E7E86E157B4157002538D9 /* TestStringEncodings.h */,
+				D8E7E86F157B4157002538D9 /* TestStringEncodings.m */,
 				D8F022621425EB3000504B84 /* TestFileInput.h */,
 				D8F022631425EB3000504B84 /* TestFileInput.m */,
 				D8F022781426283300504B84 /* TestFragementedInput.h */,
@@ -314,6 +319,7 @@
 				D827A0BC151E0D1A0071645A /* TestCustomObjects.m in Sources */,
 				D811D26A1543088900D7FFBB /* TestCustomObjectsSimple.m in Sources */,
 				D8B6D9BF154D665200C483CF /* TestCustomObjectsExtended.m in Sources */,
+				D8E7E870157B4157002538D9 /* TestStringEncodings.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

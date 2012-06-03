@@ -64,20 +64,24 @@ enum {
  */
 - (id)initWithRootClass:(Class)rootClass rootCollectionClass:(Class)rootCollectionClass;
 
-- (id)initWithManagedObjectContext:(NSManagedObjectContext *)managedObjectContext rootEntityName:(NSString *)rootEntityName;
+//- (id)initWithManagedObjectContext:(NSManagedObjectContext *)managedObjectContext rootEntityName:(NSString *)rootEntityName;
 
 /**
-	return the root object by parsing the JSON string.
+ return the root object by parsing the JSON string.
  */
 - (id)objectForJSONString:(NSString *)string options:(NDJSONOptionFlags)options error:(NSError **)error;
 /**
-	return the root object by parsing the contents of the JSON file.
+ return the root object by parsing the JSON data.
  */
-- (id)objectForContentsOfFile:(NSString *)path options:(NDJSONOptionFlags)options error:(NSError **)error;
+- (id)objectForJSONData:(NSData *)data encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
 /**
 	return the root object by parsing the contents of the JSON file.
  */
-- (id)objectForContentsOfURL:(NSURL *)url options:(NDJSONOptionFlags)options error:(NSError **)error;
+- (id)objectForContentsOfFile:(NSString *)path encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
+/**
+	return the root object by parsing the contents of the JSON file.
+ */
+- (id)objectForContentsOfURL:(NSURL *)url encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
 /**
 	return the root object by parsing the contents of the JSON document returned from the URL requerst.
  */
@@ -85,7 +89,7 @@ enum {
 /**
 	return the root object by parsing the contents of the JSON document returned from the input stream.
  */
-- (id)objectForInputStream:(NSInputStream *)stream options:(NDJSONOptionFlags)options error:(NSError **)error;
+- (id)objectForInputStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
 
 /**
 	return the root object generted from the parsers output.

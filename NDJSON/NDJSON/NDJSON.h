@@ -92,11 +92,11 @@ extern NSString	* const NDJSONErrorDomain;
 /**
 	equivelent to `-[NDJSON setContentsOfFile:error:]` and `-[NDJSON parseWithOptions:]`
  */
-- (BOOL)parseContentsOfFile:(NSString *)path options:(NDJSONOptionFlags)options error:(NSError **)error;
+- (BOOL)parseContentsOfFile:(NSString *)path encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
 /**
 	equivelent to `-[NDJSON setContentsOfURL:error:]` and `-[NDJSON parseWithOptions:]`
  */
-- (BOOL)parseContentsOfURL:(NSURL *)url options:(NDJSONOptionFlags)options error:(NSError **)error;
+- (BOOL)parseContentsOfURL:(NSURL *)url encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
 /**
 	equivelent to `-[NDJSON setURLRequest:error:]` and `-[NDJSON parseWithOptions:]`
 	Important: URLRequests are not parsed asyncronisly, see `-[NDJSON parseWithOptions:]`.
@@ -105,7 +105,7 @@ extern NSString	* const NDJSONErrorDomain;
 /**
 	equivelent to `-[NDJSON parseInputStream:error:]` and `-[NDJSON parseWithOptions:]`
  */
-- (BOOL)parseInputStream:(NSInputStream *)stream options:(NDJSONOptionFlags)options error:(NSError **)error;
+- (BOOL)parseInputStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
 
 /**
  set a JSON string to parse
@@ -114,15 +114,15 @@ extern NSString	* const NDJSONErrorDomain;
 /**
  set a JSON UTF8 string data to parse
  */
-- (BOOL)setJSONData:(NSData *)data error:(NSError **)error;
+- (BOOL)setJSONData:(NSData *)data encoding:(NSStringEncoding)encoding error:(NSError **)error;
 /**
 	set a JSON file to parse specified using a string path
  */
-- (BOOL)setContentsOfFile:(NSString *)path error:(NSError **)error;
+- (BOOL)setContentsOfFile:(NSString *)path encoding:(NSStringEncoding)encoding error:(NSError **)error;
 /**
 	set a JSON file to parse specified using a file URL
  */
-- (BOOL)setContentsOfURL:(NSURL *)url error:(NSError **)error;
+- (BOOL)setContentsOfURL:(NSURL *)url encoding:(NSStringEncoding)encoding error:(NSError **)error;
 /**
 	set a JSON URLRequest to parse
 	Important: URLRequests are not parsed asyncronisly, see `-[NDJSON parseWithOptions:]`.
@@ -131,8 +131,7 @@ extern NSString	* const NDJSONErrorDomain;
 /**
 	set an input stream to parse
  */
-- (BOOL)setInputStream:(NSInputStream *)stream error:(NSError **)error;
-
+- (BOOL)setInputStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding  error:(NSError **)error;
 /**
 	parses the JSON source set up by one other the set methods, setJSONString:error:, setContentsOfFile:error:, setContentsOfURL:error, setURLRequest:error:
 	Important: This method does not return until parsing is complete, this method can be called within another thread as long as you do not change the reciever until after the method has finished.
