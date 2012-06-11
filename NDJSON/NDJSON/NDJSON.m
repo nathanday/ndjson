@@ -14,7 +14,7 @@
 #include <string.h>
 #include <ctype.h>
 
-//#define NDJSONDebug
+#define NDJSONDebug
 //#define NDJSONPrintStream
 
 //#define NDJSONSupportUTF8Only
@@ -71,6 +71,7 @@ static NSString * const kErrorCodeStrings[] =
 static BOOL parseInputData( NDJSON * self );
 static BOOL parseInputStream( NDJSON * self );
 static BOOL parseInputString( NDJSON * self );
+static BOOL parseURLRequest( NDJSON * self );
 
 static BOOL parseJSONUnknown( NDJSON * self );
 static BOOL parseJSONObject( NDJSON * self );
@@ -420,6 +421,7 @@ enum JSONInputType
 		theResult = parseInputStream( self );
 		break;
 	case kJSONURLRequestType:
+		theResult = parseURLRequest( self );
 		break;
 	default:
 		NSCAssert(NO, @"Input type not set" );
@@ -643,20 +645,6 @@ static uint32_t nextCharFollowingChar( NDJSON * self, uint32_t aChar )
 	return theResult;
 }
 
-/*
-static uint32_t nextCharFollowingNext2Chars( NDJSON * self, uint32_t aChar1, uint32_t aChar2 )
-{
-	uint32_t		theNextChar = '\0';
-	do
-		theNextChar = nextCharFollowingChar( self, aChar1 );
-	while( theNextChar != aChar2 && theNextChar != '\0' );
-	
-	if( theNextChar != '\0' )
-		theNextChar = nextChar(self);
-	return theNextChar;
-}
-*/
-
 static uint32_t nextCharIgnoreWhiteSpace( NDJSON * self )
 {
 	uint32_t		theResult;
@@ -727,45 +715,45 @@ BOOL parseInputStream( NDJSON * self )
 	[self->sourceObject release], self->sourceObject = nil;
 	return theResult;
 }
-/*
+
 BOOL parseURLRequest( NDJSON * self )
 {
 	BOOL		theResult = NO;
-	if( inputStream != nil || bytes != NULL )
+	if( self->inputStream != nil || self->bytes != NULL )
 	{
-		options.strictJSONOnly = NO;
-		containers = NDBytesBufferInit;
-		appendByte(&containers, NDJSONValueNone);
-		if( delegateMethod.didStartDocument != NULL )
-			delegateMethod.didStartDocument( delegate, @selector(jsonParserDidStartDocument:), self );
-		if( inputStream != nil )
+		self->options.strictJSONOnly = NO;
+		self->containers = NDBytesBufferInit;
+		appendByte(&self->containers, NDJSONValueNone);
+		if( self->delegateMethod.didStartDocument != NULL )
+			self->delegateMethod.didStartDocument( self->delegate, @selector(jsonParserDidStartDocument:), self );
+		if( self->inputStream != nil )
 		{
 			CFTypeRef theHttpHeaderMessage = NULL;
-			[inputStream open];
-			theHttpHeaderMessage = (CFStringRef)CFReadStreamCopyProperty( (CFReadStreamRef)inputStream, kCFStreamPropertyHTTPResponseHeader );
+			[self->inputStream open];
+			theHttpHeaderMessage = CFReadStreamCopyProperty( (CFReadStreamRef)self->inputStream, kCFStreamPropertyHTTPResponseHeader );
 			if( theHttpHeaderMessage != NULL )
 			{
-				NSDictionary	* theHeaders = (NSDictionary*)CFHTTPMessageCopyAllHeaderFields((CFHTTPMessageRef)theHttpHeaderMessage);
-				getCharacterWordSizeAndEndianFromNSStringEncoding( &characterWordSize, &characterEndian, stringEncodingFromHTTPContentTypeString( [theHeaders objectForKey:kContentTypeHTTPHeaderKey] ) );
+				NSDictionary	* theHeaders = (NSDictionary*)CFHTTPMessageCopyAllHeaderFields(theHttpHeaderMessage);
+				getCharacterWordSizeAndEndianFromNSStringEncoding( &self->characterWordSize, &self->characterEndian, stringEncodingFromHTTPContentTypeString( [theHeaders objectForKey:kContentTypeHTTPHeaderKey] ) );
 				CFRelease(theHttpHeaderMessage);
 			}
 		}
 		theResult = parseJSONUnknown( self );
-		[inputStream close];
-		if( !complete && theResult )
+		[self->inputStream close];
+		if( !self->complete && theResult )
 			foundError( self, NDJSONTrailingGarbageError );
 		
-		if( delegateMethod.didEndDocument != NULL )
-			delegateMethod.didEndDocument( delegate, @selector(jsonParserDidEndDocument:), self );
+		if( self->delegateMethod.didEndDocument != NULL )
+			self->delegateMethod.didEndDocument( self->delegate, @selector(jsonParserDidEndDocument:), self );
 		
-		[lastKey release], lastKey = nil;
-		freeByte(&containers);
+		[self->lastKey release], self->lastKey = nil;
+		freeByte(&self->containers);
 	}
-	[inputStream release], inputStream = nil;
-	[sourceObject release], sourceObject = nil;
+	[self->inputStream release], self->inputStream = nil;
+	[self->sourceObject release], self->sourceObject = nil;
 	return theResult;
 }
-*/	
+
 BOOL parseJSONUnknown( NDJSON * self )
 {
 	BOOL		theResult = YES;
@@ -839,7 +827,7 @@ BOOL parseJSONArray( NDJSON * self )
 		default:
 			foundError( self, NDJSONBadFormatError );
 			backUp(self);
-			goto erorOut;
+			goto errorOut;
 			break;
 		}
 	}
@@ -849,7 +837,7 @@ BOOL parseJSONArray( NDJSON * self )
 		if( self->delegateMethod.didEndArray != NULL )
 			self->delegateMethod.didEndArray( self->delegate, @selector(jsonParserDidEndArray:), self );
 	}
-erorOut:
+errorOut:
 	return theResult;
 }
 
@@ -934,7 +922,7 @@ BOOL parseJSONKey( NDJSON * self )
 	if( theResult != NO )
 	{
 		[self->lastKey release], self->lastKey = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:NSUTF8StringEncoding];
-		NDJSONLog( @"Found key: '%@'", theValue );
+		NDJSONLog( @"Found key: '%@'", self->lastKey );
 		if( self->delegateMethod.foundKey != NULL )
 			self->delegateMethod.foundKey( self->delegate, @selector(jsonParser:foundKey:), self, self->lastKey );
 	}
@@ -1257,7 +1245,10 @@ BOOL skipNextValue( NDJSON * self )
 			while( (theChar = nextCharIgnoreWhiteSpace( self )) != '"' )
 			{
 				if( theChar == '\\' )
-					theChar = nextChar(self);
+				{
+					if( (theChar = nextChar(self)) == '\0' )
+						break;
+				}
 			}
 			break;
 		default:
@@ -1408,22 +1399,6 @@ static BOOL truncateByte( struct NDBytesBuffer * aBuffer, uint32_t aBytes )
 	}
 	return theResult;
 }
-
-/*
-BOOL appendBytesOfLen( struct NDBytesBuffer * aBuffer, uint8_t * aBytes, NSUInteger aLen )
-{
-	BOOL	theResult = YES;
-	if( aBuffer->length + aLen > aBuffer->capacity )
-		theResult = extendsBytesOfLen( aBuffer, aLen );
-	
-	if( theResult )
-	{
-		memcpy( aBuffer->bytes+aBuffer->length, aBytes, aLen );
-		aBuffer->length += aBuffer->length;
-	}
-	return theResult;
-}
-*/
 
 void freeByte( struct NDBytesBuffer * aBuffer )
 {

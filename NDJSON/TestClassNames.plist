@@ -2,15 +2,56 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>ClassNames</key>
+	<key>Classes</key>
 	<array>
-		<string>TestStringInput</string>
-		<string>TestUnicharEscapeSquence</string>
-		<string>TestStringEncodings</string>
-		<string>TestFileInput</string>
-		<string>TestFragementedInput</string>
-		<string>TestRemoteRequest</string>
-		<string>TestCustomObjects</string>
+		<dict>
+			<key>class</key>
+			<string>TestStringInput</string>
+			<key>name</key>
+			<string>String Input</string>
+		</dict>
+		<dict>
+			<key>class</key>
+			<string>TestUnicharEscapeSquence</string>
+			<key>name</key>
+			<string>Unichar Escape Squence</string>
+		</dict>
+		<dict>
+			<key>class</key>
+			<string>TestStringEncodings</string>
+			<key>name</key>
+			<string>String Encodings</string>
+		</dict>
+		<dict>
+			<key>class</key>
+			<string>TestFileInput</string>
+			<key>name</key>
+			<string>File Input</string>
+		</dict>
+		<dict>
+			<key>class</key>
+			<string>TestFragementedInput</string>
+			<key>name</key>
+			<string>Fragemented Input</string>
+		</dict>
+		<dict>
+			<key>class</key>
+			<string>TestRemoteRequest</string>
+			<key>name</key>
+			<string>Remote Request Input</string>
+		</dict>
+		<dict>
+			<key>class</key>
+			<string>TestCustomObjects</string>
+			<key>name</key>
+			<string>Custom Objects Output</string>
+		</dict>
+		<dict>
+			<key>class</key>
+			<string>TestNDJSONCoreData</string>
+			<key>name</key>
+			<string>CoreData Output</string>
+		</dict>
 	</array>
 </dict>
 </plist>

@@ -38,7 +38,7 @@ enum TestOperationState
 
 @interface TestGroup : NSObject
 
-@property(readonly)	NSString					* name;
+@property(retain)	NSString					* name;
 @property(readonly) enum TestOperationState		operationState;
 
 /**

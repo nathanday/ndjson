@@ -7,10 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D80F151A1585BE34002FB345 /* NSObject+TestUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = D80F15191585BE34002FB345 /* NSObject+TestUtilities.m */; };
+		D80F153E1585C96B002FB345 /* JSONChildAlpha.m in Sources */ = {isa = PBXBuildFile; fileRef = D80F15371585C96B002FB345 /* JSONChildAlpha.m */; };
+		D80F153F1585C96B002FB345 /* JSONChildBeta.m in Sources */ = {isa = PBXBuildFile; fileRef = D80F15391585C96B002FB345 /* JSONChildBeta.m */; };
+		D80F15401585C96B002FB345 /* JSONChildGama.m in Sources */ = {isa = PBXBuildFile; fileRef = D80F153B1585C96B002FB345 /* JSONChildGama.m */; };
+		D80F15411585C96B002FB345 /* JSONRoot.m in Sources */ = {isa = PBXBuildFile; fileRef = D80F153D1585C96B002FB345 /* JSONRoot.m */; };
+		D80F15441585C9CF002FB345 /* JSONRoot+Utilities.m in Sources */ = {isa = PBXBuildFile; fileRef = D80F15431585C9CF002FB345 /* JSONRoot+Utilities.m */; };
 		D811D26A1543088900D7FFBB /* TestCustomObjectsSimple.m in Sources */ = {isa = PBXBuildFile; fileRef = D811D2691543088900D7FFBB /* TestCustomObjectsSimple.m */; };
 		D81677041416265A0082CEB6 /* TestGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = D81677031416265A0082CEB6 /* TestGroup.m */; };
 		D827A0BC151E0D1A0071645A /* TestCustomObjects.m in Sources */ = {isa = PBXBuildFile; fileRef = D827A0BB151E0D1A0071645A /* TestCustomObjects.m */; };
 		D854B626141508000019D7E2 /* TestClassNames.plist in Resources */ = {isa = PBXBuildFile; fileRef = D854B625141508000019D7E2 /* TestClassNames.plist */; };
+		D85595541580E511000B5965 /* CoreDataController.m in Sources */ = {isa = PBXBuildFile; fileRef = D85595531580E511000B5965 /* CoreDataController.m */; };
 		D8B6D9BF154D665200C483CF /* TestCustomObjectsExtended.m in Sources */ = {isa = PBXBuildFile; fileRef = D8B6D9BE154D665200C483CF /* TestCustomObjectsExtended.m */; };
 		D8C1EDBE142A056800FED1B0 /* file1.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8C1EDBD142A056800FED1B0 /* file1.plist */; };
 		D8C1EDC1142A056F00FED1B0 /* file2.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8C1EDC0142A056F00FED1B0 /* file2.plist */; };
@@ -20,6 +27,9 @@
 		D8CCFCFA1489B0390015DF1E /* TestStringInput.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CCFCF91489B0390015DF1E /* TestStringInput.m */; };
 		D8CCFD021489B06A0015DF1E /* NDJSON.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CCFCFD1489B06A0015DF1E /* NDJSON.m */; };
 		D8CCFD041489B06A0015DF1E /* NDJSONParser.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CCFD011489B06A0015DF1E /* NDJSONParser.m */; };
+		D8CF770715833D8600013A43 /* SampleCoreData.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D8CF770515833D8600013A43 /* SampleCoreData.xcdatamodeld */; };
+		D8CF77141583433000013A43 /* TestNDJSONCoreData.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CF77131583433000013A43 /* TestNDJSONCoreData.m */; };
+		D8CF772E1583878100013A43 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8CF772D1583878100013A43 /* CoreData.framework */; };
 		D8D6023A1414FD91007F8A29 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8D602391414FD91007F8A29 /* Cocoa.framework */; };
 		D8D602441414FD91007F8A29 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = D8D602421414FD91007F8A29 /* InfoPlist.strings */; };
 		D8D602461414FD91007F8A29 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D602451414FD91007F8A29 /* main.m */; };
@@ -39,6 +49,18 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D80F15181585BE34002FB345 /* NSObject+TestUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+TestUtilities.h"; sourceTree = "<group>"; };
+		D80F15191585BE34002FB345 /* NSObject+TestUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+TestUtilities.m"; sourceTree = "<group>"; };
+		D80F15361585C96B002FB345 /* JSONChildAlpha.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSONChildAlpha.h; sourceTree = "<group>"; };
+		D80F15371585C96B002FB345 /* JSONChildAlpha.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSONChildAlpha.m; sourceTree = "<group>"; };
+		D80F15381585C96B002FB345 /* JSONChildBeta.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSONChildBeta.h; sourceTree = "<group>"; };
+		D80F15391585C96B002FB345 /* JSONChildBeta.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSONChildBeta.m; sourceTree = "<group>"; };
+		D80F153A1585C96B002FB345 /* JSONChildGama.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSONChildGama.h; sourceTree = "<group>"; };
+		D80F153B1585C96B002FB345 /* JSONChildGama.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSONChildGama.m; sourceTree = "<group>"; };
+		D80F153C1585C96B002FB345 /* JSONRoot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JSONRoot.h; sourceTree = "<group>"; };
+		D80F153D1585C96B002FB345 /* JSONRoot.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JSONRoot.m; sourceTree = "<group>"; };
+		D80F15421585C9CF002FB345 /* JSONRoot+Utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "JSONRoot+Utilities.h"; sourceTree = "<group>"; };
+		D80F15431585C9CF002FB345 /* JSONRoot+Utilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "JSONRoot+Utilities.m"; sourceTree = "<group>"; };
 		D811D2681543088900D7FFBB /* TestCustomObjectsSimple.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestCustomObjectsSimple.h; sourceTree = "<group>"; };
 		D811D2691543088900D7FFBB /* TestCustomObjectsSimple.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestCustomObjectsSimple.m; sourceTree = "<group>"; };
 		D81676FE141624E30082CEB6 /* TestStringInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestStringInput.h; sourceTree = "<group>"; };
@@ -47,6 +69,8 @@
 		D827A0BA151E0D1A0071645A /* TestCustomObjects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestCustomObjects.h; sourceTree = "<group>"; };
 		D827A0BB151E0D1A0071645A /* TestCustomObjects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestCustomObjects.m; sourceTree = "<group>"; };
 		D854B625141508000019D7E2 /* TestClassNames.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = TestClassNames.plist; sourceTree = "<group>"; };
+		D85595521580E511000B5965 /* CoreDataController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreDataController.h; sourceTree = "<group>"; };
+		D85595531580E511000B5965 /* CoreDataController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CoreDataController.m; sourceTree = "<group>"; };
 		D8B6D9BD154D665200C483CF /* TestCustomObjectsExtended.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestCustomObjectsExtended.h; sourceTree = "<group>"; };
 		D8B6D9BE154D665200C483CF /* TestCustomObjectsExtended.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestCustomObjectsExtended.m; sourceTree = "<group>"; };
 		D8C1EDBD142A056800FED1B0 /* file1.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = file1.plist; sourceTree = "<group>"; };
@@ -60,6 +84,10 @@
 		D8CCFCFD1489B06A0015DF1E /* NDJSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSON.m; sourceTree = "<group>"; usesTabs = 1; };
 		D8CCFD001489B06A0015DF1E /* NDJSONParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONParser.h; sourceTree = "<group>"; usesTabs = 1; };
 		D8CCFD011489B06A0015DF1E /* NDJSONParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONParser.m; sourceTree = "<group>"; usesTabs = 1; };
+		D8CF770615833D8600013A43 /* SampleCoreData.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = SampleCoreData.xcdatamodel; sourceTree = "<group>"; };
+		D8CF77121583433000013A43 /* TestNDJSONCoreData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestNDJSONCoreData.h; sourceTree = "<group>"; };
+		D8CF77131583433000013A43 /* TestNDJSONCoreData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestNDJSONCoreData.m; sourceTree = "<group>"; };
+		D8CF772D1583878100013A43 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		D8D602351414FD91007F8A29 /* NDJSON.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NDJSON.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D8D602391414FD91007F8A29 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		D8D6023C1414FD91007F8A29 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -97,12 +125,33 @@
 			buildActionMask = 2147483647;
 			files = (
 				D8D6023A1414FD91007F8A29 /* Cocoa.framework in Frameworks */,
+				D8CF772E1583878100013A43 /* CoreData.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D85595511580E511000B5965 /* TestCoreData */ = {
+			isa = PBXGroup;
+			children = (
+				D85595521580E511000B5965 /* CoreDataController.h */,
+				D85595531580E511000B5965 /* CoreDataController.m */,
+				D8CF770515833D8600013A43 /* SampleCoreData.xcdatamodeld */,
+				D80F15361585C96B002FB345 /* JSONChildAlpha.h */,
+				D80F15371585C96B002FB345 /* JSONChildAlpha.m */,
+				D80F15381585C96B002FB345 /* JSONChildBeta.h */,
+				D80F15391585C96B002FB345 /* JSONChildBeta.m */,
+				D80F153A1585C96B002FB345 /* JSONChildGama.h */,
+				D80F153B1585C96B002FB345 /* JSONChildGama.m */,
+				D80F153C1585C96B002FB345 /* JSONRoot.h */,
+				D80F153D1585C96B002FB345 /* JSONRoot.m */,
+				D80F15421585C9CF002FB345 /* JSONRoot+Utilities.h */,
+				D80F15431585C9CF002FB345 /* JSONRoot+Utilities.m */,
+			);
+			path = TestCoreData;
+			sourceTree = "<group>";
+		};
 		D8CCFCFB1489B06A0015DF1E /* NDJSON */ = {
 			isa = PBXGroup;
 			children = (
@@ -134,6 +183,7 @@
 		D8D602381414FD91007F8A29 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D8CF772D1583878100013A43 /* CoreData.framework */,
 				D8D602391414FD91007F8A29 /* Cocoa.framework */,
 				D8D6023B1414FD91007F8A29 /* Other Frameworks */,
 			);
@@ -160,6 +210,8 @@
 				D8F0227B142634B600504B84 /* TestProtocolBase.h */,
 				D8F0227C142634B700504B84 /* TestProtocolBase.m */,
 				D8D6024E1414FD92007F8A29 /* MainMenu.xib */,
+				D80F15181585BE34002FB345 /* NSObject+TestUtilities.h */,
+				D80F15191585BE34002FB345 /* NSObject+TestUtilities.m */,
 				D8CCFCFB1489B06A0015DF1E /* NDJSON */,
 				D8D6025B1414FDC5007F8A29 /* Tests */,
 				D8D602401414FD91007F8A29 /* Supporting Files */,
@@ -199,7 +251,10 @@
 				D8E25AE614C0328C001B02DA /* TestUnicharEscapeSquence.m */,
 				D827A0BA151E0D1A0071645A /* TestCustomObjects.h */,
 				D827A0BB151E0D1A0071645A /* TestCustomObjects.m */,
+				D8CF77121583433000013A43 /* TestNDJSONCoreData.h */,
+				D8CF77131583433000013A43 /* TestNDJSONCoreData.m */,
 				D8D65BE31539C0F100A2FB48 /* TestCustomObjects */,
+				D85595511580E511000B5965 /* TestCoreData */,
 				D8F0226A1425F44000504B84 /* SampleFiles */,
 			);
 			path = Tests;
@@ -320,6 +375,15 @@
 				D811D26A1543088900D7FFBB /* TestCustomObjectsSimple.m in Sources */,
 				D8B6D9BF154D665200C483CF /* TestCustomObjectsExtended.m in Sources */,
 				D8E7E870157B4157002538D9 /* TestStringEncodings.m in Sources */,
+				D85595541580E511000B5965 /* CoreDataController.m in Sources */,
+				D8CF770715833D8600013A43 /* SampleCoreData.xcdatamodeld in Sources */,
+				D8CF77141583433000013A43 /* TestNDJSONCoreData.m in Sources */,
+				D80F151A1585BE34002FB345 /* NSObject+TestUtilities.m in Sources */,
+				D80F153E1585C96B002FB345 /* JSONChildAlpha.m in Sources */,
+				D80F153F1585C96B002FB345 /* JSONChildBeta.m in Sources */,
+				D80F15401585C96B002FB345 /* JSONChildGama.m in Sources */,
+				D80F15411585C96B002FB345 /* JSONRoot.m in Sources */,
+				D80F15441585C9CF002FB345 /* JSONRoot+Utilities.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -442,6 +506,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		D8CF770515833D8600013A43 /* SampleCoreData.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				D8CF770615833D8600013A43 /* SampleCoreData.xcdatamodel */,
+			);
+			currentVersion = D8CF770615833D8600013A43 /* SampleCoreData.xcdatamodel */;
+			path = SampleCoreData.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = D8D6022C1414FD91007F8A29 /* Project object */;
 }

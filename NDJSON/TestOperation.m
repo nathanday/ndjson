@@ -10,6 +10,7 @@
 #import "TestGroup.h"
 #import "NDAppDelegate.h"
 #import "NDJSON.h"
+#import "NSObject+TestUtilities.h"
 
 @interface TestOperation ()
 {
@@ -68,7 +69,7 @@
 					if( [self.test respondsToSelector:@selector(expectedResult)] )
 					{
 						id		theExpectedResult = [self.test expectedResult];
-						succeeded = [theResult isEqual:theExpectedResult];
+						succeeded = [theResult isReallyEqual:theExpectedResult];
 					}
 					else
 						succeeded = theResult != nil;

@@ -14,8 +14,6 @@
 
 @implementation TestCustomObjects
 
-- (NSString	*)name { return @"Test NDJSONParser"; }
-
 - (void)willLoad
 {
 	[TestCustomObjectsSimple addTestsToTestGroup:self];

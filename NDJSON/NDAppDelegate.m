@@ -11,7 +11,7 @@
 #import "TestOperation.h"
 
 static NSString		* const kTestClassNamesFileName = @"TestClassNames",
-					* const kClassNamesKey = @"ClassNames";
+					* const kClassNamesKey = @"Classes";
 
 static NSString		* const kInitedStateImageName = @"Initial",
 					* const kExecutingStateImageName = @"InProgress",
@@ -119,9 +119,10 @@ void NDError( NSString *aFormat, ... )
 
 		onOffFlags = [[NSMutableData alloc] initWithCapacity:theEveryTest.count];
 
-		for( NSString * theClassName in theClassNames )
+		for( NSDictionary * theClassData in theClassNames )
 		{
-			TestGroup		* theTest = [[NSClassFromString(theClassName) alloc] init];
+			TestGroup		* theTest = [[NSClassFromString([theClassData objectForKey:@"class"]) alloc] init];
+			theTest.name = [theClassData objectForKey:@"name"];
 			[theTest willLoad];
 			[theEveryTest addObject:theTest];
 			[theTest release];

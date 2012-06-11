@@ -20,36 +20,7 @@
 
 @implementation TestGroup
 
-+ (NSRegularExpression *)uncammelCaseRegularExpression
-{
-	static volatile NSRegularExpression		* kRegularExpression = nil;
-	if( kRegularExpression == nil )
-	{
-		@synchronized( self )
-		{
-			if( kRegularExpression == nil )
-			{
-				NSError		* theError = nil;
-				kRegularExpression = [[NSRegularExpression alloc] initWithPattern:@"[A-Z]" options:0 error:&theError];
-				if( kRegularExpression == nil )
-					NSLog( @"Error: %@", theError );
-			}
-		}
-	}
-	return (NSRegularExpression*)kRegularExpression;
-}
-
-+ (NSString *)uncammelCaseString:(NSString *)aString
-{
-	NSRegularExpression		* theRegularExpression = [[self class] uncammelCaseRegularExpression];
-	NSString				* theResult = [theRegularExpression stringByReplacingMatchesInString:aString options:0 range:NSMakeRange(0,aString.length) withTemplate:@" $0"];
-	
-	if( [theResult hasPrefix:@"Test "] )
-		theResult = [theResult substringFromIndex:5];
-	else if( [theResult hasPrefix:@" "] )
-		theResult = [theResult substringFromIndex:1];
-	return theResult;
-}
+@synthesize name;
 
 #pragma mark - manually implemented properties
 
@@ -74,13 +45,6 @@
 	[name release];
 	[everyTest release];
     [super dealloc];
-}
-
-- (NSString	*)name
-{
-	if( name == nil )
-		name = [[TestGroup uncammelCaseString:NSStringFromClass([self class])] retain];
-	return name;
 }
 
 - (enum TestOperationState)operationState

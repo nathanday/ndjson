@@ -47,6 +47,9 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	return theResult;
 }
 
+static void pushContainerForJSONParser( NDJSONParser * self, id container, BOOL isObject );
+static id popCurrentContainerForJSONParser( NDJSONParser * self );
+
 @interface NDJSONParser () <NDJSONDelegate>
 {
 @protected
@@ -71,9 +74,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 @property(readonly,nonatomic)	id				currentContainer;
 @property(readonly,nonatomic)	NSString		* currentContainerPropertyName;
 
-- (void)pushContainer:(id)container isObject:(BOOL)isObject;
 - (void)addValue:(id)value type:(NDJSONValueType)type;
-- (void)popCurrentContainer;
 
 @end
 
@@ -89,16 +90,20 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 
 @end
 
-/*
-#pragma mark - NDJSONCoreDataParser interface
-@interface NDJSONCoreDataParser : NDJSONParser
+#pragma mark - NDJSONCoreData interface
+@interface NDJSONCoreData : NDJSONParser
 {
 	NSManagedObjectContext			* managedObjectContext;
-	NSString						* rootEntityName;
+	NSEntityDescription				* rootEntity;
+	NSManagedObjectModel			* managedObjectModel;
 }
+@property(readonly,nonatomic)	NSManagedObjectModel		* managedObjectModel;
+@property(retain,nonatomic)		NSEntityDescription			* currentEntityDescription;
+
+- (NSEntityDescription *)entityDescriptionForName:(NSString *)name;
 
 @end
-*/
+
 #pragma mark - NDJSONParser implementation
 @implementation NDJSONParser
 
@@ -108,7 +113,7 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 - (Class)rootCollectionClass { return Nil; }
 
 - (NSManagedObjectContext *)managedObjectContext { return nil; }
-- (NSString *)rootEntityName { return nil; }
+- (NSEntityDescription *)rootEntity { return nil; }
 
 
 #pragma mark - creation and destruction
@@ -119,13 +124,21 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 	return [[NDJSONCustomParser alloc] initWithRootClass:aRootClass rootCollectionClass:aRootCollectionClass];
 }
 
-/*
-- (id)initWithManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext rootEntityName:(NSString *)aRootEntityName;
+- (id)initWithRootEntityName:(NSString *)aRootEntityName inManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext
 {
-	[self release];
-	return [[NDJSONCoreDataParser alloc] initWithManagedObjectContext:aManagedObjectContext rootEntityName:aRootEntityName];
+	NSParameterAssert( aRootEntityName != nil );
+	NSParameterAssert( aManagedObjectContext != nil );
+	return [self initWithRootEntity:[[aManagedObjectContext.persistentStoreCoordinator.managedObjectModel entitiesByName] objectForKey:aRootEntityName] inManagedObjectContext:aManagedObjectContext];
 }
-*/
+
+- (id)initWithRootEntity:(NSEntityDescription *)aRootEntity inManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext
+{
+	NSParameterAssert( aRootEntity != nil );
+	NSParameterAssert( aManagedObjectContext != nil );
+	[self release];
+	return [[NDJSONCoreData alloc] initWithRootEntity:aRootEntity inManagedObjectContext:aManagedObjectContext];
+}
+
 - (void)dealloc
 {
 	for( NSUInteger i = 0; i < containerStack.count; i++ )
@@ -269,25 +282,33 @@ static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, 
 - (void)jsonParserDidStartArray:(NDJSON *)aParser
 {
 	NSMutableArray		* theArrayRep = [[NSMutableArray alloc] init];
-	[self addValue:theArrayRep type:NDJSONValueArray];
-	[self pushContainer:theArrayRep isObject:NO];
+//	[self addValue:theArrayRep type:NDJSONValueArray];
+	pushContainerForJSONParser( self, theArrayRep, NO );
 	[currentProperty release], currentProperty = nil;
 	[theArrayRep release];
 }
 
-- (void)jsonParserDidEndArray:(NDJSON *)aParser { [self popCurrentContainer]; }
+- (void)jsonParserDidEndArray:(NDJSON *)aParser
+{
+	id		theArray = popCurrentContainerForJSONParser(self);
+	[self addValue:theArray type:NDJSONValueArray];
+}
 
 - (void)jsonParserDidStartObject:(NDJSON *)aParser
 {
 	id			theObjectRep = theObjectRep = [[NSMutableDictionary alloc] init];
 
-	[self addValue:theObjectRep type:NDJSONValueObject];
-	[self pushContainer:theObjectRep isObject:YES];
+//	[self addValue:theObjectRep type:NDJSONValueObject];
+	pushContainerForJSONParser( self, theObjectRep, YES );
 	[currentProperty release], currentProperty = nil;
 	[theObjectRep release];
 }
 
-- (void)jsonParserDidEndObject:(NDJSON *)aParser { [self popCurrentContainer]; }
+- (void)jsonParserDidEndObject:(NDJSON *)aParser
+{
+	id		theObject = popCurrentContainerForJSONParser(self);
+	[self addValue:theObject type:NDJSONValueArray];
+}
 
 static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemoveIs, BOOL aConvertToCamelCase )
 {
@@ -340,10 +361,9 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 
 - (void)jsonParser:(NDJSON *)aParser foundKey:(NSString *)aValue
 {
-	NSCParameterAssert(currentProperty == nil);
-	NSCParameterAssert( containerStack.count == 0 || containerStack.bytes[containerStack.count-1].isObject );
+	NSParameterAssert( containerStack.count == 0 || containerStack.bytes[containerStack.count-1].isObject );
 	NSString	* theKey = stringByConvertingPropertyName( aValue, options.removeIsAdjective != 0, options.convertKeysToMedialCapital != 0 );
-	currentProperty = [theKey retain];
+	[currentProperty release], currentProperty = [theKey retain];
 	[currentKey release], currentKey = [aValue retain];
 }
 - (void)jsonParser:(NDJSON *)aParser foundString:(NSString *)aValue
@@ -395,54 +415,51 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 	return theResult;
 }
 
-- (void)pushContainer:(id)aContainer isObject:(BOOL)anIsObject
+static void pushContainerForJSONParser( NDJSONParser * self, id aContainer, BOOL anIsObject )
 {
 	NSCParameterAssert( aContainer != nil );
-	NSCParameterAssert( containerStack.bytes != NULL );
+	NSCParameterAssert( self->containerStack.bytes != NULL );
 	
-	if( containerStack.count >= containerStack.size )
+	if( self->containerStack.count >= self->containerStack.size )
 	{
 		void		* theBytes = NULL;
-		containerStack.size *= 2;
-		theBytes = realloc(containerStack.bytes, containerStack.size);
+		self->containerStack.size *= 2;
+		theBytes = realloc(self->containerStack.bytes, self->containerStack.size);
 		NSCAssert( theBytes != NULL, @"Memory error" );
-		containerStack.bytes = theBytes;
+		self->containerStack.bytes = theBytes;
 	}
-	containerStack.bytes[containerStack.count].container = [aContainer retain];
-	containerStack.bytes[containerStack.count].propertyName = currentProperty;
-	currentProperty = nil;
-	containerStack.bytes[containerStack.count].isObject = anIsObject;
-	containerStack.count++;
+	self->containerStack.bytes[self->containerStack.count].container = [aContainer retain];
+	self->containerStack.bytes[self->containerStack.count].propertyName = self->currentProperty;
+	self->currentProperty = nil;
+	self->containerStack.bytes[self->containerStack.count].isObject = anIsObject;
+	self->containerStack.count++;
 }
 
 - (void)addValue:(id)aValue type:(NDJSONValueType)aType
 {
-	if( self->result != nil )
+	id			theCurrentContainer = self.currentContainer;;
+	if( theCurrentContainer != nil )
 	{
-		id			theCurrentContainer = self.currentContainer;;
-		if( self->currentProperty == nil )
-		{
-			NSCParameterAssert( [theCurrentContainer isKindOfClass:[NSArray class]] );
+		if( currentProperty == nil )
 			[theCurrentContainer addObject:aValue];
-		}
 		else
-		{
-			NSCParameterAssert( [theCurrentContainer isKindOfClass:[NSDictionary class]] );
-			[theCurrentContainer setValue:aValue forKey:self->currentProperty];
-		}
+			[theCurrentContainer setValue:aValue forKey:currentProperty];
 	}
 	else
-		self->result = [aValue retain];
+		result = [aValue retain];
 }
 
-- (void)popCurrentContainer
+id popCurrentContainerForJSONParser( NDJSONParser * self )
 {
+	id		theResult = nil;
 	if( self->containerStack.count > 0 )
 	{
 		self->containerStack.count--;
 		[self->currentProperty release], self->currentProperty = nil;
-		[self->containerStack.bytes[self->containerStack.count].container release];
+		self->currentProperty = self->containerStack.bytes[self->containerStack.count].propertyName;
+		theResult = [self->containerStack.bytes[self->containerStack.count].container autorelease];
 	}
+	return theResult;
 }
 
 @end
@@ -475,7 +492,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 {
 	id		theArrayRep = [[[self collectionClassForPropertyName:currentProperty class:[self.currentObject class]] alloc] init];
 	[self addValue:theArrayRep type:NDJSONValueArray];
-	[self pushContainer:theArrayRep isObject:NO];
+	pushContainerForJSONParser( self, theArrayRep, NO );
 	[currentProperty release], currentProperty = nil;
 	[theArrayRep release];
 }
@@ -485,8 +502,8 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 	Class		theClass = [self classForPropertyName:self.currentContainerPropertyName class:[self.currentObject class]];
 	id			theObjectRep = theObjectRep = [[theClass alloc] init];
 	
-	[self addValue:theObjectRep type:NDJSONValueObject];
-	[self pushContainer:theObjectRep isObject:YES];
+//	[self addValue:theObjectRep type:NDJSONValueObject];
+	pushContainerForJSONParser( self, theObjectRep, YES );
 	[currentProperty release], currentProperty = nil;
 	[theObjectRep release];
 }
@@ -603,20 +620,20 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 
 - (void)addValue:(id)aValue type:(NDJSONValueType)aType
 {
-	if( self->result != nil )
+	id			theCurrentContainer = self.currentContainer;;
+	if( theCurrentContainer != nil )
 	{
-		id			theCurrentContainer = self.currentContainer;;
-		if( self->currentProperty == nil )
+		if( currentProperty == nil )
 		{
 			NSCParameterAssert( [theCurrentContainer respondsToSelector:@selector(addObject:)] );
 			[theCurrentContainer addObject:aValue];
 		}
 		else
 		{
-			NSString	* thePropertyName = self->currentProperty;
+			NSString	* thePropertyName = currentProperty;
 			if( [[theCurrentContainer class] respondsToSelector:@selector(propertyNamesForKeysJSONParser:)] )
 			{
-				NSString	* theNewPropertyName = [[[theCurrentContainer class] propertyNamesForKeysJSONParser:self] objectForKey:self->currentKey];
+				NSString	* theNewPropertyName = [[[theCurrentContainer class] propertyNamesForKeysJSONParser:self] objectForKey:currentKey];
 				if( theNewPropertyName != nil )
 					thePropertyName = theNewPropertyName;
 			}
@@ -628,7 +645,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 			{
 				if( [[anException name] isEqualToString:NSUndefinedKeyException] )
 				{
-					if( !self->options.ignoreUnknownPropertyName )
+					if( !options.ignoreUnknownPropertyName )
 					{
 						NSString		* theReasonString = [[NSString alloc] initWithFormat:@"Failed to set value for property name '%@'", thePropertyName];
 						NSDictionary	* theUserInfo = [[NSDictionary alloc] initWithObjectsAndKeys:self.currentObject, NDJSONObjectUserInfoKey, thePropertyName, NDJSONPropertyNameUserInfoKey, nil];
@@ -644,24 +661,36 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 		}
 	}
 	else
-		self->result = [aValue retain];
+		result = [aValue retain];
 }
 
 @end
 
-/*
-@implementation NDJSONCoreDataParser
+@implementation NDJSONCoreData
 
 @synthesize		managedObjectContext,
-				rootEntityName;
+				rootEntity;
+
+- (NSEntityDescription *)currentEntityDescription
+{
+	NSManagedObject		* theCurrentContainer = self.currentObject;
+	return theCurrentContainer.entity;
+}
+
+- (NSManagedObjectModel *)managedObjectModel
+{
+	if( managedObjectModel == nil )
+		managedObjectModel = [self.managedObjectContext.persistentStoreCoordinator.managedObjectModel retain];
+	return managedObjectModel;
+}
 
 #pragma mark - creation and destruction
-- (id)initWithManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext rootEntityName:(NSString *)aRootEntityName
+- (id)initWithRootEntity:(NSEntityDescription *)aRootEntity inManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext
 {
 	if( (self = [super init]) != nil )
 	{
 		managedObjectContext = [aManagedObjectContext retain];
-		rootEntityName = [aRootEntityName retain];
+		rootEntity = [aRootEntity retain];
 	}
 	return self;
 }
@@ -669,81 +698,62 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 - (void)dealloc
 {
 	[managedObjectContext release];
-	[rootEntityName release];
+	[rootEntity release];
+	[managedObjectModel release];
 	[super dealloc];
 }
 
-- (void)jsonParserDidStartDocument:(NDJSON *)parser
+- (NSEntityDescription *)entityDescriptionForName:(NSString *)aName { return [[self.managedObjectModel entitiesByName] objectForKey:aName]; }
+
+- (void)jsonParserDidStartDocument:(NDJSON *)aParser
 {
-	
+	self.currentEntityDescription = nil;
+	[super jsonParserDidStartDocument:aParser];
 }
 
-- (void)jsonParserDidEndDocument:(NDJSON *)parser
+- (void)jsonParserDidEndDocument:(NDJSON *)aParser
 {
-	
+	NSError			* theError = nil;
+	if( ![self.managedObjectContext save:&theError] )
+		NSLog( @"Error: %@", theError );
+	self.currentEntityDescription = nil;
+	[super jsonParserDidEndDocument:aParser];
 }
 
-- (void)jsonParserDidStartArray:(NDJSON *)parser
+- (void)jsonParserDidStartArray:(NDJSON *)aParser
 {
-	
+	NSMutableSet		* theSet = [[NSMutableSet alloc] init];
+	[self addValue:theSet type:NDJSONValueArray];
+	pushContainerForJSONParser( self, theSet, NO );
+	[currentProperty release], currentProperty = nil;
+	[theSet release];
 }
 
-- (void)jsonParserDidEndArray:(NDJSON *)parser
+- (void)jsonParserDidStartObject:(NDJSON *)aParser
 {
+	NSEntityDescription			* theEntityDesctipion = nil;
+	NSManagedObject				* theNewObject = nil;
+	NSEntityDescription			* theCurrentEntityDescription = self.currentEntityDescription;
+	if( theCurrentEntityDescription != nil )
+	{
+		NSRelationshipDescription		* theRelationshipDescription = [[theCurrentEntityDescription relationshipsByName] objectForKey:self.currentContainerPropertyName];
+		theEntityDesctipion = theRelationshipDescription.destinationEntity;
+	}
+	else
+		theEntityDesctipion = self.rootEntity;
+
+	theNewObject = [[NSManagedObject alloc] initWithEntity:theEntityDesctipion insertIntoManagedObjectContext:self.managedObjectContext];
 	
+//	[self addValue:theNewObject type:NDJSONValueObject];
+	pushContainerForJSONParser( self, theNewObject, YES );
+	[currentProperty release], currentProperty = nil;
+	[theNewObject release];
 }
 
-- (void)jsonParserDidStartObject:(NDJSON *)parser
+- (BOOL)sonParser:(NDJSON *)aParser shouldSkipValueForKey:(NSString *)key
 {
-	
+	NSEntityDescription		* theEntityDescription = self.currentEntityDescription;
+	return [theEntityDescription.propertiesByName objectForKey:currentProperty] != nil;
 }
-
-- (void)jsonParserDidEndObject:(NDJSON *)parser
-{
-	
-}
-
-- (BOOL)sonParser:(NDJSON *)parser shouldSkipValueForKey:(NDJSON *)parser
-{
-	
-}
-
-- (void)jsonParser:(NDJSON *)parser foundKey:(NSString *)aValue
-{
-	
-}
-
-- (void)jsonParser:(NDJSON *)parser foundString:(NSString *)aValue
-{
-	
-}
-
-- (void)jsonParser:(NDJSON *)parser foundInteger:(NSInteger)aValue
-{
-	
-}
-
-- (void)jsonParser:(NDJSON *)parser foundFloat:(double)aValue
-{
-	
-}
-
-- (void)jsonParser:(NDJSON *)parser foundBool:(BOOL)aValue
-{
-	
-}
-
-- (void)jsonParserFoundNULL:(NDJSON *)parser
-{
-	
-}
-
-- (void)jsonParser:(NDJSON *)parser error:(NSError *)error
-{
-	
-}
-
 
 @end
-
-*/

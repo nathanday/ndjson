@@ -143,7 +143,12 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 
 - (BOOL)isEqual:(id)anObject
 {
-	return [self.everyChild isEqual:[anObject everyChild]];
+	for( id theChild in self.everyChild )
+	{
+		if( ![[anObject everyChild] containsObject:theChild] )
+			return NO;
+	}
+	return YES;
 }
 
 @end
