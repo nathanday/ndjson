@@ -14,7 +14,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#define NDJSONDebug
+//#define NDJSONDebug
 //#define NDJSONPrintStream
 
 //#define NDJSONSupportUTF8Only

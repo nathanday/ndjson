@@ -32,9 +32,9 @@ enum {
  */
 	NDJSONOptionConvertRemoveIsAdjective = 1<<18,
 /**
-	checks the type of primitive types and attempts to convert it to the correct type if required.
+ If a parsed JSON primative doesn't match the destination property type, this option tell NDJSONParser to attempt to convert it.
  */
-	NDJSONOptionCovertPrimitiveTypes = 1<<19
+	NDJSONOptionCovertPrimitiveJSONTypes = 1<<19
 };
 
 /**
@@ -52,7 +52,13 @@ enum {
  */
 @property(readonly,nonatomic)	Class					rootCollectionClass;
 
+/**
+ CoreData context used to insert NSManagedObjects into.
+ */
 @property(readonly,nonatomic)	NSManagedObjectContext	* managedObjectContext;
+/**
+ Entity Description used create the root JSON object
+ */
 @property(readonly,nonatomic)	NSEntityDescription		* rootEntity;
 
 /**

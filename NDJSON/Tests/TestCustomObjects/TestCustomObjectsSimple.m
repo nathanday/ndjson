@@ -35,14 +35,15 @@
 
 + (void)addTestsToTestGroup:(TestGroup *)aTestGroup
 {
-	static NSString		* kNames[] = {@"Object within Object",@"redundant Value",@"Mapped Value",@"Root Array"},
+	static NSString		* kNames[] = {@"Object within Object",@"redundant Value",@"Mapped Value",@"Root Array",@"Simple Number Conversion"},
 						* kJSONSource[] = {
 		@"{\"childElement\":{\"name\":\"pi\",\"doubleValue\":3.1415},\"childElements\":[{\"name\":\"One\",\"integerValue\":1}, {\"name\":\"Two\",\"integerValue\":2}, {\"name\":\"Three\",\"integerValue\":3}, {\"name\":\"Four\",\"integerValue\":4}]}",
 		@"{\n\t\"childElement\":{\n\t\t\"name\":\"pi\",\n\t\t\"doubleValue\":3.1415,\n\t\t\"ignoredValue\":\"ignored\"\n\t},\n\t\"childElements\":[\n\t\t{\n\t\t\t\"name\":\"One\",\n\t\t\t\"integerValue\":1\n\t\t}, {\n\t\t\t\"name\":\"Two\",\n\t\t\t\"integerValue\":2\n\t\t}, {\n\t\t\t\"name\":\"three\",\n\t\t\t\"integerValue\":3\n\t\t}, {\n\t\t\t\"name\":\"Four\",\n\t\t\t\"integerValue\":4\n\t\t}\n\t]\n}",
 		@"{\t\"childElement\":{\t\"name\":\"pi\",\t\"floatValue\":3.1415},\t\"childElements\":[{\t\"name\":\"One\",\t\"integerValue\":1}, {\t\"name\":\"Two\",\t\"integerValue\":2}, {\t\"name\":\"Three\",\t\"integerValue\":3}, {\t\"name\":\"Four\",\t\"integerValue\":4}]\n\t}",
-		@"[\n\t{\n\t\t\"childElement\":{\n\t\t\t\"name\":\"e\",\n\t\t\t\"doubleValue\":2.7182},\n\t\t\"childElements\":[\n\t\t\t{\t\"name\":\"One\",\t\"integerValue\":1},\n\t\t\t{\t\"name\":\"Two\",\t\"integerValue\":2},\n\t\t\t{\t\"name\":\"Three\",\t\"integerValue\":3},\n\t\t\t{\t\"name\":\"Four\",\t\"integerValue\":4}\n\t\t]\n\t},\n\t{\n\t\t\"childElement\":{\n\t\t\t\"name\":\"pi\",\n\t\t\t\"doubleValue\":3.1415},\n\t\t\"childElements\":[\n\t\t\t{\t\"name\":\"Five\",\t\"integerValue\":5},\n\t\t\t{\t\"name\":\"Six\",\t\"integerValue\":6},\n\t\t\t{\t\"name\":\"Seven\",\t\"integerValue\":7},\n\t\t\t{\t\"name\":\"Eight\",\t\"integerValue\":8}\n\t\t]\n\t}\n]"
+		@"[\n\t{\n\t\t\"childElement\":{\n\t\t\t\"name\":\"e\",\n\t\t\t\"doubleValue\":2.7182},\n\t\t\"childElements\":[\n\t\t\t{\t\"name\":\"One\",\t\"integerValue\":1},\n\t\t\t{\t\"name\":\"Two\",\t\"integerValue\":2},\n\t\t\t{\t\"name\":\"Three\",\t\"integerValue\":3},\n\t\t\t{\t\"name\":\"Four\",\t\"integerValue\":4}\n\t\t]\n\t},\n\t{\n\t\t\"childElement\":{\n\t\t\t\"name\":\"pi\",\n\t\t\t\"doubleValue\":3.1415},\n\t\t\"childElements\":[\n\t\t\t{\t\"name\":\"Five\",\t\"integerValue\":5},\n\t\t\t{\t\"name\":\"Six\",\t\"integerValue\":6},\n\t\t\t{\t\"name\":\"Seven\",\t\"integerValue\":7},\n\t\t\t{\t\"name\":\"Eight\",\t\"integerValue\":8}\n\t\t]\n\t}\n]",
+		@"{\"childElement\":{\"name\":\"pi\",\"doubleValue\":3},\"childElements\":[{\"name\":\"One\",\"integerValue\":1}, {\"name\":\"Two\",\"integerValue\":2.1}, {\"name\":\"Three\",\"integerValue\":true}, {\"name\":\"Four\",\"integerValue\":4}]}"
 						};
-	Class				kRootClass[] = {[TestRootJSONClass class],[TestRootJSONClass class],[TestRootJSONClass class],[TestRootJSONClass class]},
+	Class				kRootClass[] = {[TestRootJSONClass class],[TestRootJSONClass class],[TestRootJSONClass class],[TestRootJSONClass class],[TestRootJSONClass class]},
 						kRootCollectionClass[] = {Nil,Nil,Nil,[NSArray class]};
 	for( NSUInteger i = 0; i < sizeof(kJSONSource)/sizeof(*kJSONSource); i++ )
 	{

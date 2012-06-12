@@ -54,6 +54,10 @@ static BOOL areSetsEqual2( NSSet * setA, NSSet * setB )
 
 @end
 
+/*
+	isReallyEqual: is needed because isEqual seems to fail because NSManageObject does not seem to implement hash method.
+ */
+
 @implementation JSONChildAlpha (Utilities)
 
 - (NSString *)description

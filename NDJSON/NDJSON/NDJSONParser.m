@@ -66,6 +66,7 @@ static id popCurrentContainerForJSONParser( NDJSONParser * self );
 		int								ignoreUnknownPropertyName	: 1;
 		int								convertKeysToMedialCapital	: 1;
 		int								removeIsAdjective			: 1;
+		int								convertPrimativeJSONTypes	: 1;
 	}								options;
 	id								result;
 }
@@ -247,6 +248,7 @@ static id popCurrentContainerForJSONParser( NDJSONParser * self );
 	options.ignoreUnknownPropertyName = anOptions&NDJSONOptionIgnoreUnknownProperties ? YES : NO;
 	options.convertKeysToMedialCapital = anOptions&NDJSONOptionConvertKeysToMedialCapitals ? YES : NO;
 	options.removeIsAdjective = anOptions&NDJSONOptionConvertRemoveIsAdjective ? YES : NO;
+	options.convertPrimativeJSONTypes = anOptions&NDJSONOptionCovertPrimitiveJSONTypes ? YES : NO;
 	if( [aParser parseWithOptions:anOptions] )
 		theResult = result;
 	return theResult;
@@ -282,7 +284,7 @@ static id popCurrentContainerForJSONParser( NDJSONParser * self );
 - (void)jsonParserDidStartArray:(NDJSON *)aParser
 {
 	NSMutableArray		* theArrayRep = [[NSMutableArray alloc] init];
-//	[self addValue:theArrayRep type:NDJSONValueArray];
+
 	pushContainerForJSONParser( self, theArrayRep, NO );
 	[currentProperty release], currentProperty = nil;
 	[theArrayRep release];
@@ -298,7 +300,6 @@ static id popCurrentContainerForJSONParser( NDJSONParser * self );
 {
 	id			theObjectRep = theObjectRep = [[NSMutableDictionary alloc] init];
 
-//	[self addValue:theObjectRep type:NDJSONValueObject];
 	pushContainerForJSONParser( self, theObjectRep, YES );
 	[currentProperty release], currentProperty = nil;
 	[theObjectRep release];
@@ -307,7 +308,7 @@ static id popCurrentContainerForJSONParser( NDJSONParser * self );
 - (void)jsonParserDidEndObject:(NDJSON *)aParser
 {
 	id		theObject = popCurrentContainerForJSONParser(self);
-	[self addValue:theObject type:NDJSONValueArray];
+	[self addValue:theObject type:NDJSONValueObject];
 }
 
 static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemoveIs, BOOL aConvertToCamelCase )
@@ -491,7 +492,7 @@ id popCurrentContainerForJSONParser( NDJSONParser * self )
 - (void)jsonParserDidStartArray:(NDJSON *)aParser
 {
 	id		theArrayRep = [[[self collectionClassForPropertyName:currentProperty class:[self.currentObject class]] alloc] init];
-	[self addValue:theArrayRep type:NDJSONValueArray];
+
 	pushContainerForJSONParser( self, theArrayRep, NO );
 	[currentProperty release], currentProperty = nil;
 	[theArrayRep release];
@@ -502,7 +503,6 @@ id popCurrentContainerForJSONParser( NDJSONParser * self )
 	Class		theClass = [self classForPropertyName:self.currentContainerPropertyName class:[self.currentObject class]];
 	id			theObjectRep = theObjectRep = [[theClass alloc] init];
 	
-//	[self addValue:theObjectRep type:NDJSONValueObject];
 	pushContainerForJSONParser( self, theObjectRep, YES );
 	[currentProperty release], currentProperty = nil;
 	[theObjectRep release];
@@ -639,7 +639,12 @@ id popCurrentContainerForJSONParser( NDJSONParser * self )
 			}
 			@try
 			{
-				[theCurrentContainer setValue:aValue forKey:thePropertyName];
+				if( options.convertPrimativeJSONTypes )
+				{
+					
+				}
+				else
+					[theCurrentContainer setValue:aValue forKey:thePropertyName];
 			}
 			@catch( NSException * anException )
 			{
@@ -723,7 +728,6 @@ id popCurrentContainerForJSONParser( NDJSONParser * self )
 - (void)jsonParserDidStartArray:(NDJSON *)aParser
 {
 	NSMutableSet		* theSet = [[NSMutableSet alloc] init];
-	[self addValue:theSet type:NDJSONValueArray];
 	pushContainerForJSONParser( self, theSet, NO );
 	[currentProperty release], currentProperty = nil;
 	[theSet release];
@@ -744,7 +748,6 @@ id popCurrentContainerForJSONParser( NDJSONParser * self )
 
 	theNewObject = [[NSManagedObject alloc] initWithEntity:theEntityDesctipion insertIntoManagedObjectContext:self.managedObjectContext];
 	
-//	[self addValue:theNewObject type:NDJSONValueObject];
 	pushContainerForJSONParser( self, theNewObject, YES );
 	[currentProperty release], currentProperty = nil;
 	[theNewObject release];
