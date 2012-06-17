@@ -96,12 +96,15 @@
 
 - (id)run
 {
-	NSError		* theError = nil;
-	NDJSONParser		* theJSON = [[NDJSONParser alloc] init];
-	id			theResult = [theJSON objectForJSONString:self.jsonString options:NDJSONOptionNone error:&theError];
+	NSError				* theError = nil;
+	NDJSON				* theJSON = [[NDJSON alloc] init];
+	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] init];
+	[theJSON setJSONString:self.jsonString];
+	id					theResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
 	[theJSON release];
+	[theJSONParser release];
 	return self.lastResult;
 }
 

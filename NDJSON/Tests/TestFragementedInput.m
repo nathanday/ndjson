@@ -83,10 +83,13 @@
 
 - (id)run
 {
-	NSError							* theError = nil;
-	NDJSONParser		* theJSON = [[NDJSONParser alloc] init];
-	self.lastResult = [theJSON objectForInputStream:[FragementedInputStream fragementedInputWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize] encoding:NSUTF8StringEncoding options:NDJSONOptionNone error:&theError];
+	NSError				* theError = nil;
+	NDJSON				* theJSON = [[NDJSON alloc] init];
+	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] init];
+	[theJSON setInputStream:[FragementedInputStream fragementedInputWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize]  encoding:NSUTF8StringEncoding];
+	self.lastResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
+	[theJSONParser release];
 	[theJSON release];
 	return lastResult;
 }

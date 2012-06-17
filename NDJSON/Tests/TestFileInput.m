@@ -86,10 +86,13 @@
 - (id)run
 {
 	NSError				* theError = nil;
+	NDJSON				* theJSON = [[NDJSON alloc] init];
 	NDJSONParser		* theJSONToPropertyList = [[NDJSONParser alloc] init];
-	self.lastResult = [theJSONToPropertyList objectForContentsOfFile:self.path encoding:NSUTF8StringEncoding options:NDJSONOptionNone error:&theError];
+	[theJSON setContentsOfFile:self.path encoding:NSUTF8StringEncoding];
+	self.lastResult = [theJSONToPropertyList objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
 	[theJSONToPropertyList release];
+	[theJSON release];
 	return lastResult;
 }
 

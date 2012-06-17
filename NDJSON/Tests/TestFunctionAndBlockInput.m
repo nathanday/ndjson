@@ -88,17 +88,18 @@ NSInteger sourceFuction(uint8_t ** aBuffer, void * aContext );
 
 - (id)run
 {
-	NSError							* theError = nil;
-	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] init];
+	NSError				* theError = nil;
 	NDJSON				* theJSON = [[NDJSON alloc] init];
+	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] init];
 	inputFunctionSource = [[InputFunctionSource alloc] initWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize];
 	if( useBlock )
-		[theJSON setSourceBlock:^(uint8_t ** aBuffer){return sourceFuction(aBuffer, inputFunctionSource);} encoding:NSUTF8StringEncoding error:&theError];
+		[theJSON setSourceBlock:^(uint8_t ** aBuffer){return sourceFuction(aBuffer, inputFunctionSource);} encoding:NSUTF8StringEncoding];
 	else
-		[theJSON setSourceFunction:sourceFuction context:inputFunctionSource encoding:NSUTF8StringEncoding error:&theError];
-	self.lastResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone];
+		[theJSON setSourceFunction:sourceFuction context:inputFunctionSource encoding:NSUTF8StringEncoding];
+	self.lastResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
 	[theJSON release];
+	[theJSONParser release];
 	return lastResult;
 }
 

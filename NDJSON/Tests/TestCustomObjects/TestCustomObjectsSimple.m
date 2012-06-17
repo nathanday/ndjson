@@ -82,13 +82,14 @@
 
 - (id)run
 {
-	NSError						* theError = nil;
-	NDJSONParser		* theJSON = [[NDJSONParser alloc] initWithRootClass:rootClass rootCollectionClass:rootCollectionClass];
-	
-	self.lastResult = [theJSON objectForJSONString:jsonSourceString options:NDJSONOptionNone error:&theError];
+	NSError				* theError = nil;
+	NDJSON				* theJSON = [[NDJSON alloc] init];
+	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] initWithRootClass:rootClass rootCollectionClass:rootCollectionClass];
+	[theJSON setJSONString:jsonSourceString];
+	self.lastResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
-	
 	[theJSON release];
+	[theJSONParser release];
 	return lastResult;
 }
 

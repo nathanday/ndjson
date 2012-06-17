@@ -75,34 +75,9 @@ enum {
 - (id)initWithRootEntity:(NSEntityDescription *)rootEntity inManagedObjectContext:(NSManagedObjectContext *)context;
 
 /**
- return the root object by parsing the JSON string.
- */
-- (id)objectForJSONString:(NSString *)string options:(NDJSONOptionFlags)options error:(NSError **)error;
-/**
- return the root object by parsing the JSON data.
- */
-- (id)objectForJSONData:(NSData *)data encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
-/**
-	return the root object by parsing the contents of the JSON file.
- */
-- (id)objectForContentsOfFile:(NSString *)path encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
-/**
-	return the root object by parsing the contents of the JSON file.
- */
-- (id)objectForContentsOfURL:(NSURL *)url encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
-/**
-	return the root object by parsing the contents of the JSON document returned from the URL requerst.
- */
-- (id)objectForURLRequest:(NSURLRequest *)urlRequest options:(NDJSONOptionFlags)options error:(NSError **)error;
-/**
-	return the root object by parsing the contents of the JSON document returned from the input stream.
- */
-- (id)objectForInputStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
-
-/**
 	return the root object generted from the parsers output.
  */
-- (id)objectForJSONParser:(NDJSON *)parser options:(NDJSONOptionFlags)options;
+- (id)objectForJSONParser:(NDJSON *)parser options:(NDJSONOptionFlags)options error:(NSError **)error;
 
 @end
 

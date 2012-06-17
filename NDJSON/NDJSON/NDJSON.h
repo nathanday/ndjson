@@ -120,36 +120,36 @@ extern NSString	* const NDJSONErrorDomain;
 /**
  set a JSON string to parse
  */
-- (BOOL)setJSONString:(NSString *)string error:(NSError **)error;
+- (BOOL)setJSONString:(NSString *)string;
 /**
  set a JSON UTF8 string data to parse
  */
-- (BOOL)setJSONData:(NSData *)data encoding:(NSStringEncoding)encoding error:(NSError **)error;
+- (BOOL)setJSONData:(NSData *)data encoding:(NSStringEncoding)encoding;
 /**
 	set a JSON file to parse specified using a string path
  */
-- (BOOL)setContentsOfFile:(NSString *)path encoding:(NSStringEncoding)encoding error:(NSError **)error;
+- (BOOL)setContentsOfFile:(NSString *)path encoding:(NSStringEncoding)encoding;
 /**
 	set a JSON file to parse specified using a file URL
  */
-- (BOOL)setContentsOfURL:(NSURL *)url encoding:(NSStringEncoding)encoding error:(NSError **)error;
+- (BOOL)setContentsOfURL:(NSURL *)url encoding:(NSStringEncoding)encoding;
 /**
 	set a JSON URLRequest to parse
 	Important: URLRequests are not parsed asyncronisly, see `-[NDJSON parseWithOptions:]`.
  */
-- (BOOL)setURLRequest:(NSURLRequest *)urlRequest error:(NSError **)error;
+- (BOOL)setURLRequest:(NSURLRequest *)urlRequest;
 /**
 	set an input stream to parse
  */
-- (BOOL)setInputStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding error:(NSError **)error;
+- (BOOL)setInputStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding;
 /**
 	set a function for supplying the data stream
  */
-- (BOOL)setSourceFunction:(NDJSONDataStreamProc)function context:(void*)context encoding:(NSStringEncoding)anEncoding error:(NSError **)error;
+- (BOOL)setSourceFunction:(NDJSONDataStreamProc)function context:(void*)context encoding:(NSStringEncoding)anEncoding;
 /**
 	set a function for supplying the data stream
  */
-- (BOOL)setSourceBlock:(NDJSONDataStreamBlock)block encoding:(NSStringEncoding)anEncoding error:(NSError **)error;
+- (BOOL)setSourceBlock:(NDJSONDataStreamBlock)block encoding:(NSStringEncoding)anEncoding;
 /**
 	parses the JSON source set up by one other the set methods, setJSONString:error:, setContentsOfFile:error:, setContentsOfURL:error, setURLRequest:error:
 	Important: This method does not return until parsing is complete, this method can be called within another thread as long as you do not change the reciever until after the method has finished.

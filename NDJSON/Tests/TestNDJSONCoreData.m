@@ -95,9 +95,12 @@
 - (void)willLoad
 {
 	static NSString			* const kTestJSONString = @"{\"stringValue\":\"Root String Value\",\"integerValue\":42,\"alphaObject\":{\"stringAlphaValue\":\"String Alpha Value\",\"booleanAlphaValue\":true},\"betaObject\":[{\"stringBetaValue\":\"String Beta Value One\",\"floatBetaValue\":3.14,\"subChildC\":{\"stringGamaValue\":\"String Gama Value A\"}},{\"stringBetaValue\":\"String Beta Value Two\",\"floatBetaValue\":2.71,\"subChildC\":{\"stringGamaValue\":\"String Gama Value B\"}}]}";
-	NDJSONParser			* theJSON = [[NDJSONParser alloc] init];
-	id						theExptedResult = [theJSON objectForJSONString:kTestJSONString options:NDJSONOptionNone error:NULL];
+	NDJSON					* theJSON = [[NDJSON alloc] init];
+	NDJSONParser			* theJSONParser = [[NDJSONParser alloc] init];
+	[theJSON setJSONString:kTestJSONString];
+	id						theExptedResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:NULL];
 	NSParameterAssert(theExptedResult != nil);
+	[theJSONParser release];
 	[theJSON release];
 	[self addTest:[TestCoreDataItem testStringWithName:@"Core Data" jsonString:kTestJSONString expectedResult:[self creatExpectedValueInManagedObjectContext:self.coreDataController.managedObjectContext] inPersistentStoreCoordinator:self.coreDataController.persistentStoreCoordinator]];
 	[super willLoad];
@@ -164,10 +167,13 @@
 - (id)run
 {
 	NSError				* theError = nil;
-	NDJSONParser		* theJSON = [[NDJSONParser alloc] initWithRootEntityName:@"Root" inManagedObjectContext:self.managedObjectContext];
-	id					theResult = [theJSON objectForJSONString:self.jsonString options:NDJSONOptionNone error:&theError];
+	NDJSON				* theJSON = [[NDJSON alloc] init];
+	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] initWithRootEntityName:@"Root" inManagedObjectContext:self.managedObjectContext];
+	[theJSON setJSONString:self.jsonString];
+	id					theResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
+	[theJSONParser release];
 	[theJSON release];
 	return self.lastResult;
 }

@@ -57,10 +57,12 @@
 		"UTF32", "UTF32BigEndian", "UTF32LittleEndian"
 	};
 	static NSString			* const kTestJSONString = @"{\"string\":\"A String\",\"integer\":42,\"float\":3.1415,\"boolean\":true,\"array\":[\"array\",12],\"object\":{\"value1\":\"one\",\"value2\":2}}";
-	NDJSONParser			* theJSON = [[NDJSONParser alloc] init];
-	id						theExptedResult = [theJSON objectForJSONString:kTestJSONString options:NDJSONOptionNone error:NULL];
+	NDJSON					* theJSON = [[NDJSON alloc] init];
+	NDJSONParser			* theJSONParser = [[NDJSONParser alloc] init];
+	[theJSON setJSONString:kTestJSONString];
+	id						theExptedResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:NULL];
 	NSParameterAssert(theExptedResult != nil);
-	[theJSON release];
+	[theJSONParser release];
 	for( NSUInteger i = 0; i < sizeof(kEncodings)/sizeof(*kEncodings); i++ )
 		[self addName:[NSString stringWithFormat:@"Encoding %s", kEncodingNames[i]] jsonString:kTestJSONString expectedResult:theExptedResult encoding:kEncodings[i]];
 	[theExptedResult release];
@@ -116,11 +118,14 @@
 
 - (id)run
 {
-	NSError		* theError = nil;
-	NDJSONParser		* theJSON = [[NDJSONParser alloc] init];
-	id			theResult = [theJSON objectForJSONData:self.jsonData encoding:self.stringEncoding options:NDJSONOptionNone error:&theError];
+	NSError			* theError = nil;
+	NDJSON			* theJSON = [[NDJSON alloc] init];
+	NDJSONParser	* theJSONParser = [[NDJSONParser alloc] init];
+	[theJSON setJSONData:self.jsonData encoding:self.stringEncoding];
+	id				theResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
+	[theJSONParser release];
 	[theJSON release];
 	return self.lastResult;
 }

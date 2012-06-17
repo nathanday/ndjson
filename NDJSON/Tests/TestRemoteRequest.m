@@ -75,12 +75,14 @@
 - (id)run
 {
 	NSError					* theError = nil;
-	NDJSONParser	* theJSON = [[NDJSONParser alloc] init];
+	NDJSON					* theJSON = [[NDJSON alloc] init];
+	NDJSONParser			* theJSONParser = [[NDJSONParser alloc] init];
 	NSURLRequest			* theURLRequest = [[NSURLRequest alloc] initWithURL:self.url];
-
-	self.lastResult = [theJSON objectForURLRequest:theURLRequest options:NDJSONOptionNone error:&theError];
+	[theJSON setURLRequest:theURLRequest];
+	self.lastResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
 
+	[theJSONParser release];
 	[theJSON release];
 	[theURLRequest release];
 	return lastResult;

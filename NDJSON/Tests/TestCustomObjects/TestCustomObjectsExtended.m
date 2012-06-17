@@ -59,12 +59,13 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 
 - (id)run
 {
-	NSError						* theError = nil;
-	NDJSONParser		* theJSON = [[NDJSONParser alloc] initWithRootClass:rootClass rootCollectionClass:Nil];
-	
-	self.lastResult = [theJSON objectForJSONString:jsonSourceString options:NDJSONOptionConvertKeysToMedialCapitals error:&theError];
+	NSError				* theError = nil;
+	NDJSON				* theJSON = [[NDJSON alloc] init];
+	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] initWithRootClass:rootClass rootCollectionClass:Nil];
+	[theJSON setJSONString:jsonSourceString];
+	self.lastResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionConvertKeysToMedialCapitals error:&theError];
 	self.error = theError;
-	
+	[theJSONParser release];
 	[theJSON release];
 	return lastResult;
 }

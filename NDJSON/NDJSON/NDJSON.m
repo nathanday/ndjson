@@ -281,37 +281,38 @@ enum JSONInputType
 
 - (BOOL)parseJSONString:(NSString *)aString options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
 {
-	return [self setJSONData:[aString dataUsingEncoding:NSUTF8StringEncoding] encoding:NSUTF8StringEncoding error:anError] && [self parseWithOptions:anOptions];
+	return [self setJSONData:[aString dataUsingEncoding:NSUTF8StringEncoding] encoding:NSUTF8StringEncoding] && [self parseWithOptions:anOptions];
 }
 - (BOOL)parseJSONData:(NSData *)aData options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
 {
-	return [self setJSONData:aData encoding:NSUTF8StringEncoding error:anError] && [self parseWithOptions:anOptions];
+	return [self setJSONData:aData encoding:NSUTF8StringEncoding] && [self parseWithOptions:anOptions];
 }
 - (BOOL)parseContentsOfFile:(NSString *)aPath encoding:(NSStringEncoding)anEncoding options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
 {
-	return [self setContentsOfFile:aPath encoding:anEncoding error:anError] && [self parseWithOptions:anOptions];
+	return [self setContentsOfFile:aPath encoding:anEncoding] && [self parseWithOptions:anOptions];
 }
 - (BOOL)parseContentsOfURL:(NSURL *)aURL encoding:(NSStringEncoding)anEncoding options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
 {
-	return [self setContentsOfURL:aURL encoding:anEncoding error:anError] && [self parseWithOptions:anOptions];
+	return [self setContentsOfURL:aURL encoding:anEncoding] && [self parseWithOptions:anOptions];
 }
 - (BOOL)parseURLRequest:(NSURLRequest *)aURLRequest options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
 {
-	return [self setURLRequest:aURLRequest error:anError] && [self parseWithOptions:anOptions];
+	return [self setURLRequest:aURLRequest] && [self parseWithOptions:anOptions];
 }
 - (BOOL)parseInputStream:(NSInputStream *)aStream encoding:(NSStringEncoding)anEncoding options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
 {
-	return [self setInputStream:aStream encoding:anEncoding error:anError] && [self parseWithOptions:anOptions];
+	return [self setInputStream:aStream encoding:anEncoding] && [self parseWithOptions:anOptions];
 }
 - (BOOL)parseSourceFunction:(NDJSONDataStreamProc)aFunction context:(void*)aContext encoding:(NSStringEncoding)anEncoding options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
 {
-	return [self setSourceFunction:aFunction context:aContext encoding:anEncoding error:anError] && [self parseWithOptions:anOptions];
+	return [self setSourceFunction:aFunction context:aContext encoding:anEncoding] && [self parseWithOptions:anOptions];
 }
 
-- (BOOL)setJSONString:(NSString *)aString error:(__autoreleasing NSError **)anError
+- (BOOL)setJSONString:(NSString *)aString
 {
 #ifdef NDJSONSupportUTF8Only
-	return [self setJSONData:[aString dataUsingEncoding:NSUTF8StringEncoding] encoding:NSUTF8StringEncoding error:anError];
+	NSError			* theError = nil;
+	return [self setJSONData:[aString dataUsingEncoding:NSUTF8StringEncoding] encoding:NSUTF8StringEncoding];
 #else
 	BOOL		theResult = NO;
 	NSAssert( aString != nil, @"nil input JSON string" );
@@ -360,13 +361,13 @@ enum JSONInputType
 	else						// failed to get poiter to string bytes, convert to quickest NSData and use that instead
 	{
 		NSStringEncoding		theEncoding = CFStringConvertEncodingToNSStringEncoding(theStringEncoding);
-		theResult = [self setJSONData:[aString dataUsingEncoding:theEncoding] encoding:theEncoding error:anError];
+		theResult = [self setJSONData:[aString dataUsingEncoding:theEncoding] encoding:theEncoding];
 	}
 	return theResult;
 #endif
 }
 
-- (BOOL)setJSONData:(NSData *)aData encoding:(NSStringEncoding)anEncoding error:(__autoreleasing NSError **)anError
+- (BOOL)setJSONData:(NSData *)aData encoding:(NSStringEncoding)anEncoding
 {
 	NSAssert( aData != nil, @"nil input JSON data" );
 	position = 0;
@@ -385,27 +386,27 @@ enum JSONInputType
 	return bytes != NULL;
 }
 
-- (BOOL)setContentsOfFile:(NSString *)aPath encoding:(NSStringEncoding)anEncoding error:(__autoreleasing NSError **)anError
+- (BOOL)setContentsOfFile:(NSString *)aPath encoding:(NSStringEncoding)anEncoding
 {
 	BOOL			theResult = NO;
 	NSAssert( aPath != nil, @"nil input JSON path" );
 	NSInputStream		* theInputStream = [NSInputStream inputStreamWithFileAtPath:aPath];
 	if( theInputStream != nil )
-		theResult = [self setInputStream:theInputStream encoding:anEncoding error:anError];
+		theResult = [self setInputStream:theInputStream encoding:anEncoding];
 	return theResult;
 }
 
-- (BOOL)setContentsOfURL:(NSURL *)aURL encoding:(NSStringEncoding)anEncoding error:(__autoreleasing NSError **)anError
+- (BOOL)setContentsOfURL:(NSURL *)aURL encoding:(NSStringEncoding)anEncoding
 {
 	BOOL			theResult = NO;
 	NSAssert( aURL != nil, @"nil input JSON file url" );
 	NSInputStream		* theInputStream = [NSInputStream inputStreamWithURL:aURL];
 	if( theInputStream != nil )
-		theResult = [self setInputStream:theInputStream encoding:anEncoding error:anError];
+		theResult = [self setInputStream:theInputStream encoding:anEncoding];
 	return theResult;
 }
 
-- (BOOL)setURLRequest:(NSURLRequest *)aURLRequest error:(__autoreleasing NSError **)anError
+- (BOOL)setURLRequest:(NSURLRequest *)aURLRequest
 {
 	BOOL			theResult = NO;
 	CFHTTPMessageRef	theMessageRef = CFHTTPMessageCreateRequest( kCFAllocatorDefault, (CFStringRef)aURLRequest.HTTPMethod, (CFURLRef)aURLRequest.URL, kCFHTTPVersion1_1 );
@@ -415,7 +416,7 @@ enum JSONInputType
 		CFReadStreamRef		theReadStreamRef = CFReadStreamCreateForHTTPRequest( kCFAllocatorDefault, theMessageRef );
 		if( theReadStreamRef != NULL )
 		{
-			theResult = [self setInputStream:(NSInputStream*)theReadStreamRef encoding:NSUIntegerMax error:anError];
+			theResult = [self setInputStream:(NSInputStream*)theReadStreamRef encoding:NSUIntegerMax];
 			CFRelease(theReadStreamRef);
 		}
 		CFRelease(theMessageRef);
@@ -423,7 +424,7 @@ enum JSONInputType
 	return theResult;
 }
 
-- (BOOL)setInputStream:(NSInputStream *)aStream encoding:(NSStringEncoding)anEncoding error:(__autoreleasing NSError **)anError
+- (BOOL)setInputStream:(NSInputStream *)aStream encoding:(NSStringEncoding)anEncoding
 {
 	NSAssert( aStream != nil, @"nil input stream" );
 	position = 0;
@@ -440,7 +441,7 @@ enum JSONInputType
 	return source.stream != NULL && bytes != NULL;
 }
 
-- (BOOL)setSourceFunction:(NDJSONDataStreamProc)aFunction context:(void*)aContext encoding:(NSStringEncoding)anEncoding error:(NSError **)anError;
+- (BOOL)setSourceFunction:(NDJSONDataStreamProc)aFunction context:(void*)aContext encoding:(NSStringEncoding)anEncoding;
 {
 	NSAssert( aFunction != NULL, @"NULL function" );
 	position = 0;
@@ -457,7 +458,7 @@ enum JSONInputType
 	return source.function != NULL;
 }
 
-- (BOOL)setSourceBlock:(NDJSONDataStreamBlock)aBlock encoding:(NSStringEncoding)anEncoding error:(NSError **)anError;
+- (BOOL)setSourceBlock:(NDJSONDataStreamBlock)aBlock encoding:(NSStringEncoding)anEncoding;
 {
 	NSAssert( aBlock != NULL, @"NULL function" );
 	position = 0;
