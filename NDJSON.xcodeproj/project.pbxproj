@@ -24,6 +24,7 @@
 		D8C1EDC5142A057B00FED1B0 /* file3.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8C1EDC2142A057B00FED1B0 /* file3.plist */; };
 		D8C1EDC6142A057B00FED1B0 /* file4.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8C1EDC3142A057B00FED1B0 /* file4.plist */; };
 		D8C1EDCA142A0FC300FED1B0 /* TestRemoteRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D8C1EDC9142A0FC300FED1B0 /* TestRemoteRequest.m */; };
+		D8C9CDA5158CA4ED0022A137 /* TestFunctionAndBlockInput.m in Sources */ = {isa = PBXBuildFile; fileRef = D8C9CDA4158CA4ED0022A137 /* TestFunctionAndBlockInput.m */; };
 		D8CCFCFA1489B0390015DF1E /* TestStringInput.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CCFCF91489B0390015DF1E /* TestStringInput.m */; };
 		D8CCFD021489B06A0015DF1E /* NDJSON.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CCFCFD1489B06A0015DF1E /* NDJSON.m */; };
 		D8CCFD041489B06A0015DF1E /* NDJSONParser.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CCFD011489B06A0015DF1E /* NDJSONParser.m */; };
@@ -79,6 +80,8 @@
 		D8C1EDC3142A057B00FED1B0 /* file4.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = file4.plist; sourceTree = "<group>"; };
 		D8C1EDC8142A0FC300FED1B0 /* TestRemoteRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestRemoteRequest.h; sourceTree = "<group>"; };
 		D8C1EDC9142A0FC300FED1B0 /* TestRemoteRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestRemoteRequest.m; sourceTree = "<group>"; };
+		D8C9CDA3158CA4ED0022A137 /* TestFunctionAndBlockInput.h */ = {isa = PBXFileReference; fileEncoding = 4; path = TestFunctionAndBlockInput.h; sourceTree = "<group>"; };
+		D8C9CDA4158CA4ED0022A137 /* TestFunctionAndBlockInput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestFunctionAndBlockInput.m; sourceTree = "<group>"; };
 		D8CCFCF91489B0390015DF1E /* TestStringInput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestStringInput.m; sourceTree = "<group>"; };
 		D8CCFCFC1489B06A0015DF1E /* NDJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSON.h; sourceTree = "<group>"; usesTabs = 1; };
 		D8CCFCFD1489B06A0015DF1E /* NDJSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSON.m; sourceTree = "<group>"; usesTabs = 1; };
@@ -245,6 +248,8 @@
 				D8F022631425EB3000504B84 /* TestFileInput.m */,
 				D8F022781426283300504B84 /* TestFragementedInput.h */,
 				D8F022791426283300504B84 /* TestFragementedInput.m */,
+				D8C9CDA3158CA4ED0022A137 /* TestFunctionAndBlockInput.h */,
+				D8C9CDA4158CA4ED0022A137 /* TestFunctionAndBlockInput.m */,
 				D8C1EDC8142A0FC300FED1B0 /* TestRemoteRequest.h */,
 				D8C1EDC9142A0FC300FED1B0 /* TestRemoteRequest.m */,
 				D8E25AE514C0328C001B02DA /* TestUnicharEscapeSquence.h */,
@@ -312,7 +317,7 @@
 		D8D6022C1414FD91007F8A29 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0440;
+				LastUpgradeCheck = 0450;
 				ORGANIZATIONNAME = "Nathan Day";
 			};
 			buildConfigurationList = D8D6022F1414FD91007F8A29 /* Build configuration list for PBXProject "NDJSON" */;
@@ -384,6 +389,7 @@
 				D80F15401585C96B002FB345 /* JSONChildGama.m in Sources */,
 				D80F15411585C96B002FB345 /* JSONRoot.m in Sources */,
 				D80F15441585C9CF002FB345 /* JSONRoot+Utilities.m in Sources */,
+				D8C9CDA5158CA4ED0022A137 /* TestFunctionAndBlockInput.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -422,6 +428,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -448,6 +455,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu99;

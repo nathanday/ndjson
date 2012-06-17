@@ -71,10 +71,7 @@
 		[self.testsByName setObject: theTest forKey:theTest.name];
 }
 
-- (enum TestOperationState)operationStateForTestNamed:(NSString *)aName
-{
-	return [[self.testsByName objectForKey:aName] operationState];
-}
+- (enum TestOperationState)operationStateForTestNamed:(NSString *)aName { return [[self.testsByName objectForKey:aName] operationState]; }
 
 - (NSMutableArray *)everyTest
 {

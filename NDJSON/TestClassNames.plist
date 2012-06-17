@@ -36,6 +36,12 @@
 		</dict>
 		<dict>
 			<key>class</key>
+			<string>TestFunctionAndBlockInput</string>
+			<key>name</key>
+			<string>Function and Block Input</string>
+		</dict>
+		<dict>
+			<key>class</key>
 			<string>TestRemoteRequest</string>
 			<key>name</key>
 			<string>Remote Request Input</string>

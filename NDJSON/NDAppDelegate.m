@@ -198,10 +198,7 @@ void NDError( NSString *aFormat, ... )
 
 #pragma mark - Action handling methods
 
-- (IBAction)clearLogs:(NSButton *)aSender
-{
-	[logTextView setString:@""];
-}
+- (IBAction)clearLogs:(NSButton *)aSender { [logTextView setString:@""]; }
 
 - (IBAction)detailsForSelectedTest:(NSButton *)aSender
 {
@@ -303,10 +300,7 @@ void NDError( NSString *aFormat, ... )
 	va_end(theArgList);
 }
 
-- (void)appendString:(NSString *)aString
-{
-	logTextView.string = [logTextView.string stringByAppendingString:aString];
-}
+- (void)appendString:(NSString *)aString { logTextView.string = [logTextView.string stringByAppendingString:aString]; }
 
 - (void)logFormat:(NSString *)aFormat arguments:(va_list)anArgList
 {
@@ -535,10 +529,7 @@ void NDError( NSString *aFormat, ... )
 	[self performSelectorOnMainThread:@selector(updateStateColumn) withObject:nil waitUntilDone:NO];
 }
 
-- (void)finishedAllTests
-{
-	[runStopButton setTitle:NSLocalizedString(@"Run", @"Text for run/stop button when tests are NOT running")];
-}
+- (void)finishedAllTests { [runStopButton setTitle:NSLocalizedString(@"Run", @"Text for run/stop button when tests are NOT running")]; }
 
 - (void)updateStateColumn
 {
@@ -585,10 +576,7 @@ void NDError( NSString *aFormat, ... )
 	NSNumber		* theResult = [self.checkForTest objectForKey:aName];
 	return theResult != nil ? theResult : self.value;
 }
-- (void)setValue:(NSNumber *)aValue forTestName:(NSString *)aName
-{
-	[self.checkForTest setObject:aValue forKey:aName];
-}
+- (void)setValue:(NSNumber *)aValue forTestName:(NSString *)aName { [self.checkForTest setObject:aValue forKey:aName]; }
 
 - (enum TestOperationState)stateForTestName:(NSString *)aName
 {

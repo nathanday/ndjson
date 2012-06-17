@@ -51,6 +51,9 @@ typedef enum
 
 typedef NSUInteger		NDJSONOptionFlags;
 
+typedef NSInteger (*NDJSONDataStreamProc)(uint8_t ** aBuffer, void * aContext );
+typedef NSInteger (^NDJSONDataStreamBlock)(uint8_t ** aBuffer);
+
 enum {
 	NDJSONOptionNone = 0,
 /**
@@ -76,6 +79,11 @@ extern NSString	* const NDJSONErrorDomain;
 	The JSON parser’s delegate object. The delegate must conform to the NDJSONDelegate Protocol protocol.
  */
 @property(assign,nonatomic)		id<NDJSONDelegate>	delegate;
+
+/**
+	key for the current JSON value, if the value is contained within an array, then the currentKey is for the array.
+ */
+@property(readonly,nonatomic)	NSString			* currentKey;
 /**
 	intialise a *NDJSON* instance with a delegate
  */
@@ -107,6 +115,8 @@ extern NSString	* const NDJSONErrorDomain;
  */
 - (BOOL)parseInputStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
 
+- (BOOL)parseSourceFunction:(NDJSONDataStreamProc)function context:(void*)context encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
+
 /**
  set a JSON string to parse
  */
@@ -131,7 +141,15 @@ extern NSString	* const NDJSONErrorDomain;
 /**
 	set an input stream to parse
  */
-- (BOOL)setInputStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding  error:(NSError **)error;
+- (BOOL)setInputStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding error:(NSError **)error;
+/**
+	set a function for supplying the data stream
+ */
+- (BOOL)setSourceFunction:(NDJSONDataStreamProc)function context:(void*)context encoding:(NSStringEncoding)anEncoding error:(NSError **)error;
+/**
+	set a function for supplying the data stream
+ */
+- (BOOL)setSourceBlock:(NDJSONDataStreamBlock)block encoding:(NSStringEncoding)anEncoding error:(NSError **)error;
 /**
 	parses the JSON source set up by one other the set methods, setJSONString:error:, setContentsOfFile:error:, setContentsOfURL:error, setURLRequest:error:
 	Important: This method does not return until parsing is complete, this method can be called within another thread as long as you do not change the reciever until after the method has finished.

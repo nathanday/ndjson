@@ -124,6 +124,7 @@
 		theResult = [[NSManagedObjectContext alloc] init];
 		[theResult setPersistentStoreCoordinator:self.persistentStoreCoordinator];
 		[[[NSThread currentThread] threadDictionary] setObject:theResult forKey:kManagedObjectContextKey];
+		[theResult release];
 	}
 	return theResult;
 }
