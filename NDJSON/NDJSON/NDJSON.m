@@ -43,6 +43,8 @@ enum CharacterWordSize
 	kCharacterWord32 = 2
 };
 
+static NSStringEncoding	kNSStringEncodingFromCharacterWordSize[] = { NSUTF8StringEncoding, NSUTF16LittleEndianStringEncoding, NSUTF32LittleEndianStringEncoding };
+
 enum CharacterEndian
 {
 	kUnknownEndian,
@@ -66,7 +68,7 @@ NSString	* const NDJSONErrorDomain = @"NDJSONError";
 
 static const struct NDBytesBuffer	NDBytesBufferInit = {NULL,0,0};
 static BOOL appendBytes( struct NDBytesBuffer * aBuffer, uint32_t aBytes, enum CharacterWordSize aWordSize );
-static BOOL appendCharacter( struct NDBytesBuffer * aBuffer, unsigned int aValue, enum CharacterWordSize aWordSize, enum CharacterEndian anEndian );
+static BOOL appendCharacter( struct NDBytesBuffer * aBuffer, unsigned int aValue, enum CharacterWordSize aWordSize );
 //static BOOL truncateByte( struct NDBytesBuffer * aBuffer, uint32_t aBytes );
 static void freeByte( struct NDBytesBuffer * aBuffer );
 
@@ -153,16 +155,6 @@ static BOOL getCharacterWordSizeAndEndianFromNSStringEncoding( enum CharacterWor
 		break;
 	}
 	return theResult;
-}
-
-static NSStringEncoding getNSStringEncodingFromCharacterWordSizeAndEndian( enum CharacterWordSize aWordSize, enum CharacterEndian anEndian )
-{
-	switch (aWordSize)
-	{
-	case kCharacterWord8: return NSUTF8StringEncoding;
-	case kCharacterWord16: return anEndian == kBigEndian ? NSUTF16BigEndianStringEncoding : NSUTF16LittleEndianStringEncoding;
-	case kCharacterWord32: return anEndian == kBigEndian ? NSUTF32BigEndianStringEncoding : NSUTF32LittleEndianStringEncoding;
-	}
 }
 
 static NSStringEncoding stringEncodingFromHTTPContentTypeString( CFStringRef aContentType )
@@ -1037,7 +1029,7 @@ BOOL parseJSONKey( NDJSON * self )
 		foundError( self, NDJSONBadFormatError );
 	if( theResult != NO )
 	{
-		[self->currentKey release], self->currentKey = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:getNSStringEncodingFromCharacterWordSizeAndEndian( self->character.wordSize, self->character.endian )];
+		[self->currentKey release], self->currentKey = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:kNSStringEncodingFromCharacterWordSize[self->character.wordSize]];
 		NDJSONLog( @"Found key: '%@'", self->currentKey );
 	}
 	freeByte( &theBuffer );
@@ -1051,7 +1043,7 @@ BOOL parseJSONString( NDJSON * self )
 	BOOL					theResult = parseJSONText( self, &theBuffer, NO, YES );
 	if( theResult != NO )
 	{
-		NSString	* theValue = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:getNSStringEncodingFromCharacterWordSizeAndEndian( self->character.wordSize, self->character.endian )];
+		NSString	* theValue = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:kNSStringEncodingFromCharacterWordSize[self->character.wordSize]];
 		if( self->delegateMethod.foundString != NULL )
 			self->delegateMethod.foundString( self->delegate, @selector(jsonParser:foundString:), self, theValue );
 		[theValue release];
@@ -1090,23 +1082,23 @@ BOOL parseJSONText( NDJSON * self, struct NDBytesBuffer * aValueBuffer, BOOL aIs
 					foundError( self, NDJSONMemoryErrorError );
 				break;
 			case 'b':
-				if( !appendCharacter( aValueBuffer, '\b', self->character.wordSize, self->character.endian ) )
+				if( !appendCharacter( aValueBuffer, '\b', self->character.wordSize ) )
 					foundError( self, NDJSONMemoryErrorError );
 				break;
 			case 'f':
-				if( !appendCharacter( aValueBuffer, '\f', self->character.wordSize, self->character.endian ) )
+				if( !appendCharacter( aValueBuffer, '\f', self->character.wordSize ) )
 					foundError( self, NDJSONMemoryErrorError );
 				break;
 			case 'n':
-				if( !appendCharacter( aValueBuffer, '\n', self->character.wordSize, self->character.endian ) )
+				if( !appendCharacter( aValueBuffer, '\n', self->character.wordSize ) )
 					foundError( self, NDJSONMemoryErrorError );
 				break;
 			case 'r':
-				if( !appendCharacter( aValueBuffer, '\r', self->character.wordSize, self->character.endian ) )
+				if( !appendCharacter( aValueBuffer, '\r', self->character.wordSize ) )
 					foundError( self, NDJSONMemoryErrorError );
 				break;
 			case 't':
-				if( !appendCharacter( aValueBuffer, '\t', self->character.wordSize, self->character.endian ) )
+				if( !appendCharacter( aValueBuffer, '\t', self->character.wordSize ) )
 					foundError( self, NDJSONMemoryErrorError );
 				break;
 			case 'u':
@@ -1123,7 +1115,7 @@ BOOL parseJSONText( NDJSON * self, struct NDBytesBuffer * aValueBuffer, BOOL aIs
 					else
 						break;
 				}
-				if( !appendCharacter( aValueBuffer, theCharacterValue, self->character.wordSize, self->character.endian) )
+				if( !appendCharacter( aValueBuffer, theCharacterValue, self->character.wordSize) )
 					foundError( self, NDJSONMemoryErrorError );
 			}
 				break;
@@ -1136,15 +1128,23 @@ BOOL parseJSONText( NDJSON * self, struct NDBytesBuffer * aValueBuffer, BOOL aIs
 		case '"':
 			theEnd = YES;
 			break;
-		default:
-			if( !aIsQuotesTerminated && isspace((int)theChar) )
-				theEnd = YES;
-			else if( !aIsQuotesTerminated && theChar == ':' )
+		case ':':
+			if( !aIsQuotesTerminated  )
 			{
 				theEnd = YES;
 				backUp(self);
 			}
 			else if( !appendBytes( aValueBuffer, theChar, self->character.wordSize ) )
+				foundError( self, NDJSONMemoryErrorError );
+			break;
+		case '\t': case '\n': case '\v': case '\f': case '\r': case ' ':
+			if( !aIsQuotesTerminated )
+				theEnd = YES;
+			else if( !appendBytes( aValueBuffer, theChar, self->character.wordSize ) )
+				foundError( self, NDJSONMemoryErrorError );
+			break;
+		default:
+			if( !appendBytes( aValueBuffer, theChar, self->character.wordSize ) )
 				foundError( self, NDJSONMemoryErrorError );
 			break;
 		}
@@ -1450,7 +1450,7 @@ BOOL appendBytes( struct NDBytesBuffer * aBuffer, uint32_t aByte, enum Character
 	return theResult;
 }
 
-BOOL appendCharacter( struct NDBytesBuffer * aBuffer, uint32_t aValue, enum CharacterWordSize aWordSize, enum CharacterEndian anEndian )
+BOOL appendCharacter( struct NDBytesBuffer * aBuffer, uint32_t aValue, enum CharacterWordSize aWordSize )
 {
 	switch (aWordSize)
 	{
@@ -1520,21 +1520,9 @@ BOOL appendCharacter( struct NDBytesBuffer * aBuffer, uint32_t aValue, enum Char
 		}
 		else if( aValue > 0xffff )
 		{
-			switch (anEndian)
-			{
-			case kLittleEndian:
-				if( !appendBytes( aBuffer, CFSwapInt16LittleToHost( (uint16_t)((aValue-0x10000)>>10)+0xd800), kCharacterWord16 )
-					   && !appendBytes( aBuffer, CFSwapInt16LittleToHost( (uint16_t)((aValue-0x10000)&0x3ff)+0xdc00), kCharacterWord16 ) )
-					return NO;
-				break;
-			case kBigEndian:
-				if( !appendBytes( aBuffer, CFSwapInt16BigToHost( (uint16_t)((aValue-0x10000)>>10)+0xd800), kCharacterWord16 )
-					   && !appendBytes( aBuffer, CFSwapInt16BigToHost( (uint16_t)((aValue-0x10000)&0x3ff)+0xdc00), kCharacterWord16 ) )
-					return NO;
-				break;
-			case kUnknownEndian:
-				break;
-			}
+			if( !appendBytes( aBuffer, (uint16_t)((aValue-0x10000)>>10)+0xd800, kCharacterWord16 )
+				   && !appendBytes( aBuffer, (uint16_t)((aValue-0x10000)&0x3ff)+0xdc00, kCharacterWord16 ) )
+				return NO;
 		}
 		else
 		{
@@ -1543,7 +1531,7 @@ BOOL appendCharacter( struct NDBytesBuffer * aBuffer, uint32_t aValue, enum Char
 		}
 		break;
 	case kCharacterWord32:
-		if( !appendBytes( aBuffer, CFSwapInt32BigToHost(aValue), kCharacterWord32 ) )
+		if( !appendBytes( aBuffer, aValue, kCharacterWord32 ) )
 			return NO;
 		break;
 	}
