@@ -77,7 +77,7 @@ enum {
 /**
 	return the root object generted from the parsers output.
  */
-- (id)objectForJSONParser:(NDJSON *)parser options:(NDJSONOptionFlags)options error:(NSError **)error;
+- (id)objectForJSON:(NDJSON *)parser options:(NDJSONOptionFlags)options error:(NSError **)error;
 
 @end
 

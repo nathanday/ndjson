@@ -30,6 +30,7 @@
 
 @implementation TestFileInput
 
+- (NSString *)testDescription { return @"Test file input, this uses InputStream and therefore parses what is available."; }
 
 - (void)addName:(NSString *)aName fileName:(NSString *)aFileName
 {
@@ -89,7 +90,7 @@
 	NDJSON				* theJSON = [[NDJSON alloc] init];
 	NDJSONParser		* theJSONToPropertyList = [[NDJSONParser alloc] init];
 	[theJSON setContentsOfFile:self.path encoding:NSUTF8StringEncoding];
-	self.lastResult = [theJSONToPropertyList objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
+	self.lastResult = [theJSONToPropertyList objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
 	[theJSONToPropertyList release];
 	[theJSON release];

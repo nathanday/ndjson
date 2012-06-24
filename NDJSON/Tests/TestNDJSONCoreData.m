@@ -95,13 +95,6 @@
 - (void)willLoad
 {
 	static NSString			* const kTestJSONString = @"{\"stringValue\":\"Root String Value\",\"integerValue\":42,\"alphaObject\":{\"stringAlphaValue\":\"String Alpha Value\",\"booleanAlphaValue\":true},\"betaObject\":[{\"stringBetaValue\":\"String Beta Value One\",\"floatBetaValue\":3.14,\"subChildC\":{\"stringGamaValue\":\"String Gama Value A\"}},{\"stringBetaValue\":\"String Beta Value Two\",\"floatBetaValue\":2.71,\"subChildC\":{\"stringGamaValue\":\"String Gama Value B\"}}]}";
-	NDJSON					* theJSON = [[NDJSON alloc] init];
-	NDJSONParser			* theJSONParser = [[NDJSONParser alloc] init];
-	[theJSON setJSONString:kTestJSONString];
-	id						theExptedResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:NULL];
-	NSParameterAssert(theExptedResult != nil);
-	[theJSONParser release];
-	[theJSON release];
 	[self addTest:[TestCoreDataItem testStringWithName:@"Core Data" jsonString:kTestJSONString expectedResult:[self creatExpectedValueInManagedObjectContext:self.coreDataController.managedObjectContext] inPersistentStoreCoordinator:self.coreDataController.persistentStoreCoordinator]];
 	[super willLoad];
 }
@@ -170,7 +163,7 @@
 	NDJSON				* theJSON = [[NDJSON alloc] init];
 	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] initWithRootEntityName:@"Root" inManagedObjectContext:self.managedObjectContext];
 	[theJSON setJSONString:self.jsonString];
-	id					theResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
+	id					theResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
 	[theJSONParser release];

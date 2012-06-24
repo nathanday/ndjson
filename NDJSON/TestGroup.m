@@ -13,6 +13,7 @@
 	NSString				* name;
 	NSMutableDictionary		* testsByName;
 	NSMutableArray			* everyTest;
+	BOOL					enabled;
 }
 
 @property(readonly)		NSMutableDictionary		* testsByName;

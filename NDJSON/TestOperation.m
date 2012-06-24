@@ -31,7 +31,7 @@
 
 - (BOOL)hasError { return self.test.operationState == kTestOperationStateError; }
 
-#pragma creation and destruction
+#pragma mark - creation and destruction
 
 - (id)initWithTestProtocol:(id<TestProtocol>)aTest
 {

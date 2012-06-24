@@ -78,7 +78,7 @@
 - (id)expectedResult
 {
 	NSMutableString			* theString = [NSMutableString stringWithCapacity:characterRange.length];
-	for( unichar theIndex = characterRange.location; theIndex < characterRange.location+characterRange.length; theIndex++ )
+	for( unichar theIndex = (unichar)characterRange.location; theIndex < characterRange.location+characterRange.length; theIndex++ )
 		[theString appendFormat:@"%C",theIndex];
 	return [NSDictionary dictionaryWithObject:theString forKey:@"result"];
 }
@@ -100,7 +100,7 @@
 	NDJSON				* theJSON = [[NDJSON alloc] init];
 	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] init];
 	[theJSON setJSONString:self.jsonString];
-	id					theResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
+	id					theResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
 	[theJSON release];

@@ -122,11 +122,15 @@ void NDError( NSString *aFormat, ... )
 		for( NSDictionary * theClassData in theClassNames )
 		{
 			TestGroup		* theTest = [[NSClassFromString([theClassData objectForKey:@"class"]) alloc] init];
+			NSNumber		* theEnabledFlag = [theClassData objectForKey:@"enabled"];
 			theTest.name = [theClassData objectForKey:@"name"];
 			[theTest willLoad];
 			[theEveryTest addObject:theTest];
 			[theTest release];
-			[theCheckForTestGroups setObject:[TestGroupChecks testGroupChecksWithBool:YES] forKey:theTest.name];
+			if( theEnabledFlag == nil )
+				[theCheckForTestGroups setObject:[TestGroupChecks testGroupChecksWithBool:YES] forKey:theTest.name];
+			else
+				[theCheckForTestGroups setObject:[TestGroupChecks testGroupChecksWithBool:[theEnabledFlag boolValue]] forKey:theTest.name];
 		}
 		everyTestGroup = theEveryTest;
 		[theTestProps release];
@@ -142,7 +146,7 @@ void NDError( NSString *aFormat, ... )
 		 TestGroup		* theGroup = (TestGroup*)anObject;
 		 [theGroup.everyTest enumerateObjectsUsingBlock:^(id<TestProtocol> anObject, NSUInteger anIndex, BOOL *aStop)
 		  {
-			anObject.operationState = kTestOperationStateInitial;
+			  anObject.operationState = kTestOperationStateInitial;
 		  }];
 	  }];
 }
@@ -204,7 +208,7 @@ void NDError( NSString *aFormat, ... )
 {
 	[testsOutlineView.selectedRowIndexes enumerateIndexesUsingBlock:^(NSUInteger anIndex, BOOL * aStop )
 	{
-		id<TestProtocol>		theItem = [testsOutlineView itemAtRow:anIndex];
+		id<TestProtocol>		theItem = [testsOutlineView itemAtRow:(NSInteger)anIndex];
 		if( [theItem conformsToProtocol:@protocol(TestProtocol)] )
 		{
 			if( theItem.operationState == kTestOperationStateInitial )
@@ -244,7 +248,7 @@ void NDError( NSString *aFormat, ... )
 	{
 		[testsOutlineView.selectedRowIndexes enumerateIndexesUsingBlock:^(NSUInteger anIndex, BOOL * aStop )
 		 {
-			 id<TestProtocol>		theTest = [testsOutlineView itemAtRow:anIndex];
+			 id<TestProtocol>		theTest = [testsOutlineView itemAtRow:(NSInteger)anIndex];
 			 if( [theTest conformsToProtocol:@protocol(TestProtocol)] )
 				 [[self.checkForTestGroups objectForKey:theTest.testGroup.name] setValue:[NSNumber numberWithBool:YES] forTestName:theTest.name];
 		 }];
@@ -268,7 +272,7 @@ void NDError( NSString *aFormat, ... )
 	{
 		[testsOutlineView.selectedRowIndexes enumerateIndexesUsingBlock:^(NSUInteger anIndex, BOOL * aStop )
 		 {
-			 id<TestProtocol>		theTest = [testsOutlineView itemAtRow:anIndex];
+			 id<TestProtocol>		theTest = [testsOutlineView itemAtRow:(NSInteger)anIndex];
 			 if( [theTest conformsToProtocol:@protocol(TestProtocol)] )
 				 [[self.checkForTestGroups objectForKey:theTest.testGroup.name] setValue:[NSNumber numberWithBool:NO] forTestName:theTest.name];
 		 }];
@@ -329,9 +333,9 @@ void NDError( NSString *aFormat, ... )
 {
 	id		theResult = nil;
 	if( anItem == nil )
-		theResult = [self.everyTestGroup objectAtIndex:anIndex];
+		theResult = [self.everyTestGroup objectAtIndex:(NSUInteger)anIndex];
 	else if( [anItem isKindOfClass:[TestGroup class]] )
-		theResult = [[anItem everyTest] objectAtIndex:anIndex];
+		theResult = [[anItem everyTest] objectAtIndex:(NSUInteger)anIndex];
 	else
 		NSLog( @"Unexpected item %@", anItem );
 	return theResult;
@@ -341,9 +345,9 @@ void NDError( NSString *aFormat, ... )
 {
 	NSInteger		theCount = 0;
 	if( anItem == nil )
-		theCount =  self.everyTestGroup.count;
+		theCount =  (NSInteger)self.everyTestGroup.count;
 	else if( [anItem isKindOfClass:[TestGroup class]] )
-		theCount = [[anItem everyTest] count];
+		theCount = (NSInteger)[[anItem everyTest] count];
 	return theCount;
 }
 

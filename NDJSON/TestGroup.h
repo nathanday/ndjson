@@ -40,6 +40,7 @@ enum TestOperationState
 
 @property(retain)	NSString					* name;
 @property(readonly) enum TestOperationState		operationState;
+@property(assign,getter=isEnabled)	BOOL		enabled;
 
 /**
  Methods and protocals to override

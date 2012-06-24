@@ -28,6 +28,8 @@
 
 @implementation TestRemoteRequest
 
+- (NSString *)testDescription { return @"Test remote input using NSURLRequest"; }
+
 - (void)addName:(NSString *)aName URL:(NSURL *)aURL
 {
 	[self addTest:[RemoteRequest remoteRequestWithName:aName URL:aURL]];
@@ -79,7 +81,7 @@
 	NDJSONParser			* theJSONParser = [[NDJSONParser alloc] init];
 	NSURLRequest			* theURLRequest = [[NSURLRequest alloc] initWithURL:self.url];
 	[theJSON setURLRequest:theURLRequest];
-	self.lastResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
+	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
 
 	[theJSONParser release];

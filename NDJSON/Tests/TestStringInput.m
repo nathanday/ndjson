@@ -9,13 +9,7 @@
 #import "TestStringInput.h"
 #import "NDJSONParser.h"
 #import "TestProtocolBase.h"
-
-#define INTNUM(_NUM_) [NSNumber numberWithInteger:_NUM_]
-#define REALNUM(_NUM_) [NSNumber numberWithDouble:_NUM_]
-#define BOOLNUM(_NUM_) [NSNumber numberWithBool:_NUM_]
-#define NULLOBJ [NSNull null]
-#define ARRAY(...) [NSArray arrayWithObjects:__VA_ARGS__,nil]
-#define DICT(...) [NSDictionary dictionaryWithObjectsAndKeys:__VA_ARGS__,nil]
+#import "Utility.h"
 
 @interface TestStringInput ()
 - (void)addName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)expectedResult options:(NDJSONOptionFlags)anOptions;
@@ -53,6 +47,7 @@
 	[self addName:@"Float" jsonString:@"3.141592" expectedResult:REALNUM(3.141592) options:NDJSONOptionNone];
 	[self addName:@"Negative Integer" jsonString:@"-4" expectedResult:INTNUM(-4) options:NDJSONOptionNone];
 	[self addName:@"Negative Float" jsonString:@"-0.003" expectedResult:REALNUM(-0.003) options:NDJSONOptionNone];
+	[self addName:@"String" jsonString:@"\"String Value\"" expectedResult:@"String Value" options:NDJSONOptionNone];
 	[self addName:@"White Space" jsonString:@"\" \tsome text  \t with  white space in\n it    \"" expectedResult:@" \tsome text  \t with  white space in\n it    " options:NDJSONOptionNone];
 	[self addName:@"Escape" jsonString:@"\"Hello\\n\\t\\\"Nathan Day\\\"\"" expectedResult:@"Hello\n\t\"Nathan Day\"" options:NDJSONOptionNone];
 	[self addName:@"Escaped Forward Slashs in String" jsonString:@"\"http:\\/\\/rhtv.cdn.launchpad6.tv\\/thumbnails\\/small\\/100.png\"" expectedResult:@"http://rhtv.cdn.launchpad6.tv/thumbnails/small/100.png" options:NDJSONOptionNone];
@@ -128,7 +123,7 @@
 	NDJSON			* theJSON = [[NDJSON alloc] init];
 	NDJSONParser	* theJSONParser = [[NDJSONParser alloc] init];
 	[theJSON setJSONString:self.jsonString];
-	id				theResult = [theJSONParser objectForJSONParser:theJSON options:self.options error:&theError];
+	id				theResult = [theJSONParser objectForJSON:theJSON options:self.options error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
 	[theJSONParser release];

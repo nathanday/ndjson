@@ -45,6 +45,8 @@
 			<string>TestRemoteRequest</string>
 			<key>name</key>
 			<string>Remote Request Input</string>
+			<key>enabled</key>
+			<false/>
 		</dict>
 		<dict>
 			<key>class</key>
@@ -57,6 +59,12 @@
 			<string>TestNDJSONCoreData</string>
 			<key>name</key>
 			<string>CoreData Output</string>
+		</dict>
+		<dict>
+			<key>class</key>
+			<string>TestMechanismChange</string>
+			<key>name</key>
+			<string>Change of Parse Output method</string>
 		</dict>
 	</array>
 </dict>

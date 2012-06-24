@@ -63,7 +63,7 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 	NDJSON				* theJSON = [[NDJSON alloc] init];
 	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] initWithRootClass:rootClass rootCollectionClass:Nil];
 	[theJSON setJSONString:jsonSourceString];
-	self.lastResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionConvertKeysToMedialCapitals error:&theError];
+	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionConvertKeysToMedialCapitals error:&theError];
 	self.error = theError;
 	[theJSONParser release];
 	[theJSON release];

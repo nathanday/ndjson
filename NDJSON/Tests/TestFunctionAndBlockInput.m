@@ -40,6 +40,8 @@ NSInteger sourceFuction(uint8_t ** aBuffer, void * aContext );
 
 @implementation TestFunctionAndBlockInput
 
+- (NSString *)testDescription { return @"Test user supplied function or block to supply input, also happens to test fragmented input."; }
+
 - (void)addName:(NSString *)aName json:(NSString *)aJSON minBlockSize:(NSUInteger)aMinBlockSize maxBlockSize:(NSUInteger)aMaxBlockSize useBlock:(BOOL)aUseBlock
 {
 	[self addTest:[FragementedFuncInput fragementedInputWithName:aName json:aJSON minBlockSize:aMinBlockSize maxBlockSize:aMaxBlockSize useBlock:aUseBlock]];
@@ -96,7 +98,7 @@ NSInteger sourceFuction(uint8_t ** aBuffer, void * aContext );
 		[theJSON setSourceBlock:^(uint8_t ** aBuffer){return sourceFuction(aBuffer, inputFunctionSource);} encoding:NSUTF8StringEncoding];
 	else
 		[theJSON setSourceFunction:sourceFuction context:inputFunctionSource encoding:NSUTF8StringEncoding];
-	self.lastResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
+	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
 	[theJSON release];
 	[theJSONParser release];
@@ -124,18 +126,18 @@ NSInteger sourceFuction(uint8_t ** aBuffer, void * aContext );
 NSInteger sourceFuction(uint8_t ** aBuffer, void * aContext )
 {
 	InputFunctionSource		* self = (InputFunctionSource*)aContext;
-	NSInteger	theResult = 0;
+	NSUInteger	theResult = 0;
 	if( self->position < self->jsonLength )
 	{
 		theResult = self->maxBlockSize == self->minBlockSize
 						? self->minBlockSize
-						: (random() % (self->maxBlockSize-self->minBlockSize)) + self->minBlockSize;
+						: (((NSUInteger)random() % (self->maxBlockSize-self->minBlockSize)) + self->minBlockSize);
 		if( theResult + self->position >= self->jsonLength )
 			theResult = self->jsonLength - self->position;
 		*aBuffer = self->jsonStringBytes+self->position;
 		self->position += theResult;
 	}
-	return theResult;
+	return (NSInteger)theResult;
 }
 
 @end

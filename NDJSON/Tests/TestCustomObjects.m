@@ -14,6 +14,8 @@
 
 @implementation TestCustomObjects
 
+- (NSString *)testDescription { return @"Test of parsing to custom objects instead of property list objects."; }
+
 - (void)willLoad
 {
 	[TestCustomObjectsSimple addTestsToTestGroup:self];

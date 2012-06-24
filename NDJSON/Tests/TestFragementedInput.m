@@ -38,6 +38,8 @@
 
 @implementation TestFragementedInput
 
+- (NSString *)testDescription { return @"Test fragmented input, parsing small blocks of bytes when available"; }
+
 - (void)addName:(NSString *)aName json:(NSString *)aJSON minBlockSize:(NSUInteger)aMinBlockSize maxBlockSize:(NSUInteger)aMaxBlockSize
 {
 	[self addTest:[FragementedInput fragementedInputWithName:aName json:aJSON minBlockSize:aMinBlockSize maxBlockSize:aMaxBlockSize]];
@@ -87,7 +89,7 @@
 	NDJSON				* theJSON = [[NDJSON alloc] init];
 	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] init];
 	[theJSON setInputStream:[FragementedInputStream fragementedInputWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize]  encoding:NSUTF8StringEncoding];
-	self.lastResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
+	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
 	[theJSONParser release];
 	[theJSON release];
@@ -131,14 +133,14 @@
 	if( position < jsonLength )
 	{
 		theLen = maxBlockSize == minBlockSize
-								? minBlockSize
-								: (random() % (maxBlockSize-minBlockSize)) + minBlockSize;
-		if( theLen >= aBufferLength )
-			theLen = aBufferLength;
-		if( theLen + position >= jsonLength )
-			theLen = jsonLength - position;
+								? (NSInteger)minBlockSize
+								: (random() % (NSInteger)(maxBlockSize-minBlockSize)) + (NSInteger)minBlockSize;
+		if( theLen >= (NSInteger)aBufferLength )
+			theLen = (NSInteger)aBufferLength;
+		if( theLen + (NSInteger)position >= (NSInteger)jsonLength )
+			theLen = (NSInteger)jsonLength - (NSInteger)position;
 		memcpy( aBuffer, jsonStringBytes+position, theLen );
-		position += theLen;
+		position += (NSUInteger)theLen;
 	}
 	return theLen;
 }
@@ -150,7 +152,7 @@
 	{
 		*aLength = maxBlockSize == minBlockSize
 									? minBlockSize
-									: (random() % (maxBlockSize-minBlockSize)) + minBlockSize;
+									: ((NSUInteger)random() % (maxBlockSize-minBlockSize)) + minBlockSize;
 		if( *aLength + position >= jsonLength )
 			*aLength = jsonLength - position;
 		*aBuffer = jsonStringBytes+position;

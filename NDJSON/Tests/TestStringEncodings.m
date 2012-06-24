@@ -9,6 +9,7 @@
 #import "TestStringEncodings.h"
 #import "NDJSONParser.h"
 #import "TestProtocolBase.h"
+#import "Utility.h"
 
 @interface TestStringEncodings ()
 - (void)addName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)expectedResult encoding:(NSStringEncoding)encoding;
@@ -38,6 +39,17 @@
 	[self addTest:[TestEncoding testStringWithName:aName jsonString:aJSON expectedResult:aResult encoding:anEncoding]];
 }
 
+static id expectedResult()
+{
+	return DICT( @"A String", @"string",
+				INTNUM(42),@"integer",
+				REALNUM(3.1415),@"float",
+				BOOLNUM(true),@"boolean",
+				ARRAY(@"array",INTNUM(12)),@"array",
+				DICT(@"one",@"value1",INTNUM(2),@"value2"),@"object"
+				);
+}
+
 - (void)willLoad
 {
 	static NSStringEncoding		kEncodings[] = {
@@ -57,15 +69,8 @@
 		"UTF32", "UTF32BigEndian", "UTF32LittleEndian"
 	};
 	static NSString			* const kTestJSONString = @"{\"string\":\"A String\",\"integer\":42,\"float\":3.1415,\"boolean\":true,\"array\":[\"array\",12],\"object\":{\"value1\":\"one\",\"value2\":2}}";
-	NDJSON					* theJSON = [[NDJSON alloc] init];
-	NDJSONParser			* theJSONParser = [[NDJSONParser alloc] init];
-	[theJSON setJSONString:kTestJSONString];
-	id						theExptedResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:NULL];
-	NSParameterAssert(theExptedResult != nil);
-	[theJSONParser release];
 	for( NSUInteger i = 0; i < sizeof(kEncodings)/sizeof(*kEncodings); i++ )
-		[self addName:[NSString stringWithFormat:@"Encoding %s", kEncodingNames[i]] jsonString:kTestJSONString expectedResult:theExptedResult encoding:kEncodings[i]];
-	[theExptedResult release];
+		[self addName:[NSString stringWithFormat:@"Encoding %s", kEncodingNames[i]] jsonString:kTestJSONString expectedResult:expectedResult() encoding:kEncodings[i]];
 	[super willLoad];
 }
 
@@ -122,7 +127,7 @@
 	NDJSON			* theJSON = [[NDJSON alloc] init];
 	NDJSONParser	* theJSONParser = [[NDJSONParser alloc] init];
 	[theJSON setJSONData:self.jsonData encoding:self.stringEncoding];
-	id				theResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
+	id				theResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
 	[theJSONParser release];

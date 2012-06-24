@@ -155,9 +155,10 @@ static id popCurrentContainerForJSONParser( NDJSONParser * self );
 }
 
 #pragma mark - parsing methods
-- (id)objectForJSONParser:(NDJSON *)aParser options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
+- (id)objectForJSON:(NDJSON *)aParser options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
 {
 	id		theResult = nil;
+	id		theOriginalDelegate = aParser.delegate;
 	NSAssert( aParser != nil, @"nil JSON parser" );
 	aParser.delegate = self;
 	options.ignoreUnknownPropertyName = anOptions&NDJSONOptionIgnoreUnknownProperties ? YES : NO;
@@ -166,6 +167,7 @@ static id popCurrentContainerForJSONParser( NDJSONParser * self );
 	options.convertPrimativeJSONTypes = anOptions&NDJSONOptionCovertPrimitiveJSONTypes ? YES : NO;
 	if( [aParser parseWithOptions:anOptions] )
 		theResult = result;
+	aParser.delegate = theOriginalDelegate;
 	return theResult;
 }
 
@@ -314,7 +316,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 - (id)currentObject
 {
 	id				theResult = nil;
-	NSInteger		theIndex = containerStack.count;
+	NSInteger		theIndex = (NSInteger)containerStack.count;
 	while( theResult == nil && theIndex > 0 )
 	{
 		theIndex--;

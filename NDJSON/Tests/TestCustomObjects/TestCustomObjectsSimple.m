@@ -19,7 +19,7 @@
 @interface TestJSONClassChildB : NSObject
 
 @property(retain,nonatomic)	NSString	* name;
-@property(assign,nonatomic)	NSUInteger	integerValue;
+@property(assign,nonatomic)	NSInteger	integerValue;
 
 @end
 
@@ -86,7 +86,7 @@
 	NDJSON				* theJSON = [[NDJSON alloc] init];
 	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] initWithRootClass:rootClass rootCollectionClass:rootCollectionClass];
 	[theJSON setJSONString:jsonSourceString];
-	self.lastResult = [theJSONParser objectForJSONParser:theJSON options:NDJSONOptionNone error:&theError];
+	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
 	[theJSON release];
 	[theJSONParser release];
