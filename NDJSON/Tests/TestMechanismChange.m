@@ -11,6 +11,7 @@
 #import "TestProtocolBase.h"
 #import "Utility.h"
 #import "ChangeParseFromEventToPropertyList.h"
+#import "ChangeParseFromEventToCustom.h"
 
 @interface TestMechanismChange ()
 @end
@@ -35,9 +36,16 @@
 
 - (void)willLoad
 {
-	TestSubElement		* theTestSubElement = [[TestSubElement alloc] initWithClass:[ChangeParseFromEventToPropertyList class]];
-	[self addTest:theTestSubElement];
-	[theTestSubElement release];
+	TestSubElement	* theTestSubElements[] = {
+						[[TestSubElement alloc] initWithClass:[ChangeParseFromEventToPropertyList class]],
+						[[TestSubElement alloc] initWithClass:[ChangeParseFromEventToCustom class]]
+					};
+	for( NSUInteger i = 0; i < sizeof(theTestSubElements)/sizeof(*theTestSubElements); i++ )
+	{
+		[self addTest:theTestSubElements[i]];
+		[theTestSubElements[i] release], theTestSubElements[i] = nil;
+
+	}
 	[super willLoad];
 }
 

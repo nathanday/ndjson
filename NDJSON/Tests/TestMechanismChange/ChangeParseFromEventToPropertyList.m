@@ -34,7 +34,7 @@
 
 #pragma mark - NDJSONDelegate methods
 
-- (void)jsonParser:(NDJSON *)aParser foundKey:(NSString *)aValue
+- (void)json:(NDJSON *)aJSON foundKey:(NSString *)aValue
 {
 	if( [aValue isEqualToString:@"d"] )
 		self.nextValueForD = YES;
@@ -42,14 +42,14 @@
 	{
 		NDJSONParser	* theJSONParser = [[NDJSONParser alloc] init];
 		NSError			* theError = nil;
-		self.genValue = [theJSONParser objectForJSON:aParser options:NDJSONOptionStrict error:&theError];
+		self.genValue = [theJSONParser objectForJSON:aJSON options:NDJSONOptionStrict error:&theError];
 		[theJSONParser release];
 		if( self.genValue == nil )
 			@throw [NSException exceptionWithName:@"error" reason:@"nil result" userInfo:theError.userInfo];
 	}
 }
 
-- (void)jsonParser:(NDJSON *)aParser foundString:(NSString *)aValue
+- (void)json:(NDJSON *)aJSON foundString:(NSString *)aValue
 {
 	if( self.nextValueForD )
 	{

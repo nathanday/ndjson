@@ -487,7 +487,7 @@ enum JSONInputType
 	alreadyParsing = YES;
 	options.strictJSONOnly = NO;
 	if( delegateMethod.didStartDocument != NULL )
-		delegateMethod.didStartDocument( delegate, @selector(jsonParserDidStartDocument:), self );
+		delegateMethod.didStartDocument( delegate, @selector(jsonDidStartDocument:), self );
 
 	switch( inputType )
 	{
@@ -514,7 +514,7 @@ enum JSONInputType
 //		foundError( self, NDJSONTrailingGarbageError );
 
 	if( delegateMethod.didEndDocument != NULL )
-		delegateMethod.didEndDocument( delegate, @selector(jsonParserDidEndDocument:), self );
+		delegateMethod.didEndDocument( delegate, @selector(jsonDidEndDocument:), self );
 
 	if( theAlreadyParsing )
 		hasSkippedValueForCurrentKey = YES;
@@ -532,47 +532,47 @@ enum JSONInputType
 - (void)setUpRespondsTo
 {
 	NSObject		* theDelegate = self.delegate;
-	delegateMethod.didStartDocument = [theDelegate respondsToSelector:@selector(jsonParserDidStartDocument:)]
-										? [theDelegate methodForSelector:@selector(jsonParserDidStartDocument:)]
+	delegateMethod.didStartDocument = [theDelegate respondsToSelector:@selector(jsonDidStartDocument:)]
+										? [theDelegate methodForSelector:@selector(jsonDidStartDocument:)]
 										: NULL;
-	delegateMethod.didEndDocument = [theDelegate respondsToSelector:@selector(jsonParserDidEndDocument:)]
-										? [theDelegate methodForSelector:@selector(jsonParserDidEndDocument:)]
+	delegateMethod.didEndDocument = [theDelegate respondsToSelector:@selector(jsonDidEndDocument:)]
+										? [theDelegate methodForSelector:@selector(jsonDidEndDocument:)]
 										: NULL;
-	delegateMethod.didStartArray = [theDelegate respondsToSelector:@selector(jsonParserDidStartArray:)]
-										? [theDelegate methodForSelector:@selector(jsonParserDidStartArray:)]
+	delegateMethod.didStartArray = [theDelegate respondsToSelector:@selector(jsonDidStartArray:)]
+										? [theDelegate methodForSelector:@selector(jsonDidStartArray:)]
 										: NULL;
-	delegateMethod.didEndArray = [theDelegate respondsToSelector:@selector(jsonParserDidEndArray:)]
-										? [theDelegate methodForSelector:@selector(jsonParserDidEndArray:)]
+	delegateMethod.didEndArray = [theDelegate respondsToSelector:@selector(jsonDidEndArray:)]
+										? [theDelegate methodForSelector:@selector(jsonDidEndArray:)]
 										: NULL;
-	delegateMethod.didStartObject = [theDelegate respondsToSelector:@selector(jsonParserDidStartObject:)]
-										? [theDelegate methodForSelector:@selector(jsonParserDidStartObject:)]
+	delegateMethod.didStartObject = [theDelegate respondsToSelector:@selector(jsonDidStartObject:)]
+										? [theDelegate methodForSelector:@selector(jsonDidStartObject:)]
 										: NULL;
-	delegateMethod.didEndObject = [theDelegate respondsToSelector:@selector(jsonParserDidEndObject:)]
-										? [theDelegate methodForSelector:@selector(jsonParserDidEndObject:)]
+	delegateMethod.didEndObject = [theDelegate respondsToSelector:@selector(jsonDidEndObject:)]
+										? [theDelegate methodForSelector:@selector(jsonDidEndObject:)]
 										: NULL;
-	delegateMethod.shouldSkipValueForKey = [theDelegate respondsToSelector:@selector(jsonParser:shouldSkipValueForKey:)]
-										? [theDelegate methodForSelector:@selector(jsonParser:shouldSkipValueForKey:)]
+	delegateMethod.shouldSkipValueForKey = [theDelegate respondsToSelector:@selector(json:shouldSkipValueForKey:)]
+										? [theDelegate methodForSelector:@selector(json:shouldSkipValueForKey:)]
 										: NULL;
-	delegateMethod.foundKey = [theDelegate respondsToSelector:@selector(jsonParser:foundKey:)]
-										? [theDelegate methodForSelector:@selector(jsonParser:foundKey:)]
+	delegateMethod.foundKey = [theDelegate respondsToSelector:@selector(json:foundKey:)]
+										? [theDelegate methodForSelector:@selector(json:foundKey:)]
 										: NULL;
-	delegateMethod.foundString = [theDelegate respondsToSelector:@selector(jsonParser:foundString:)]
-										? [theDelegate methodForSelector:@selector(jsonParser:foundString:)]
+	delegateMethod.foundString = [theDelegate respondsToSelector:@selector(json:foundString:)]
+										? [theDelegate methodForSelector:@selector(json:foundString:)]
 										: NULL;
-	delegateMethod.foundInteger = [theDelegate respondsToSelector:@selector(jsonParser:foundInteger:)]
-										? [theDelegate methodForSelector:@selector(jsonParser:foundInteger:)]
+	delegateMethod.foundInteger = [theDelegate respondsToSelector:@selector(json:foundInteger:)]
+										? [theDelegate methodForSelector:@selector(json:foundInteger:)]
 										: NULL;
-	delegateMethod.foundFloat = [theDelegate respondsToSelector:@selector(jsonParser:foundFloat:)]
-										? [theDelegate methodForSelector:@selector(jsonParser:foundFloat:)]
+	delegateMethod.foundFloat = [theDelegate respondsToSelector:@selector(json:foundFloat:)]
+										? [theDelegate methodForSelector:@selector(json:foundFloat:)]
 										: NULL;
-	delegateMethod.foundBool = [theDelegate respondsToSelector:@selector(jsonParser:foundBool:)]
-										? [theDelegate methodForSelector:@selector(jsonParser:foundBool:)]
+	delegateMethod.foundBool = [theDelegate respondsToSelector:@selector(json:foundBool:)]
+										? [theDelegate methodForSelector:@selector(json:foundBool:)]
 										: NULL;
-	delegateMethod.foundNULL = [theDelegate respondsToSelector:@selector(jsonParserFoundNULL:)]
-										? [theDelegate methodForSelector:@selector(jsonParserFoundNULL:)]
+	delegateMethod.foundNULL = [theDelegate respondsToSelector:@selector(jsonFoundNULL:)]
+										? [theDelegate methodForSelector:@selector(jsonFoundNULL:)]
 										: NULL;
-	delegateMethod.foundError = [theDelegate respondsToSelector:@selector(jsonParser:error:)]
-										? [theDelegate methodForSelector:@selector(jsonParser:error:)]
+	delegateMethod.foundError = [theDelegate respondsToSelector:@selector(json:error:)]
+										? [theDelegate methodForSelector:@selector(json:error:)]
 										: NULL;
 }
 
@@ -830,7 +830,7 @@ BOOL parseURLRequest( NDJSON * self )
 	{
 		self->options.strictJSONOnly = NO;
 		if( self->delegateMethod.didStartDocument != NULL )
-			self->delegateMethod.didStartDocument( self->delegate, @selector(jsonParserDidStartDocument:), self );
+			self->delegateMethod.didStartDocument( self->delegate, @selector(jsonDidStartDocument:), self );
 		if( self->source.stream != nil )
 		{
 			CFTypeRef theHttpHeaderMessage = NULL;
@@ -847,7 +847,7 @@ BOOL parseURLRequest( NDJSON * self )
 		[self->source.stream close];
 
 		if( self->delegateMethod.didEndDocument != NULL )
-			self->delegateMethod.didEndDocument( self->delegate, @selector(jsonParserDidEndDocument:), self );
+			self->delegateMethod.didEndDocument( self->delegate, @selector(jsonDidEndDocument:), self );
 		
 		[self->currentKey release], self->currentKey = nil;
 	}
@@ -900,7 +900,7 @@ BOOL parseJSONArray( NDJSON * self )
 	BOOL				theEnd = NO;
 	NSUInteger			theCount = 0;
 	if( self->delegateMethod.didStartArray != NULL )
-		self->delegateMethod.didStartArray( self->delegate, @selector(jsonParserDidStartArray:), self );
+		self->delegateMethod.didStartArray( self->delegate, @selector(jsonDidStartArray:), self );
 	
 	if( nextCharIgnoreWhiteSpace(self) == ']' )
 		theEnd = YES;
@@ -935,7 +935,7 @@ BOOL parseJSONArray( NDJSON * self )
 	if( theEnd )
 	{
 		if( self->delegateMethod.didEndArray != NULL )
-			self->delegateMethod.didEndArray( self->delegate, @selector(jsonParserDidEndArray:), self );
+			self->delegateMethod.didEndArray( self->delegate, @selector(jsonDidEndArray:), self );
 	}
 errorOut:
 	return theResult;
@@ -948,7 +948,7 @@ BOOL parseJSONObject( NDJSON * self )
 	NSUInteger			theCount = 0;
 	
 	if( self->delegateMethod.didStartObject != NULL )
-		self->delegateMethod.didStartObject( self->delegate, @selector(jsonParserDidStartObject:), self );
+		self->delegateMethod.didStartObject( self->delegate, @selector(jsonDidStartObject:), self );
 	
 	if( nextCharIgnoreWhiteSpace(self) == '}' )
 		theEnd = YES;
@@ -964,10 +964,10 @@ BOOL parseJSONObject( NDJSON * self )
 				BOOL	theSkipParsingValueForCurrentKey = NO;
 
 				if( self->delegateMethod.foundKey != NULL )
-					self->delegateMethod.foundKey( self->delegate, @selector(jsonParser:foundKey:), self, self->currentKey );
+					self->delegateMethod.foundKey( self->delegate, @selector(json:foundKey:), self, self->currentKey );
 
 				if( self->delegateMethod.shouldSkipValueForKey != NULL )
-					theSkipParsingValueForCurrentKey = ((_ReturnBoolMethodIMP)self->delegateMethod.shouldSkipValueForKey)( self->delegate, @selector(jsonParser:shouldSkipValueForKey:), self, self->currentKey	);
+					theSkipParsingValueForCurrentKey = ((_ReturnBoolMethodIMP)self->delegateMethod.shouldSkipValueForKey)( self->delegate, @selector(json:shouldSkipValueForKey:), self, self->currentKey	);
 
 				if( theSkipParsingValueForCurrentKey )
 					theResult = skipNextValue(self);
@@ -1008,7 +1008,7 @@ BOOL parseJSONObject( NDJSON * self )
 	if( theEnd )
 	{
 		if( self->delegateMethod.didEndObject != NULL )
-			self->delegateMethod.didEndObject( self->delegate, @selector(jsonParserDidEndObject:), self );
+			self->delegateMethod.didEndObject( self->delegate, @selector(jsonDidEndObject:), self );
 	}
 	
 	return theResult;
@@ -1045,7 +1045,7 @@ BOOL parseJSONString( NDJSON * self )
 	{
 		NSString	* theValue = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:kNSStringEncodingFromCharacterWordSize[self->character.wordSize]];
 		if( self->delegateMethod.foundString != NULL )
-			self->delegateMethod.foundString( self->delegate, @selector(jsonParser:foundString:), self, theValue );
+			self->delegateMethod.foundString( self->delegate, @selector(json:foundString:), self, theValue );
 		[theValue release];
 	}
 	freeByte( &theBuffer );
@@ -1241,14 +1241,14 @@ BOOL parseJSONNumber( NDJSON * self )
 		if( theNegative )
 			theValue = -theValue;
 		if( self->delegateMethod.foundFloat != NULL )
-			self->delegateMethod.foundFloat( self->delegate, @selector(jsonParser:foundFloat:), self, theValue );
+			self->delegateMethod.foundFloat( self->delegate, @selector(json:foundFloat:), self, theValue );
 	}
 	else if( theDecimalPlaces > 0 )
 	{
 		if( theNegative )
 			theIntegerValue = -theIntegerValue;
 		if( self->delegateMethod.foundInteger != NULL )
-			self->delegateMethod.foundInteger( self->delegate, @selector(jsonParser:foundInteger:), self, theIntegerValue );
+			self->delegateMethod.foundInteger( self->delegate, @selector(json:foundInteger:), self, theIntegerValue );
 	}
 	else
 		foundError(self, NDJSONBadNumberError );
@@ -1265,7 +1265,7 @@ BOOL parseJSONTrue( NDJSON * self )
 	if( (theChar = nextChar(self)) == 'r' && (theChar = nextChar(self)) == 'u' && (theChar = nextChar(self)) == 'e' )
 	{
 		if( self->delegateMethod.foundBool != NULL )
-			self->delegateMethod.foundBool( self->delegate, @selector(jsonParser:foundBool:), self, YES );
+			self->delegateMethod.foundBool( self->delegate, @selector(json:foundBool:), self, YES );
 	}
 	else if( theChar == '\0' )
 		theResult = NO;
@@ -1281,7 +1281,7 @@ BOOL parseJSONFalse( NDJSON * self )
 	if( (theChar = nextChar(self)) == 'a' && (theChar = nextChar(self)) == 'l' && (theChar = nextChar(self)) == 's' && (theChar = nextChar(self)) == 'e' )
 	{
 		if( self->delegateMethod.foundBool != NULL )
-			self->delegateMethod.foundBool( self->delegate, @selector(jsonParser:foundBool:), self, NO );
+			self->delegateMethod.foundBool( self->delegate, @selector(json:foundBool:), self, NO );
 	}
 	else if( theChar == '\0' )
 		theResult = NO;
@@ -1297,7 +1297,7 @@ BOOL parseJSONNull( NDJSON * self )
 	if( (theChar = nextChar(self)) == 'u' && (theChar = nextChar(self)) == 'l' && (theChar = nextChar(self)) == 'l' )
 	{
 		if( self->delegateMethod.foundNULL != NULL )
-			self->delegateMethod.foundNULL( self->delegate, @selector(jsonParserFoundNULL:), self );
+			self->delegateMethod.foundNULL( self->delegate, @selector(jsonFoundNULL:), self );
 	}
 	else if( theChar == '\0' )
 		theResult = NO;
@@ -1400,7 +1400,7 @@ void foundError( NDJSON * self, NDJSONErrorCode aCode )
 		break;
 	}
 	if( self->delegateMethod.foundError != NULL )
-		self->delegateMethod.foundError( self->delegate, @selector(jsonParser:error:), self, [NSError errorWithDomain:NDJSONErrorDomain code:aCode userInfo:theUserInfo] );
+		self->delegateMethod.foundError( self->delegate, @selector(json:error:), self, [NSError errorWithDomain:NDJSONErrorDomain code:aCode userInfo:theUserInfo] );
 	[theUserInfo release];
 }
 

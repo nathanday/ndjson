@@ -41,6 +41,7 @@
 		D8D602501414FD92007F8A29 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8D6024E1414FD92007F8A29 /* MainMenu.xib */; };
 		D8D9D284158F590E00D385C5 /* TestMechanismChange.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D9D283158F590E00D385C5 /* TestMechanismChange.m */; };
 		D8E25AE714C0328C001B02DA /* TestUnicharEscapeSquence.m in Sources */ = {isa = PBXBuildFile; fileRef = D8E25AE614C0328C001B02DA /* TestUnicharEscapeSquence.m */; };
+		D8E36BB4159740B800F6610D /* ChangeParseFromEventToCustom.m in Sources */ = {isa = PBXBuildFile; fileRef = D8E36BB3159740B800F6610D /* ChangeParseFromEventToCustom.m */; };
 		D8E7E870157B4157002538D9 /* TestStringEncodings.m in Sources */ = {isa = PBXBuildFile; fileRef = D8E7E86F157B4157002538D9 /* TestStringEncodings.m */; };
 		D8F022641425EB3000504B84 /* TestFileInput.m in Sources */ = {isa = PBXBuildFile; fileRef = D8F022631425EB3000504B84 /* TestFileInput.m */; };
 		D8F022711425F44000504B84 /* file1.json in Resources */ = {isa = PBXBuildFile; fileRef = D8F0226B1425F44000504B84 /* file1.json */; };
@@ -115,6 +116,8 @@
 		D8D9D283158F590E00D385C5 /* TestMechanismChange.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestMechanismChange.m; sourceTree = "<group>"; };
 		D8E25AE514C0328C001B02DA /* TestUnicharEscapeSquence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestUnicharEscapeSquence.h; sourceTree = "<group>"; };
 		D8E25AE614C0328C001B02DA /* TestUnicharEscapeSquence.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestUnicharEscapeSquence.m; sourceTree = "<group>"; };
+		D8E36BB2159740B800F6610D /* ChangeParseFromEventToCustom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChangeParseFromEventToCustom.h; sourceTree = "<group>"; };
+		D8E36BB3159740B800F6610D /* ChangeParseFromEventToCustom.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChangeParseFromEventToCustom.m; sourceTree = "<group>"; };
 		D8E7E86E157B4157002538D9 /* TestStringEncodings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestStringEncodings.h; sourceTree = "<group>"; };
 		D8E7E86F157B4157002538D9 /* TestStringEncodings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestStringEncodings.m; sourceTree = "<group>"; };
 		D8F022621425EB3000504B84 /* TestFileInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestFileInput.h; sourceTree = "<group>"; };
@@ -169,6 +172,8 @@
 			children = (
 				D85D476E15954169006785EF /* ChangeParseFromEventToPropertyList.h */,
 				D85D476F15954169006785EF /* ChangeParseFromEventToPropertyList.m */,
+				D8E36BB2159740B800F6610D /* ChangeParseFromEventToCustom.h */,
+				D8E36BB3159740B800F6610D /* ChangeParseFromEventToCustom.m */,
 			);
 			path = TestMechanismChange;
 			sourceTree = "<group>";
@@ -416,6 +421,7 @@
 				D8D9D284158F590E00D385C5 /* TestMechanismChange.m in Sources */,
 				D85D476D159540F9006785EF /* Utility.m in Sources */,
 				D85D477015954169006785EF /* ChangeParseFromEventToPropertyList.m in Sources */,
+				D8E36BB4159740B800F6610D /* ChangeParseFromEventToCustom.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

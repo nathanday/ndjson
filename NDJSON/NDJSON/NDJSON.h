@@ -167,61 +167,61 @@ extern NSString	* const NDJSONErrorDomain;
 /**
 	Sent by the parser object to the delegate when it begins parsing a document.
  */
-- (void)jsonParserDidStartDocument:(NDJSON *)parser;
+- (void)jsonDidStartDocument:(NDJSON *)parser;
 /**
 	Sent by the parser object to the delegate when it has successfully completed parsing.
  */
-- (void)jsonParserDidEndDocument:(NDJSON *)parser;
+- (void)jsonDidEndDocument:(NDJSON *)parser;
 /**
  Sent by a parser object to its delegate when it encounters a the start of a JSON array.
  */
-- (void)jsonParserDidStartArray:(NDJSON *)parser;
+- (void)jsonDidStartArray:(NDJSON *)parser;
 /**
 	Sent by a parser object to its delegate when it encounters an the of a JSON array. 
  */
-- (void)jsonParserDidEndArray:(NDJSON *)parser;
+- (void)jsonDidEndArray:(NDJSON *)parser;
 /**
  Sent by a parser object to its delegate when it encounters a the start of a JSON object.
  */
-- (void)jsonParserDidStartObject:(NDJSON *)parser;
+- (void)jsonDidStartObject:(NDJSON *)parser;
 /**
 	Sent by a parser object to its delegate when it encounters an the of a JSON object. 
  */
-- (void)jsonParserDidEndObject:(NDJSON *)parser;
+- (void)jsonDidEndObject:(NDJSON *)parser;
 /**
 	Sent by a parser object to its delegate to give the delegate a chance to tell the parser to skip parsing the value for the current key.
  */
-- (BOOL)jsonParser:(NDJSON *)parser shouldSkipValueForKey:(NSString *)key;
+- (BOOL)json:(NDJSON *)parser shouldSkipValueForKey:(NSString *)key;
 /**
 	Sent by a parser object to its delegate when it encounters a JSON key in the JSON source.
  */
-- (void)jsonParser:(NDJSON *)parser foundKey:(NSString *)aValue;
+- (void)json:(NDJSON *)parser foundKey:(NSString *)aValue;
 /**
 	Sent by a parser object to its delegate when it encounters a JSON string in the JSON source.
  */
-- (void)jsonParser:(NDJSON *)parser foundString:(NSString *)aValue;
+- (void)json:(NDJSON *)parser foundString:(NSString *)aValue;
 /**
 	Sent by a parser object to its delegate when it encounters a JSON integer number in the JSON source.
 	An integer is a number in JSON which does not contain a decimal place
  */
-- (void)jsonParser:(NDJSON *)parser foundInteger:(NSInteger)aValue;
+- (void)json:(NDJSON *)parser foundInteger:(NSInteger)aValue;
 /**
 	Sent by a parser object to its delegate when it encounters a JSON float number in the JSON source.
 	An float is a number in JSON which contains a decimal place
  */
-- (void)jsonParser:(NDJSON *)parser foundFloat:(double)aValue;
+- (void)json:(NDJSON *)parser foundFloat:(double)aValue;
 /**
 	Sent by a parser object to its delegate when it encounters a JSON boolean in the JSON source.
  */
-- (void)jsonParser:(NDJSON *)parser foundBool:(BOOL)aValue;
+- (void)json:(NDJSON *)parser foundBool:(BOOL)aValue;
 /**
 	Sent by a parser object to its delegate when it encounters a JSON NULL in the JSON source.
  */
-- (void)jsonParserFoundNULL:(NDJSON *)parser;
+- (void)jsonFoundNULL:(NDJSON *)parser;
 /**
 	Sent by a parser object to its delegate when it encounters an error in the JSON source.
  */
-- (void)jsonParser:(NDJSON *)parser error:(NSError *)error;
+- (void)json:(NDJSON *)parser error:(NSError *)error;
 
 @end
 
