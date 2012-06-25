@@ -15,7 +15,7 @@
 				genValue;
 
 + (NDJSONOptionFlags)options { return NDJSONOptionNone; }
-+ (NSString *)name { return @"Change Parse from event to property list"; }
++ (NSString *)name { return @"Change Parse from Event to Property List"; }
 + (NSString *)jsonString { return @"{\"a\":{\"gen\":{\"stringValue\":\"alpha\",\"integerValue\":3,\"arrayValue\":[3.14,true,\"bob\"]},\"c\":{\"d\":\"delta\"}}}"; }
 
 + (id)expectedResult

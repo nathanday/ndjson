@@ -18,13 +18,14 @@
 
 @interface TestSubElement : TestProtocolBase
 {
+	Class						class;
 	NSString					* jsonString;
 	id							expectedResult;
 	NDJSONOptionFlags			options;
 }
 - (id)initWithClass:(Class)aClass;
-- (id)initWithName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)result options:(NDJSONOptionFlags)options;
 
+@property(readonly)			Class				class;
 @property(readonly)			NSString			* jsonString;
 @property(readonly)			id					expectedResult;
 @property(readonly)			NDJSONOptionFlags	options;
@@ -53,7 +54,8 @@
 
 @implementation TestSubElement
 
-@synthesize		expectedResult,
+@synthesize		class,
+				expectedResult,
 				jsonString,
 				options;
 
@@ -68,21 +70,19 @@
 
 - (id)initWithClass:(Class)aClass
 {
-	return [self initWithName:[aClass name] jsonString:[aClass jsonString] expectedResult:[aClass expectedResult] options:[aClass options]];
-}
-- (id)initWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult options:(NDJSONOptionFlags)anOptions
-{
-	if( (self = [super initWithName:aName]) != nil )
+	if( (self = [super initWithName:[aClass name]]) != nil )
 	{
-		jsonString = [aJSON copy];
-		expectedResult = [aResult retain];
-		options = anOptions;
+		class = [aClass retain];
+		jsonString = [[aClass jsonString] copy];
+		expectedResult = [[aClass expectedResult] retain];
+		options = [aClass options];
 	}
 	return self;
 }
 
 - (void)dealloc
 {
+	[class release];
 	[jsonString release];
 	[expectedResult release];
 	[super dealloc];
@@ -94,7 +94,7 @@
 {
 	NSError								* theError = nil;
 	NDJSON								* theJSON = [[NDJSON alloc] init];
-	ChangeParseFromEventToPropertyList	* theResult = [[ChangeParseFromEventToPropertyList alloc] init];
+	id									theResult = [[[self class] alloc] init];
 
 	[theJSON setJSONString:self.jsonString];
 	theJSON.delegate = theResult;

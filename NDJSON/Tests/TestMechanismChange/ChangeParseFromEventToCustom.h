@@ -1,5 +1,5 @@
 //
-//  ChangeParseFromEventToPropertyList.h
+//  ChangeParseFromEventToCustom.h
 //  NDJSON
 //
 //  Created by Nathan Day on 23/06/12.
@@ -11,10 +11,10 @@
 #import "NDJSONParser.h"
 #import "TestProtocolBase.h"
 
-@interface ChangeParseFromEventToPropertyList : TestProtocolBase<NDJSONDelegate>
+@interface ChangeParseFromEventToCustom : TestProtocolBase<NDJSONDelegate>
 
 @property(copy)			NSString		* dValue;
-@property(retain)		NSDictionary	* genValue;
+@property(retain)		id				genValue;
 @property(assign)		BOOL			nextValueForD;
 
 + (NDJSONOptionFlags)options;
