@@ -18,13 +18,15 @@
 + (NSString *)name { return @"Change Parse from Event to Property List"; }
 + (NSString *)jsonString { return @"{\"a\":{\"gen\":{\"stringValue\":\"alpha\",\"integerValue\":3,\"arrayValue\":[3.14,true,\"bob\"]},\"c\":{\"d\":\"delta\"}}}"; }
 
-+ (id)expectedResult
++ (id)expectedResultForManagedObjectContext:(NSManagedObjectContext *)aContext
 {
 	ChangeParseFromEventToPropertyList		* theChangeParseFromEventToPropertyList = [[ChangeParseFromEventToPropertyList alloc] init];
 	theChangeParseFromEventToPropertyList.dValue = @"delta";
 	theChangeParseFromEventToPropertyList.genValue = DICT(@"alpha",@"stringValue",INTNUM(3),@"integerValue",ARRAY(REALNUM(3.14),BOOLNUM(true),@"bob"),@"arrayValue");
 	return [theChangeParseFromEventToPropertyList autorelease];
 }
+
+- (id)initWithManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext { return [super init]; }
 
 - (BOOL)isEqual:(id)anObject
 {

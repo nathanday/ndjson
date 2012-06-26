@@ -15,9 +15,10 @@
 		D80F15441585C9CF002FB345 /* JSONRoot+Utilities.m in Sources */ = {isa = PBXBuildFile; fileRef = D80F15431585C9CF002FB345 /* JSONRoot+Utilities.m */; };
 		D811D26A1543088900D7FFBB /* TestCustomObjectsSimple.m in Sources */ = {isa = PBXBuildFile; fileRef = D811D2691543088900D7FFBB /* TestCustomObjectsSimple.m */; };
 		D81677041416265A0082CEB6 /* TestGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = D81677031416265A0082CEB6 /* TestGroup.m */; };
+		D81FC98F159988EA00C0C92F /* GenRoot.m in Sources */ = {isa = PBXBuildFile; fileRef = D81FC98E159988EA00C0C92F /* GenRoot.m */; };
+		D81FC992159988EA00C0C92F /* GenChild.m in Sources */ = {isa = PBXBuildFile; fileRef = D81FC991159988EA00C0C92F /* GenChild.m */; };
 		D827A0BC151E0D1A0071645A /* TestCustomObjects.m in Sources */ = {isa = PBXBuildFile; fileRef = D827A0BB151E0D1A0071645A /* TestCustomObjects.m */; };
 		D854B626141508000019D7E2 /* TestClassNames.plist in Resources */ = {isa = PBXBuildFile; fileRef = D854B625141508000019D7E2 /* TestClassNames.plist */; };
-		D85595541580E511000B5965 /* CoreDataController.m in Sources */ = {isa = PBXBuildFile; fileRef = D85595531580E511000B5965 /* CoreDataController.m */; };
 		D85D476D159540F9006785EF /* Utility.m in Sources */ = {isa = PBXBuildFile; fileRef = D85D476C159540F8006785EF /* Utility.m */; };
 		D85D477015954169006785EF /* ChangeParseFromEventToPropertyList.m in Sources */ = {isa = PBXBuildFile; fileRef = D85D476F15954169006785EF /* ChangeParseFromEventToPropertyList.m */; };
 		D8B6D9BF154D665200C483CF /* TestCustomObjectsExtended.m in Sources */ = {isa = PBXBuildFile; fileRef = D8B6D9BE154D665200C483CF /* TestCustomObjectsExtended.m */; };
@@ -30,7 +31,6 @@
 		D8CCFCFA1489B0390015DF1E /* TestStringInput.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CCFCF91489B0390015DF1E /* TestStringInput.m */; };
 		D8CCFD021489B06A0015DF1E /* NDJSON.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CCFCFD1489B06A0015DF1E /* NDJSON.m */; };
 		D8CCFD041489B06A0015DF1E /* NDJSONParser.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CCFD011489B06A0015DF1E /* NDJSONParser.m */; };
-		D8CF770715833D8600013A43 /* SampleCoreData.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D8CF770515833D8600013A43 /* SampleCoreData.xcdatamodeld */; };
 		D8CF77141583433000013A43 /* TestNDJSONCoreData.m in Sources */ = {isa = PBXBuildFile; fileRef = D8CF77131583433000013A43 /* TestNDJSONCoreData.m */; };
 		D8CF772E1583878100013A43 /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8CF772D1583878100013A43 /* CoreData.framework */; };
 		D8D6023A1414FD91007F8A29 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D8D602391414FD91007F8A29 /* Cocoa.framework */; };
@@ -42,6 +42,10 @@
 		D8D9D284158F590E00D385C5 /* TestMechanismChange.m in Sources */ = {isa = PBXBuildFile; fileRef = D8D9D283158F590E00D385C5 /* TestMechanismChange.m */; };
 		D8E25AE714C0328C001B02DA /* TestUnicharEscapeSquence.m in Sources */ = {isa = PBXBuildFile; fileRef = D8E25AE614C0328C001B02DA /* TestUnicharEscapeSquence.m */; };
 		D8E36BB4159740B800F6610D /* ChangeParseFromEventToCustom.m in Sources */ = {isa = PBXBuildFile; fileRef = D8E36BB3159740B800F6610D /* ChangeParseFromEventToCustom.m */; };
+		D8E3D11215995C9800AF1290 /* ChangeParseFromEventToCoreData.m in Sources */ = {isa = PBXBuildFile; fileRef = D8E306151598952500B444BA /* ChangeParseFromEventToCoreData.m */; };
+		D8E3D11915995D5D00AF1290 /* ChangeParseFromEventToCoreData.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D8E3D11315995D5D00AF1290 /* ChangeParseFromEventToCoreData.xcdatamodeld */; };
+		D8E3D11E15995DBA00AF1290 /* NDCoreDataController.m in Sources */ = {isa = PBXBuildFile; fileRef = D8E3D11D15995DBA00AF1290 /* NDCoreDataController.m */; };
+		D8E3D12115996ECE00AF1290 /* SampleCoreData.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D8E3D11F15996ECE00AF1290 /* SampleCoreData.xcdatamodeld */; };
 		D8E7E870157B4157002538D9 /* TestStringEncodings.m in Sources */ = {isa = PBXBuildFile; fileRef = D8E7E86F157B4157002538D9 /* TestStringEncodings.m */; };
 		D8F022641425EB3000504B84 /* TestFileInput.m in Sources */ = {isa = PBXBuildFile; fileRef = D8F022631425EB3000504B84 /* TestFileInput.m */; };
 		D8F022711425F44000504B84 /* file1.json in Resources */ = {isa = PBXBuildFile; fileRef = D8F0226B1425F44000504B84 /* file1.json */; };
@@ -71,11 +75,13 @@
 		D81676FE141624E30082CEB6 /* TestStringInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestStringInput.h; sourceTree = "<group>"; };
 		D81677021416265A0082CEB6 /* TestGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestGroup.h; sourceTree = "<group>"; };
 		D81677031416265A0082CEB6 /* TestGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestGroup.m; sourceTree = "<group>"; };
+		D81FC98D159988EA00C0C92F /* GenRoot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenRoot.h; sourceTree = "<group>"; };
+		D81FC98E159988EA00C0C92F /* GenRoot.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GenRoot.m; sourceTree = "<group>"; };
+		D81FC990159988EA00C0C92F /* GenChild.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenChild.h; sourceTree = "<group>"; };
+		D81FC991159988EA00C0C92F /* GenChild.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GenChild.m; sourceTree = "<group>"; };
 		D827A0BA151E0D1A0071645A /* TestCustomObjects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestCustomObjects.h; sourceTree = "<group>"; };
 		D827A0BB151E0D1A0071645A /* TestCustomObjects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestCustomObjects.m; sourceTree = "<group>"; };
 		D854B625141508000019D7E2 /* TestClassNames.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = TestClassNames.plist; sourceTree = "<group>"; };
-		D85595521580E511000B5965 /* CoreDataController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreDataController.h; sourceTree = "<group>"; };
-		D85595531580E511000B5965 /* CoreDataController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CoreDataController.m; sourceTree = "<group>"; };
 		D85D476B159540F8006785EF /* Utility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utility.h; sourceTree = "<group>"; };
 		D85D476C159540F8006785EF /* Utility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utility.m; sourceTree = "<group>"; };
 		D85D476E15954169006785EF /* ChangeParseFromEventToPropertyList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChangeParseFromEventToPropertyList.h; sourceTree = "<group>"; };
@@ -95,7 +101,6 @@
 		D8CCFCFD1489B06A0015DF1E /* NDJSON.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSON.m; sourceTree = "<group>"; usesTabs = 1; };
 		D8CCFD001489B06A0015DF1E /* NDJSONParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONParser.h; sourceTree = "<group>"; usesTabs = 1; };
 		D8CCFD011489B06A0015DF1E /* NDJSONParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONParser.m; sourceTree = "<group>"; usesTabs = 1; };
-		D8CF770615833D8600013A43 /* SampleCoreData.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = SampleCoreData.xcdatamodel; sourceTree = "<group>"; };
 		D8CF77121583433000013A43 /* TestNDJSONCoreData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestNDJSONCoreData.h; sourceTree = "<group>"; };
 		D8CF77131583433000013A43 /* TestNDJSONCoreData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestNDJSONCoreData.m; sourceTree = "<group>"; };
 		D8CF772D1583878100013A43 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
@@ -116,8 +121,14 @@
 		D8D9D283158F590E00D385C5 /* TestMechanismChange.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestMechanismChange.m; sourceTree = "<group>"; };
 		D8E25AE514C0328C001B02DA /* TestUnicharEscapeSquence.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestUnicharEscapeSquence.h; sourceTree = "<group>"; };
 		D8E25AE614C0328C001B02DA /* TestUnicharEscapeSquence.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestUnicharEscapeSquence.m; sourceTree = "<group>"; };
+		D8E306141598952500B444BA /* ChangeParseFromEventToCoreData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChangeParseFromEventToCoreData.h; sourceTree = "<group>"; };
+		D8E306151598952500B444BA /* ChangeParseFromEventToCoreData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChangeParseFromEventToCoreData.m; sourceTree = "<group>"; };
 		D8E36BB2159740B800F6610D /* ChangeParseFromEventToCustom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChangeParseFromEventToCustom.h; sourceTree = "<group>"; };
 		D8E36BB3159740B800F6610D /* ChangeParseFromEventToCustom.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChangeParseFromEventToCustom.m; sourceTree = "<group>"; };
+		D8E3D11415995D5D00AF1290 /* SampleCoreData.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = SampleCoreData.xcdatamodel; sourceTree = "<group>"; };
+		D8E3D11C15995DBA00AF1290 /* NDCoreDataController.h */ = {isa = PBXFileReference; fileEncoding = 4; name = NDCoreDataController.h; path = Tests/NDCoreDataController.h; sourceTree = "<group>"; };
+		D8E3D11D15995DBA00AF1290 /* NDCoreDataController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NDCoreDataController.m; path = Tests/NDCoreDataController.m; sourceTree = "<group>"; };
+		D8E3D12015996ECE00AF1290 /* SampleCoreData.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = SampleCoreData.xcdatamodel; sourceTree = "<group>"; };
 		D8E7E86E157B4157002538D9 /* TestStringEncodings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestStringEncodings.h; sourceTree = "<group>"; };
 		D8E7E86F157B4157002538D9 /* TestStringEncodings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestStringEncodings.m; sourceTree = "<group>"; };
 		D8F022621425EB3000504B84 /* TestFileInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestFileInput.h; sourceTree = "<group>"; };
@@ -150,9 +161,6 @@
 		D85595511580E511000B5965 /* TestCoreData */ = {
 			isa = PBXGroup;
 			children = (
-				D85595521580E511000B5965 /* CoreDataController.h */,
-				D85595531580E511000B5965 /* CoreDataController.m */,
-				D8CF770515833D8600013A43 /* SampleCoreData.xcdatamodeld */,
 				D80F15361585C96B002FB345 /* JSONChildAlpha.h */,
 				D80F15371585C96B002FB345 /* JSONChildAlpha.m */,
 				D80F15381585C96B002FB345 /* JSONChildBeta.h */,
@@ -163,6 +171,7 @@
 				D80F153D1585C96B002FB345 /* JSONRoot.m */,
 				D80F15421585C9CF002FB345 /* JSONRoot+Utilities.h */,
 				D80F15431585C9CF002FB345 /* JSONRoot+Utilities.m */,
+				D8E3D11F15996ECE00AF1290 /* SampleCoreData.xcdatamodeld */,
 			);
 			path = TestCoreData;
 			sourceTree = "<group>";
@@ -174,6 +183,13 @@
 				D85D476F15954169006785EF /* ChangeParseFromEventToPropertyList.m */,
 				D8E36BB2159740B800F6610D /* ChangeParseFromEventToCustom.h */,
 				D8E36BB3159740B800F6610D /* ChangeParseFromEventToCustom.m */,
+				D8E306141598952500B444BA /* ChangeParseFromEventToCoreData.h */,
+				D8E306151598952500B444BA /* ChangeParseFromEventToCoreData.m */,
+				D8E3D11315995D5D00AF1290 /* ChangeParseFromEventToCoreData.xcdatamodeld */,
+				D81FC990159988EA00C0C92F /* GenChild.h */,
+				D81FC991159988EA00C0C92F /* GenChild.m */,
+				D81FC98D159988EA00C0C92F /* GenRoot.h */,
+				D81FC98E159988EA00C0C92F /* GenRoot.m */,
 			);
 			path = TestMechanismChange;
 			sourceTree = "<group>";
@@ -229,6 +245,8 @@
 		D8D6023F1414FD91007F8A29 /* NDJSON */ = {
 			isa = PBXGroup;
 			children = (
+				D8E3D11C15995DBA00AF1290 /* NDCoreDataController.h */,
+				D8E3D11D15995DBA00AF1290 /* NDCoreDataController.m */,
 				D8D6024B1414FD91007F8A29 /* NDAppDelegate.h */,
 				D8D6024C1414FD91007F8A29 /* NDAppDelegate.m */,
 				D81677021416265A0082CEB6 /* TestGroup.h */,
@@ -408,8 +426,6 @@
 				D811D26A1543088900D7FFBB /* TestCustomObjectsSimple.m in Sources */,
 				D8B6D9BF154D665200C483CF /* TestCustomObjectsExtended.m in Sources */,
 				D8E7E870157B4157002538D9 /* TestStringEncodings.m in Sources */,
-				D85595541580E511000B5965 /* CoreDataController.m in Sources */,
-				D8CF770715833D8600013A43 /* SampleCoreData.xcdatamodeld in Sources */,
 				D8CF77141583433000013A43 /* TestNDJSONCoreData.m in Sources */,
 				D80F151A1585BE34002FB345 /* NSObject+TestUtilities.m in Sources */,
 				D80F153E1585C96B002FB345 /* JSONChildAlpha.m in Sources */,
@@ -422,6 +438,12 @@
 				D85D476D159540F9006785EF /* Utility.m in Sources */,
 				D85D477015954169006785EF /* ChangeParseFromEventToPropertyList.m in Sources */,
 				D8E36BB4159740B800F6610D /* ChangeParseFromEventToCustom.m in Sources */,
+				D8E3D11215995C9800AF1290 /* ChangeParseFromEventToCoreData.m in Sources */,
+				D8E3D11915995D5D00AF1290 /* ChangeParseFromEventToCoreData.xcdatamodeld in Sources */,
+				D8E3D11E15995DBA00AF1290 /* NDCoreDataController.m in Sources */,
+				D8E3D12115996ECE00AF1290 /* SampleCoreData.xcdatamodeld in Sources */,
+				D81FC98F159988EA00C0C92F /* GenRoot.m in Sources */,
+				D81FC992159988EA00C0C92F /* GenChild.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -468,7 +490,6 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -570,12 +591,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCVersionGroup section */
-		D8CF770515833D8600013A43 /* SampleCoreData.xcdatamodeld */ = {
+		D8E3D11315995D5D00AF1290 /* ChangeParseFromEventToCoreData.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
-				D8CF770615833D8600013A43 /* SampleCoreData.xcdatamodel */,
+				D8E3D11415995D5D00AF1290 /* SampleCoreData.xcdatamodel */,
 			);
-			currentVersion = D8CF770615833D8600013A43 /* SampleCoreData.xcdatamodel */;
+			currentVersion = D8E3D11415995D5D00AF1290 /* SampleCoreData.xcdatamodel */;
+			path = ChangeParseFromEventToCoreData.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+		D8E3D11F15996ECE00AF1290 /* SampleCoreData.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				D8E3D12015996ECE00AF1290 /* SampleCoreData.xcdatamodel */,
+			);
+			currentVersion = D8E3D12015996ECE00AF1290 /* SampleCoreData.xcdatamodel */;
 			path = SampleCoreData.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

@@ -9,15 +9,19 @@
 #import "TestNDJSONCoreData.h"
 #import "NDJSONParser.h"
 #import "TestProtocolBase.h"
-#import "CoreDataController.h"
+#import "JSONRoot.h"
+#import "JSONChildAlpha.h"
+#import "JSONChildBeta.h"
+#import "JSONChildGama.h"
+#import "NDCoreDataController.h"
 #import <CoreData/CoreData.h>
 
 @interface TestNDJSONCoreData ()
 {
-	CoreDataController			* coreDataController;
+	NDCoreDataController			* coreDataController;
 }
 
-@property(readonly,nonatomic)		CoreDataController			* coreDataController;
+@property(readonly,nonatomic)		NDCoreDataController			* coreDataController;
 
 - (id)creatExpectedValueInManagedObjectContext:(NSManagedObjectContext *)context;
 @end
@@ -39,10 +43,10 @@
 
 @implementation TestNDJSONCoreData
 
-- (CoreDataController *)coreDataController
+- (NDCoreDataController *)coreDataController
 {
 	if( coreDataController == nil )
-		coreDataController = [[CoreDataController alloc] initWithDataBaseName:@"SampleCoreData"];
+		coreDataController = [[NDCoreDataController alloc] initWithDataBaseName:@"SampleCoreData" location:[NSURL fileURLWithPath:NSTemporaryDirectory()] clean:YES];
 	return coreDataController;
 }
 

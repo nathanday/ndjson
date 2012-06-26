@@ -1,5 +1,5 @@
 /*
-	CoreDataController.h
+	NDCoreDataController.h
 	How High
 
 	Created by Nathan Day on 8/08/11.
@@ -8,21 +8,17 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
-#import "JSONRoot.h"
-#import "JSONChildAlpha.h"
-#import "JSONChildBeta.h"
-#import "JSONChildGama.h"
 
 extern NSString		* const kPersistentStoreCoordinatorCreationFailureNotification;
 
-@interface CoreDataController : NSObject
+@interface NDCoreDataController : NSObject
 
 @property(nonatomic, readonly)	NSManagedObjectContext			* managedObjectContext;
 @property(nonatomic, readonly)	NSPersistentStoreCoordinator	* persistentStoreCoordinator;
 @property(nonatomic, readonly)	NSString						* dataBaseName;
 @property(nonatomic, readonly)	NSURL							* dataBaseURL;
 
-- (id)initWithDataBaseName:(NSString *)name;
+- (id)initWithDataBaseName:(NSString *)name location:(NSURL *)location clean:(BOOL)flag;
 
 - (NSArray *)allEntriesNamed:(NSString *)name predicate:(NSPredicate *)predicate;
 - (void)removeAllEntriesNamed:(NSString *)name predicate:(NSPredicate *)predicate;

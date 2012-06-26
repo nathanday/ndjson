@@ -22,11 +22,11 @@ static const BOOL		kIgnoreUnknownPropertyNameDefaultValue = NO,
 						kConvertKeysToMedialCapitalDefaultValue = NO,
 						kRemoveIsAdjectiveDefaultValue = NO;
 
-NSString	* const NDJSONBadCollectionClassException = @"NDJSONBadCollectionClassException",
-			* const NDJSONUnrecongnisedPropertyNameException = @"NDJSONUnrecongnisedPropertyName",
-			* const NDJSONAttributeNameUserInfoKey = @"AttributeName",
-			* const NDJSONObjectUserInfoKey = @"Object",
-			* const NDJSONPropertyNameUserInfoKey = @"PropertyName";
+NSString		* const NDJSONBadCollectionClassException = @"NDJSONBadCollectionClassException",
+				* const NDJSONUnrecongnisedPropertyNameException = @"NDJSONUnrecongnisedPropertyName",
+				* const NDJSONAttributeNameUserInfoKey = @"AttributeName",
+				* const NDJSONObjectUserInfoKey = @"Object",
+				* const NDJSONPropertyNameUserInfoKey = @"PropertyName";
 
 /**
  functions used by NDJSONParser to build tree

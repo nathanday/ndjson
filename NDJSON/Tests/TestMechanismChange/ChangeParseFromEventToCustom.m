@@ -26,7 +26,7 @@
 + (NSString *)name { return @"Change Parse from event to Custom Object"; }
 + (NSString *)jsonString { return @"{\"a\":{\"gen\":{\"stringValue\":\"alpha\",\"integerValue\":3,\"arrayValue\":[3.14,true,\"bob\"]},\"c\":{\"d\":\"delta\"}}}"; }
 
-+ (id)expectedResult
++ (id)expectedResultForManagedObjectContext:(NSManagedObjectContext *)aContext
 {
 	ChangeParseFromEventToCustom		* theChangeParseFromEventToCustom = [[ChangeParseFromEventToCustom alloc] init];
 	GenObject							* theGenObject = [[GenObject alloc] init];
@@ -38,6 +38,8 @@
 	[theGenObject release];
 	return [theChangeParseFromEventToCustom autorelease];
 }
+
+- (id)initWithManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext { return [super init]; }
 
 - (BOOL)isEqual:(id)anObject
 {

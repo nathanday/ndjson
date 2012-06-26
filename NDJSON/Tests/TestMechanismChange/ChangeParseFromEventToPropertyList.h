@@ -20,7 +20,7 @@
 + (NDJSONOptionFlags)options;
 + (NSString *)name;
 + (NSString *)jsonString;
-+ (id)expectedResult;
++ (id)expectedResultForManagedObjectContext:(NSManagedObjectContext *)context;
 
 @end
 

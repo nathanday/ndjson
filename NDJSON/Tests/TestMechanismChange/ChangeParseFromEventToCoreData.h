@@ -1,5 +1,5 @@
 //
-//  ChangeParseFromEventToCustom.h
+//  ChangeParseFromEventToCoreData.h
 //  NDJSON
 //
 //  Created by Nathan Day on 23/06/12.
@@ -11,16 +11,19 @@
 #import "NDJSONParser.h"
 #import "TestProtocolBase.h"
 
-@interface ChangeParseFromEventToCustom : TestProtocolBase<NDJSONDelegate>
+@interface ChangeParseFromEventToCoreData : TestProtocolBase<NDJSONDelegate>
 
-@property(copy)			NSString		* dValue;
-@property(retain)		id				genValue;
-@property(assign)		BOOL			nextValueForD;
+@property(copy)			NSString				* dValue;
+@property(retain)		id						genValue;
+@property(assign)		BOOL					nextValueForD;
+@property(readonly)		NSManagedObjectContext	* managedObjectContext;
 
 + (NDJSONOptionFlags)options;
 + (NSString *)name;
 + (NSString *)jsonString;
 + (id)expectedResultForManagedObjectContext:(NSManagedObjectContext *)context;
+
+- (id)initWithManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext;
 
 @end
 

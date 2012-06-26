@@ -649,12 +649,12 @@ static uint32_t currentChar( NDJSON * self )
 	if( !self->complete )
 	{
 #ifdef NDJSONSupportUTF8Only
-		theResult = ((uint8_t*)self->bytes)[self->position];
+		theResult = self->bytes[self->position];
 #else
 		switch( self->character.wordSize )
 		{
 		case kCharacterWord8:
-			theResult = ((uint8_t*)self->bytes)[self->position];
+			theResult = self->bytes[self->position];
 			break;
 		case kCharacterWord16:
 			theResult = ((uint16_t*)self->bytes)[self->position];
@@ -1440,7 +1440,7 @@ BOOL appendBytes( struct NDBytesBuffer * aBuffer, uint32_t aByte, enum Character
 	if( theResult )
 	{
 #ifdef NDJSONSupportUTF8Only
-		((uint8_t*)aBuffer->bytes)[aBuffer->length] = (uint8_t)aByte;
+		aBuffer->bytes[aBuffer->length] = (uint8_t)aByte;
 		aBuffer->length++;
 #else
 		memcpy( aBuffer->bytes+aBuffer->length, &aByte, 1<<aWordSize );
