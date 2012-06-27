@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model name="" userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1480" systemVersion="12A256" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
+    <entity name="ChildAlpha" representedClassName="JSONChildAlpha" syncable="YES">
+        <attribute name="booleanAlphaValue" optional="YES" attributeType="Boolean" syncable="YES"/>
+        <attribute name="stringAlphaValue" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="parent" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="Root" inverseName="alphaObject" inverseEntity="Root" syncable="YES"/>
+    </entity>
+    <entity name="ChildBeta" representedClassName="JSONChildBeta" syncable="YES">
+        <attribute name="floatBetaValue" optional="YES" attributeType="Float" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="stringBetaValue" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="parent" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="Root" inverseName="betaObject" inverseEntity="Root" syncable="YES"/>
+        <relationship name="subChildC" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="ChildGama" inverseName="parent" inverseEntity="ChildGama" syncable="YES"/>
+    </entity>
+    <entity name="ChildGama" representedClassName="JSONChildGama" syncable="YES">
+        <attribute name="stringGamaValue" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="parent" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="ChildBeta" inverseName="subChildC" inverseEntity="ChildBeta" syncable="YES"/>
+    </entity>
+    <entity name="Root" representedClassName="JSONRoot" syncable="YES">
+        <attribute name="integerValue" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <attribute name="stringValue" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="alphaObject" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="ChildAlpha" inverseName="parent" inverseEntity="ChildAlpha" syncable="YES"/>
+        <relationship name="betaObject" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ChildBeta" inverseName="parent" inverseEntity="ChildBeta" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="ChildAlpha" positionX="160" positionY="192" width="128" height="90"/>
+        <element name="ChildBeta" positionX="160" positionY="192" width="128" height="105"/>
+        <element name="ChildGama" positionX="160" positionY="192" width="128" height="75"/>
+        <element name="Root" positionX="160" positionY="192" width="128" height="105"/>
+    </elements>
+</model>

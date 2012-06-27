@@ -90,34 +90,6 @@ extern NSString	* const NDJSONErrorDomain;
 - (id)initWithDelegate:(id<NDJSONDelegate>)delegate;
 
 /**
- equivelent to `-[NDJSON setJSONString:error:]` and `-[NDJSON parseWithOptions:]`
- */
-- (BOOL)parseJSONString:(NSString *)string options:(NDJSONOptionFlags)options error:(NSError **)error;
-/**
- equivelent to `-[NDJSON setJSONData:error:]` and `-[NDJSON parseWithOptions:]`
- */
-- (BOOL)parseJSONData:(NSData *)data options:(NDJSONOptionFlags)options error:(NSError **)error;
-/**
-	equivelent to `-[NDJSON setContentsOfFile:error:]` and `-[NDJSON parseWithOptions:]`
- */
-- (BOOL)parseContentsOfFile:(NSString *)path encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
-/**
-	equivelent to `-[NDJSON setContentsOfURL:error:]` and `-[NDJSON parseWithOptions:]`
- */
-- (BOOL)parseContentsOfURL:(NSURL *)url encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
-/**
-	equivelent to `-[NDJSON setURLRequest:error:]` and `-[NDJSON parseWithOptions:]`
-	Important: URLRequests are not parsed asyncronisly, see `-[NDJSON parseWithOptions:]`.
- */
-- (BOOL)parseURLRequest:(NSURLRequest *)urlRequest options:(NDJSONOptionFlags)options error:(NSError **)error;
-/**
-	equivelent to `-[NDJSON parseInputStream:error:]` and `-[NDJSON parseWithOptions:]`
- */
-- (BOOL)parseInputStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
-
-- (BOOL)parseSourceFunction:(NDJSONDataStreamProc)function context:(void*)context encoding:(NSStringEncoding)encoding options:(NDJSONOptionFlags)options error:(NSError **)error;
-
-/**
  set a JSON string to parse
  */
 - (BOOL)setJSONString:(NSString *)string;

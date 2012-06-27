@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model name="" userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1480" systemVersion="12A248" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
+    <entity name="GenChild" representedClassName="GenChild" syncable="YES">
+        <attribute name="integerValue" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <relationship name="parent" optional="YES" minCount="1" maxCount="1" deletionRule="Nullify" destinationEntity="GenRoot" inverseName="arrayValue" inverseEntity="GenRoot" syncable="YES"/>
+    </entity>
+    <entity name="GenRoot" representedClassName="GenRoot" syncable="YES">
+        <attribute name="integerValue" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <attribute name="stringValue" optional="YES" attributeType="String" syncable="YES"/>
+        <relationship name="arrayValue" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="GenChild" inverseName="parent" inverseEntity="GenChild" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="GenChild" positionX="0" positionY="0" width="0" height="0"/>
+        <element name="GenRoot" positionX="0" positionY="0" width="0" height="0"/>
+    </elements>
+</model>

@@ -288,36 +288,6 @@ enum JSONInputType
 }
 
 #pragma mark - parsing methods
-
-- (BOOL)parseJSONString:(NSString *)aString options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
-{
-	return [self setJSONData:[aString dataUsingEncoding:NSUTF8StringEncoding] encoding:NSUTF8StringEncoding] && [self parseWithOptions:anOptions];
-}
-- (BOOL)parseJSONData:(NSData *)aData options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
-{
-	return [self setJSONData:aData encoding:NSUTF8StringEncoding] && [self parseWithOptions:anOptions];
-}
-- (BOOL)parseContentsOfFile:(NSString *)aPath encoding:(NSStringEncoding)anEncoding options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
-{
-	return [self setContentsOfFile:aPath encoding:anEncoding] && [self parseWithOptions:anOptions];
-}
-- (BOOL)parseContentsOfURL:(NSURL *)aURL encoding:(NSStringEncoding)anEncoding options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
-{
-	return [self setContentsOfURL:aURL encoding:anEncoding] && [self parseWithOptions:anOptions];
-}
-- (BOOL)parseURLRequest:(NSURLRequest *)aURLRequest options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
-{
-	return [self setURLRequest:aURLRequest] && [self parseWithOptions:anOptions];
-}
-- (BOOL)parseInputStream:(NSInputStream *)aStream encoding:(NSStringEncoding)anEncoding options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
-{
-	return [self setInputStream:aStream encoding:anEncoding] && [self parseWithOptions:anOptions];
-}
-- (BOOL)parseSourceFunction:(NDJSONDataStreamProc)aFunction context:(void*)aContext encoding:(NSStringEncoding)anEncoding options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
-{
-	return [self setSourceFunction:aFunction context:aContext encoding:anEncoding] && [self parseWithOptions:anOptions];
-}
-
 - (BOOL)setJSONString:(NSString *)aString
 {
 #ifdef NDJSONSupportUTF8Only
@@ -514,9 +484,6 @@ enum JSONInputType
 		NSCAssert(NO, @"Input type not set" );
 		break;
 	}
-
-//	if( !complete && theResult && !theAlreadyParsing )
-//		foundError( self, NDJSONTrailingGarbageError );
 
 	if( delegateMethod.didEndDocument != NULL )
 		delegateMethod.didEndDocument( delegate, @selector(jsonDidEndDocument:), self );
