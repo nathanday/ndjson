@@ -13,3 +13,8 @@
 - (BOOL)isReallyEqual:(id)obj;
 
 @end
+
+
+@interface NSSet (TestUtilities)
+
+@end

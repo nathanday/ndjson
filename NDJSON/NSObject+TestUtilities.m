@@ -13,3 +13,30 @@
 - (BOOL)isReallyEqual:(id)obj { return [self isEqual:obj]; }
 
 @end
+
+@implementation NSSet (TestUtilities)
+
+- (BOOL)isReallyEqual:(id)obj
+{
+	BOOL	theResult = [obj isKindOfClass:[NSSet class]] && [obj count] == [self count];
+	if( theResult == YES )
+	{
+		for( id theOuter in self )
+		{
+			theResult = NO;
+			for( id theInner in obj )
+			{
+				if( [theOuter isReallyEqual:theInner] )
+				{
+					theResult = YES;
+					break;
+				}
+			}
+			if( theResult == NO )
+				break;
+		}
+	}
+	return theResult;
+}
+
+@end

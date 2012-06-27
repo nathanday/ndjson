@@ -23,20 +23,21 @@
 
 @property(readonly,nonatomic)		NDCoreDataController			* coreDataController;
 
-- (id)creatExpectedValueInManagedObjectContext:(NSManagedObjectContext *)context;
+- (id)creatExpectedOneValueInCoreDataController:(NDCoreDataController *)coreDataController;
+- (id)creatExpectedTwoValueInCoreDataController:(NDCoreDataController *)aCoreDataController;
 @end
 
 @interface TestCoreDataItem : TestProtocolBase
 {
-	NSPersistentStoreCoordinator	* persistentStoreCoordinator;
+	NDCoreDataController				* coreDataController;
 	NSString						* jsonString;
 	id								expectedResult;
 }
-+ (id)testStringWithName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)expectedResult inPersistentStoreCoordinator:(NSPersistentStoreCoordinator *)persistentStoreCoordinator;
-- (id)initWithName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)result inPersistentStoreCoordinator:(NSPersistentStoreCoordinator *)persistentStoreCoordinator;
++ (id)testStringWithName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)expectedResult inCoreDataController:(NDCoreDataController *)coreDataController;
+- (id)initWithName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)result inCoreDataController:(NDCoreDataController *)coreDataController;
 
 @property(readonly)		NSManagedObjectContext		* managedObjectContext;
-@property(readonly)	NSPersistentStoreCoordinator	* persistentStoreCoordinator;
+@property(readonly)		NDCoreDataController		* coreDataController;
 @property(readonly)			NSString				* jsonString;
 @property(readonly)			id						expectedResult;
 @end
@@ -53,17 +54,17 @@
 - (NSString *)testDescription { return @"Test input with different string encodings"; }
 
 
-- (id)creatExpectedValueInManagedObjectContext:(NSManagedObjectContext *)aContext
+- (id)creatExpectedOneValueInCoreDataController:(NDCoreDataController *)aCoreDataController
 {
-	JSONRoot		* theResult = [NSEntityDescription insertNewObjectForEntityForName:@"Root" inManagedObjectContext:aContext];
-	JSONChildAlpha	* theChildA = [NSEntityDescription insertNewObjectForEntityForName:@"ChildAlpha" inManagedObjectContext:aContext];
+	JSONRoot		* theResult = [NSEntityDescription insertNewObjectForEntityForName:@"Root" inManagedObjectContext:aCoreDataController.managedObjectContext];
+	JSONChildAlpha	* theChildA = [NSEntityDescription insertNewObjectForEntityForName:@"ChildAlpha" inManagedObjectContext:aCoreDataController.managedObjectContext];
 	JSONChildBeta	* theChildB[] = {
-		[NSEntityDescription insertNewObjectForEntityForName:@"ChildBeta" inManagedObjectContext:aContext],
-		[NSEntityDescription insertNewObjectForEntityForName:@"ChildBeta" inManagedObjectContext:aContext]
+		[NSEntityDescription insertNewObjectForEntityForName:@"ChildBeta" inManagedObjectContext:aCoreDataController.managedObjectContext],
+		[NSEntityDescription insertNewObjectForEntityForName:@"ChildBeta" inManagedObjectContext:aCoreDataController.managedObjectContext]
 	};
 	JSONChildGama	* theChildC[] = {
-		[NSEntityDescription insertNewObjectForEntityForName:@"ChildGama" inManagedObjectContext:aContext],
-		[NSEntityDescription insertNewObjectForEntityForName:@"ChildGama" inManagedObjectContext:aContext]
+		[NSEntityDescription insertNewObjectForEntityForName:@"ChildGama" inManagedObjectContext:aCoreDataController.managedObjectContext],
+		[NSEntityDescription insertNewObjectForEntityForName:@"ChildGama" inManagedObjectContext:aCoreDataController.managedObjectContext]
 	};
 	NSMutableSet	* theChildren = [[NSMutableSet alloc] initWithObjects:theChildB count:sizeof(theChildB)/sizeof(*theChildB)];
 
@@ -90,16 +91,61 @@
 
 	NSError			* theError = nil;
 	
-	if( ![aContext save:&theError] )
+	if( ![aCoreDataController.managedObjectContext save:&theError] )
 		NSLog( @"Error: %@", theError );
 
 	return theResult;
 }
 
+- (id)creatExpectedTwoValueInCoreDataController:(NDCoreDataController *)aCoreDataController
+{
+	JSONRoot		* theResult = [NSEntityDescription insertNewObjectForEntityForName:@"Root" inManagedObjectContext:aCoreDataController.managedObjectContext];
+	JSONChildAlpha	* theChildA = [NSEntityDescription insertNewObjectForEntityForName:@"ChildAlpha" inManagedObjectContext:aCoreDataController.managedObjectContext];
+	JSONChildBeta	* theChildB[] = {
+		[NSEntityDescription insertNewObjectForEntityForName:@"ChildBeta" inManagedObjectContext:aCoreDataController.managedObjectContext],
+		[NSEntityDescription insertNewObjectForEntityForName:@"ChildBeta" inManagedObjectContext:aCoreDataController.managedObjectContext]
+	};
+	JSONChildGama	* theChildC[] = {
+		[NSEntityDescription insertNewObjectForEntityForName:@"ChildGama" inManagedObjectContext:aCoreDataController.managedObjectContext],
+		[NSEntityDescription insertNewObjectForEntityForName:@"ChildGama" inManagedObjectContext:aCoreDataController.managedObjectContext]
+	};
+	NSMutableSet	* theChildren = [[NSMutableSet alloc] initWithObjects:theChildB count:sizeof(theChildB)/sizeof(*theChildB)];
+	
+	theResult.stringValue = @"Root String Value 2";
+	theResult.integerValue = 45;
+	[theResult setAlphaObject:theChildA];
+	[theResult setBetaObject:theChildren];
+	[theChildren release];
+	
+	theChildA.stringAlphaValue = @"String Delta Value";
+	theChildA.booleanAlphaValue = true;
+	
+	theChildB[0].stringBetaValue = @"String Sigma Value One";
+	theChildB[0].floatBetaValue = 3.14;
+	theChildB[0].subChildC = theChildC[0];
+	
+	theChildC[0].stringGamaValue = @"String Epsilon Value A";
+	
+	theChildB[1].stringBetaValue = @"String Sigma Value Two";
+	theChildB[1].floatBetaValue = 2.71;
+	theChildB[1].subChildC = theChildC[1];
+	
+	theChildC[1].stringGamaValue = @"String Epsilon Value B";
+	
+	NSError			* theError = nil;
+	
+	if( ![aCoreDataController.managedObjectContext save:&theError] )
+		NSLog( @"Error: %@", theError );
+	
+	return [NSSet setWithObjects:[self creatExpectedOneValueInCoreDataController:aCoreDataController], theResult, nil];
+}
+
 - (void)willLoad
 {
-	static NSString			* const kTestJSONString = @"{\"stringValue\":\"Root String Value\",\"integerValue\":42,\"alphaObject\":{\"stringAlphaValue\":\"String Alpha Value\",\"booleanAlphaValue\":true},\"betaObject\":[{\"stringBetaValue\":\"String Beta Value One\",\"floatBetaValue\":3.14,\"subChildC\":{\"stringGamaValue\":\"String Gama Value A\"}},{\"stringBetaValue\":\"String Beta Value Two\",\"floatBetaValue\":2.71,\"subChildC\":{\"stringGamaValue\":\"String Gama Value B\"}}]}";
-	[self addTest:[TestCoreDataItem testStringWithName:@"Core Data" jsonString:kTestJSONString expectedResult:[self creatExpectedValueInManagedObjectContext:self.coreDataController.managedObjectContext] inPersistentStoreCoordinator:self.coreDataController.persistentStoreCoordinator]];
+	static NSString		* const kTestJSONString1 = @"{\"stringValue\":\"Root String Value\",\"integerValue\":42,\"alphaObject\":{\"stringAlphaValue\":\"String Alpha Value\",\"booleanAlphaValue\":true},\"betaObject\":[{\"stringBetaValue\":\"String Beta Value One\",\"floatBetaValue\":3.14,\"subChildC\":{\"stringGamaValue\":\"String Gama Value A\"}},{\"stringBetaValue\":\"String Beta Value Two\",\"floatBetaValue\":2.71,\"subChildC\":{\"stringGamaValue\":\"String Gama Value B\"}}]}",
+						* const kTestJSONString2 = @"[{\"stringValue\":\"Root String Value\",\"integerValue\":42,\"alphaObject\":{\"stringAlphaValue\":\"String Alpha Value\",\"booleanAlphaValue\":true},\"betaObject\":[{\"stringBetaValue\":\"String Beta Value One\",\"floatBetaValue\":3.14,\"subChildC\":{\"stringGamaValue\":\"String Gama Value A\"}},{\"stringBetaValue\":\"String Beta Value Two\",\"floatBetaValue\":2.71,\"subChildC\":{\"stringGamaValue\":\"String Gama Value B\"}}]},{\"stringValue\":\"Root String Value 2\",\"integerValue\":45,\"alphaObject\":{\"stringAlphaValue\":\"String Delta Value\",\"booleanAlphaValue\":true},\"betaObject\":[{\"stringBetaValue\":\"String Sigma Value One\",\"floatBetaValue\":3.14,\"subChildC\":{\"stringGamaValue\":\"String Epsilon Value A\"}},{\"stringBetaValue\":\"String Sigma Value Two\",\"floatBetaValue\":2.71,\"subChildC\":{\"stringGamaValue\":\"String Epsilon Value B\"}}]}]";
+	[self addTest:[TestCoreDataItem testStringWithName:@"Core Data with Object Root" jsonString:kTestJSONString1 expectedResult:[self creatExpectedOneValueInCoreDataController:self.coreDataController] inCoreDataController:self.coreDataController]];
+	[self addTest:[TestCoreDataItem testStringWithName:@"Core Data with Array Root" jsonString:kTestJSONString2 expectedResult:[self creatExpectedTwoValueInCoreDataController:self.coreDataController] inCoreDataController:self.coreDataController]];
 	[super willLoad];
 }
 
@@ -110,23 +156,13 @@
 @synthesize		expectedResult,
 				jsonString;
 
-@synthesize		persistentStoreCoordinator;
+@synthesize		coreDataController;
 
 #pragma mark - manually implemented properties
 
 - (NSManagedObjectContext *)managedObjectContext
 {
-	static NSString				* const kManagedObjectContextKey = @"NDJSONManagedObjectContext";
-	NSManagedObjectContext		* theResult = [[[NSThread currentThread] threadDictionary] objectForKey:kManagedObjectContextKey];
-
-	if( theResult == nil )
-	{
-		theResult = [[NSManagedObjectContext alloc] init];
-		[theResult setPersistentStoreCoordinator:self.persistentStoreCoordinator];
-		[[[NSThread currentThread] threadDictionary] setObject:theResult forKey:kManagedObjectContextKey];
-		[theResult release];
-	}
-	return theResult;
+	return self.coreDataController.managedObjectContext;
 }
 
 
@@ -137,17 +173,17 @@
 
 #pragma mark - creation and destruction
 
-+ (id)testStringWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult inPersistentStoreCoordinator:(NSPersistentStoreCoordinator *)aPersistentStoreCoordinator
++ (id)testStringWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult inCoreDataController:(NDCoreDataController *)aCoreDataController
 {
-	return [[[self alloc] initWithName:aName jsonString:aJSON expectedResult:aResult inPersistentStoreCoordinator:aPersistentStoreCoordinator] autorelease];
+	return [[[self alloc] initWithName:aName jsonString:aJSON expectedResult:aResult inCoreDataController:aCoreDataController] autorelease];
 }
-- (id)initWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult inPersistentStoreCoordinator:(NSPersistentStoreCoordinator *)aPersistentStoreCoordinator
+- (id)initWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult inCoreDataController:(NDCoreDataController *)aCoreDataController
 {
 	if( (self = [super initWithName:aName]) != nil )
 	{
 		jsonString = [aJSON retain];
 		expectedResult = [aResult retain];
-		persistentStoreCoordinator = [aPersistentStoreCoordinator retain];
+		coreDataController = [aCoreDataController retain];
 	}
 	return self;
 }
