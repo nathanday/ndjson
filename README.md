@@ -1,7 +1,7 @@
 # NDJSON
 
 ##About
-**NDJSON** is a JSON parser written in Objective-C. It support four kinds of parsing, as well as parsing to NSDictionary, NSArray, NSNumber, NSString and NSNull (using **NDJSONParser**), it also support parsing to your own custom classes or coredata entities (using **NDJSONParser**) as well as event parsing (using the class **NDJSON**).
+**NDJSON** is a JSON parser written in Objective-C. It supports four kinds of parsing, as well as parsing to NSDictionary, NSArray, NSNumber, NSString and NSNull (using **NDJSONParser**), it also support parsing to your own custom classes or coredata entities (using **NDJSONParser**) as well as event parsing (using the class **NDJSON**).
 
 Parsing to you own classes works by supplying the root class the parser is supposed to use, it then uses property runtime introspection to determine what the class type should be. For situation where the class type can not be determined or if you want to override the default classes used, you can implement the class method **classesForPropertyNamesJSONParser:** to return a NSDictionary mapping property names to class objects.
 
