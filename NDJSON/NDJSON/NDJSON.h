@@ -31,14 +31,13 @@ typedef enum
 	NDJSONValueArray,
 	NDJSONValueObject,
 	NDJSONValueNull,
-	NDJSONValueString = 4,
+	NDJSONValueString,
 	NDJSONValueInteger,
 	NDJSONValueFloat,
 	NDJSONValueBoolean
 }		NDJSONValueType;
 
-extern const NSUInteger		NDJSONValuePrimativeFlag;
-
+BOOL jsonValueIsPrimativeType( NDJSONValueType type );
 BOOL jsonValueIsNSNumberType( NDJSONValueType type );
 BOOL jsonValueEquivelentObjectTypes( NDJSONValueType typeA, NDJSONValueType typeB );
 

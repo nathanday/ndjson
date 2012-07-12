@@ -654,7 +654,7 @@ static void setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 		{
 			[aContainer performSelector:theSelector withObject:aValue];
 		}
-		else if(theTargetType&NDJSONValuePrimativeFlag)
+		else if( jsonValueIsPrimativeType(theTargetType) )
 		{
 			switch (theTargetType)
 			{
@@ -669,6 +669,9 @@ static void setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 				break;
 			case NDJSONValueBoolean:
 				[aContainer setValue:[NSNumber numberWithBool:[aValue boolValue]] forKey:aPropertyName];
+				break;
+			case NDJSONValueNull:
+				[aContainer setNilValueForKey:aPropertyName];
 				break;
 			default:
 				break;
@@ -711,7 +714,7 @@ static void setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 			}
 			@try
 			{
-				if( options.convertPrimativeJSONTypes && (aType & NDJSONValuePrimativeFlag) )
+				if( options.convertPrimativeJSONTypes && jsonValueIsPrimativeType(aType) )
 					setValueByConvertingPrimativeType( theCurrentContainer, aValue, thePropertyName, aType );
 				else
 					[theCurrentContainer setValue:aValue forKey:thePropertyName];

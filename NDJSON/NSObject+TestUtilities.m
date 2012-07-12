@@ -76,6 +76,17 @@
 
 @implementation NSArray (TestUtilities)
 
+- (BOOL)isLike:(id)obj
+{
+	BOOL	theResult = [obj isKindOfClass:[NSArray class]];
+	for( NSUInteger i = 0, ci = self.count && theResult; i < ci; i++ )
+	{
+		for( NSUInteger j = 0, cj = [obj count] && theResult; j < cj; j++ )
+			theResult = [[self objectAtIndex:i] isLike:[obj objectAtIndex:j]];
+	}
+	return theResult;
+}
+
 - (NSString *)detailedDescription
 {
 	NSMutableString		* theValue = nil;

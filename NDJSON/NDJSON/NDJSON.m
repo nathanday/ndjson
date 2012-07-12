@@ -32,23 +32,37 @@ static uint32_t		k32BitLittleEndianBOM = 0x0000FEFF,
 					k32BitBigEndianBOM = 0xFFFE0000;
 #endif
 
-const NSUInteger	NDJSONValuePrimativeFlag = 4;
+BOOL jsonValueIsPrimativeType( NDJSONValueType aType )
+{
+	switch( aType )
+	{
+	case NDJSONValueNone:
+	case NDJSONValueArray:
+	case NDJSONValueObject:
+		return NO;
+	case NDJSONValueString:
+	case NDJSONValueInteger:
+	case NDJSONValueFloat:
+	case NDJSONValueBoolean:
+	case NDJSONValueNull:
+		return YES;
+	}
+}
 
 BOOL jsonValueIsNSNumberType( NDJSONValueType aType )
 {
-	switch (aType)
+	switch( aType )
 	{
 	case NDJSONValueNone:
 	case NDJSONValueArray:
 	case NDJSONValueObject:
 	case NDJSONValueString:
+	case NDJSONValueNull:
 		return NO;
 	case NDJSONValueInteger:
 	case NDJSONValueFloat:
 	case NDJSONValueBoolean:
 		return YES;
-	case NDJSONValueNull:
-		return NO;
 	}
 }
 
