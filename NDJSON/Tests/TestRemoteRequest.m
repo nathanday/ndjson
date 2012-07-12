@@ -9,6 +9,7 @@
 #import "TestRemoteRequest.h"
 #import "NDJSONParser.h"
 #import "TestProtocolBase.h"
+#import "NSObject+TestUtilities.h"
 
 @interface TestRemoteRequest ()
 
@@ -71,7 +72,7 @@
 
 - (NSString *)details
 {
-	return [NSString stringWithFormat:@"Name:\n%@\n\nURL:\n%@\n\nresult:\n%@\n\n", self.name, self.url, self.lastResult];
+	return [NSString stringWithFormat:@"Name:\n%@\n\nURL:\n%@\n\nresult:\n%@\n\n", self.name, self.url, [self.lastResult detailedDescription]];
 }
 
 - (id)run

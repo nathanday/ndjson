@@ -213,23 +213,37 @@ void NDError( NSString *aFormat, ... )
 		{
 			if( theItem.operationState == kTestOperationStateInitial )
 				[self runTest:theItem waitUntilFinished:YES];
-			[self logFormat:@"details for '%@'\n\n%@", theItem.name, theItem.details];
+			[self logFormat:@"----------------------------------- details for '%@' -----------------------------------\n\n%@", theItem.name, theItem.details];
+		}
+		else if( [theItem isKindOfClass:[TestGroup class]] )
+		{
+			for( id<TestProtocol> theTest in [(TestGroup*)theItem everyTest] )
+			{
+				if( theTest.operationState == kTestOperationStateInitial )
+					[self runTest:theTest waitUntilFinished:YES];
+				[self logFormat:@"----------------------------------- details for '%@' -----------------------------------\n\n%@", theTest.name, theTest.details];
+			}
 		}
 	}];
 }
 
 - (IBAction)runTests:(NSButton *)aSender
 {
-	NSCalendar			* theGregorianCalendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-	NSDateComponents	* theHourComps = [theGregorianCalendar components:NSHourCalendarUnit|NSMinuteCalendarUnit|NSSecondCalendarUnit fromDate:[NSDate date]];
+	if( testsToComplete == 0 )
+	{
+		NSCalendar			* theGregorianCalendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
+		NSDateComponents	* theHourComps = [theGregorianCalendar components:NSHourCalendarUnit|NSMinuteCalendarUnit|NSSecondCalendarUnit fromDate:[NSDate date]];
 
-	[self logFormat:@"\nTime: %02d:%02d:%02d\n-----------------------------------------------------------\n", theHourComps.hour, theHourComps.minute, theHourComps.second];
-	[runStopButton setTitle:NSLocalizedString(@"Stop", @"Text for run/stop button when tests are running")];
-	[self.queue setMaxConcurrentOperationCount:NSOperationQueueDefaultMaxConcurrentOperationCount];
-	[self resetAllTests];
-	for( id<TestProtocol> theTest in self.everyCheckedTest )
-		[self runTest:theTest waitUntilFinished:NO];
-	[theGregorianCalendar release];
+		[self logFormat:@"\n--------------------------------------------- Time: %02d:%02d:%02d ---------------------------------------------\n", theHourComps.hour, theHourComps.minute, theHourComps.second];
+		[runStopButton setTitle:NSLocalizedString(@"Stop", @"Text for run/stop button when tests are running")];
+		[self.queue setMaxConcurrentOperationCount:NSOperationQueueDefaultMaxConcurrentOperationCount];
+		[self resetAllTests];
+		for( id<TestProtocol> theTest in self.everyCheckedTest )
+			[self runTest:theTest waitUntilFinished:NO];
+		[theGregorianCalendar release];
+	}
+	else
+		[self finishedAllTests];
 }
 
 - (IBAction)checkAllTests:(NSButton *)aSender
@@ -432,20 +446,20 @@ void NDError( NSString *aFormat, ... )
 			NSColor		* theTextColor = nil;
 			switch( [anItem operationState] )
 			{
-				default:
-				case kTestOperationStateInitial:
-					theTextColor = [NSColor blackColor];
-					break;
-				case kTestOperationStateExecuting:
-					theTextColor = [NSColor blueColor];
-					break;
-				case kTestOperationStateFinished:
-					theTextColor = [NSColor colorWithDeviceHue:0.3333 saturation:1.0 brightness:0.75 alpha:1.0];
-					break;
-				case kTestOperationStateError:
-				case kTestOperationStateException:
-					theTextColor = [NSColor redColor];
-					break;
+			default:
+			case kTestOperationStateInitial:
+				theTextColor = [NSColor blackColor];
+				break;
+			case kTestOperationStateExecuting:
+				theTextColor = [NSColor blueColor];
+				break;
+			case kTestOperationStateFinished:
+				theTextColor = [NSColor colorWithDeviceHue:0.3333 saturation:1.0 brightness:0.75 alpha:1.0];
+				break;
+			case kTestOperationStateError:
+			case kTestOperationStateException:
+				theTextColor = [NSColor redColor];
+				break;
 			}
 			[aCell setTextColor:theTextColor];
 		}
@@ -538,10 +552,6 @@ void NDError( NSString *aFormat, ... )
 - (void)updateStateColumn
 {
 	NSParameterAssert( [NSThread mainThread] == [NSThread currentThread] );
-/*
-	NSRect	theColumnRect = [testsOutlineView rectOfColumn:[testsOutlineView columnWithIdentifier:kStateColumnIdentifier]];
-	[testsOutlineView setNeedsDisplayInRect:theColumnRect];
-*/
 	[testsOutlineView setNeedsDisplay:YES];
 }
 
@@ -551,6 +561,7 @@ void NDError( NSString *aFormat, ... )
 @synthesize		checkForTest,
 				stateForTest,
 				running;
+
 + (TestGroupChecks *)testGroupChecksWithBool:(BOOL)aValue { return [[[self alloc] initWithBool:aValue] autorelease]; }
 - (TestGroupChecks *)initWithBool:(BOOL)aValue
 {

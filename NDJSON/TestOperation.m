@@ -69,7 +69,7 @@
 					if( [self.test respondsToSelector:@selector(expectedResult)] )
 					{
 						id		theExpectedResult = [self.test expectedResult];
-						succeeded = [theResult isReallyEqual:theExpectedResult];
+						succeeded = [theResult isLike:theExpectedResult];
 					}
 					else
 						succeeded = theResult != nil;
@@ -86,7 +86,10 @@
 			self.test.operationState = kTestOperationStateException;
 			self.completionBlock();
 			NDError( @"%@", [anException description] );
-		}		
+		}
+		@finally {
+			self.completionBlock();
+		}
 	}
 	else
 		self.test.operationState = kTestOperationStateFinished;

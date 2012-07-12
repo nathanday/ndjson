@@ -91,7 +91,7 @@
 
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"<%@>{stringValue: %@, integerValue: %ld, arrayValue<%@>: %@}", [self class], self.stringValue, self.integerValue, [self.arrayValue class], self.arrayValue];
+	return [NSString stringWithFormat:@"{stringValue: %@, integerValue: %ld, arrayValue: %@}", self.stringValue, self.integerValue, self.arrayValue];
 }
 
 @end

@@ -18,7 +18,7 @@ static BOOL doesSetContain( NSSet * set, id obj )
 {
 	for( id setObj in set )
 	{
-		if( [setObj isReallyEqual:obj] )
+		if( [setObj isLike:obj] )
 			return YES;
 	}
 	return NO;
@@ -42,7 +42,7 @@ static BOOL areSetsEqual2( NSSet * setA, NSSet * setB )
 			self.integerValue, self.stringValue, self.alphaObject, self.betaObject.allObjects];
 }
 
-- (BOOL)isReallyEqual:(id)obj
+- (BOOL)isLike:(id)obj
 {
 	JSONRoot		* o = obj;
 	return [obj isKindOfClass:[JSONRoot class]]
@@ -54,10 +54,6 @@ static BOOL areSetsEqual2( NSSet * setA, NSSet * setB )
 
 @end
 
-/*
-	isReallyEqual: is needed because isEqual seems to fail because NSManageObject does not seem to implement hash method.
- */
-
 @implementation JSONChildAlpha (Utilities)
 
 - (NSString *)description
@@ -65,7 +61,7 @@ static BOOL areSetsEqual2( NSSet * setA, NSSet * setB )
 	return [NSString stringWithFormat:@"booleanAlphaValue: %s, stringAlphaValue: %@", self.booleanAlphaValue ? "true" : "false", self.stringAlphaValue];
 }
 
-- (BOOL)isReallyEqual:(id)obj
+- (BOOL)isLike:(id)obj
 {
 	JSONChildAlpha		* o = obj;
 	return [obj isKindOfClass:[JSONChildAlpha class]]
@@ -83,13 +79,13 @@ static BOOL areSetsEqual2( NSSet * setA, NSSet * setB )
 			self.floatBetaValue, self.stringBetaValue, self.subChildC];
 }
 
-- (BOOL)isReallyEqual:(id)obj
+- (BOOL)isLike:(id)obj
 {
 	JSONChildBeta		* o = obj;
 	return [obj isKindOfClass:[JSONChildBeta class]]
 			&& magn(self.floatBetaValue - o.floatBetaValue) < 0.0001
 			&& [self.stringBetaValue isEqualToString:o.stringBetaValue]
-			&& [self.subChildC isReallyEqual:o.subChildC];
+			&& [self.subChildC isLike:o.subChildC];
 }
 
 @end
@@ -101,7 +97,7 @@ static BOOL areSetsEqual2( NSSet * setA, NSSet * setB )
 	return [NSString stringWithFormat:@"stringGamaValue: %@", self.stringGamaValue];
 }
 
-- (BOOL)isReallyEqual:(id)obj
+- (BOOL)isLike:(id)obj
 {
 	JSONChildGama		* o = obj;
 	return [obj isKindOfClass:[JSONChildGama class]]

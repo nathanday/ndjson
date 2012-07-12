@@ -8,6 +8,7 @@
 
 #import "TestCustomObjectsExtended.h"
 #import "NDJSONParser.h"
+#import "NSObject+TestUtilities.h"
 
 static double magn( double a ) { return a >= 0 ? a : -a; }
 
@@ -54,7 +55,7 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 
 - (NSString *)details
 {
-	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", jsonSourceString, self.lastResult, self.expectedResult];
+	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", jsonSourceString, [self.lastResult detailedDescription], [self.expectedResult detailedDescription]];
 }
 
 - (id)run

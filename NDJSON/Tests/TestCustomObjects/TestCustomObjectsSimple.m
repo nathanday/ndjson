@@ -8,6 +8,7 @@
 
 #import "TestCustomObjectsSimple.h"
 #import "NDJSONParser.h"
+#import "NSObject+TestUtilities.h"
 
 @interface TestJSONClassChildA : NSObject
 
@@ -77,7 +78,7 @@
 
 - (NSString *)details
 {
-	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\n", jsonSourceString, self.lastResult];
+	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\n", jsonSourceString, [self.lastResult detailedDescription]];
 }
 
 - (id)run

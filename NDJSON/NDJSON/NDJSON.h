@@ -30,12 +30,17 @@ typedef enum
 	NDJSONValueNone,
 	NDJSONValueArray,
 	NDJSONValueObject,
-	NDJSONValueString,
+	NDJSONValueNull,
+	NDJSONValueString = 4,
 	NDJSONValueInteger,
 	NDJSONValueFloat,
-	NDJSONValueBoolean,
-	NDJSONValueNull
+	NDJSONValueBoolean
 }		NDJSONValueType;
+
+extern const NSUInteger		NDJSONValuePrimativeFlag;
+
+BOOL jsonValueIsNSNumberType( NDJSONValueType type );
+BOOL jsonValueEquivelentObjectTypes( NDJSONValueType typeA, NDJSONValueType typeB );
 
 typedef enum
 {
@@ -84,6 +89,12 @@ extern NSString	* const NDJSONErrorDomain;
 	key for the current JSON value, if the value is contained within an array, then the currentKey is for the array.
  */
 @property(readonly,nonatomic)	NSString			* currentKey;
+
+/**
+ Returns the line number of the JSON document being processed by the receiver.
+ */
+@property(readonly,nonatomic)	NSUInteger			lineNumber;
+
 /**
 	intialise a *NDJSON* instance with a delegate
  */
@@ -127,6 +138,11 @@ extern NSString	* const NDJSONErrorDomain;
 	Important: This method does not return until parsing is complete, this method can be called within another thread as long as you do not change the reciever until after the method has finished.
  */
 - (BOOL)parseWithOptions:(NDJSONOptionFlags)options;
+
+/**
+ Stops the parser object.
+ */
+- (void)abortParsing;
 
 @end
 

@@ -110,11 +110,16 @@ enum {
  */
 + (NSDictionary *)propertyNamesForKeysJSONParser:(NDJSONParser *)aParser;
 
+/**
+	returns the name of the property used as an indicies value, useful for CoreDate where one-to-many relationship are store in and unordered sets.
+ */
+- (void)jsonParser:(NDJSONParser *)parser setIndex:(NSUInteger)index;
+
 //- (NSString *)jsonStringJSONParser:(NDJSONParser *)aParser;
 
 @end
 
-/*
+/**
 	implements the class method `+[NSObject classesForPropertyNamesJSONParser:]` returning a dictionary with the supplied arguemnts.
  */
 #define NDJSONClassesForPropertyNames(...) \
@@ -124,7 +129,7 @@ enum {
 	return kClassesForPropertyName; \
 }
 
-/*
+/**
  implements the class method `+[NSObject collectionClassesForPropertyNamesJSONParser:]` returning a dictionary with the supplied arguemnts.
  */
 #define NDJSONCollectionClassesForPropertyNames(...) \
@@ -134,7 +139,7 @@ enum {
 	return kClassesForPropertyName; \
 }
 
-/*
+/**
  implements the class method `+[NSObject keysConsiderSetJSONParser:]` returning a set with the supplied arguemnts.
  */
 #define NDJSONKeysConsiderSet(...) \
@@ -144,7 +149,7 @@ enum {
 	return kSet; \
 }
 
-/*
+/**
  implements the class method `+[NSObject keysIgnoreSetJSONParser:]` returning a set with the supplied arguemnts.
  */
 #define NDJSONKeysIgnoreSet(...) \
@@ -154,7 +159,7 @@ enum {
 	return kSet; \
 }
 
-/*
+/**
  implements the class method `+[NSObject propertyNamesForKeysJSONParser:]` returning a dictionary with the supplied arguemnts.
  */
 #define NDJSONPropertyNamesForKeys(...) \

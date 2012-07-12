@@ -7,6 +7,7 @@
 //
 
 #import "TestProtocolBase.h"
+#import "NSObject+TestUtilities.h"
 
 @implementation TestProtocolBase
 
@@ -35,7 +36,7 @@
     [super dealloc];
 }
 
-- (NSString *)details { return [NSString stringWithFormat:@"result:\n%@\n\nexpected result:\n%@\n\n", self.lastResult, self.expectedResult]; }
+- (NSString *)details { return [NSString stringWithFormat:@"result:\n%@\n\nexpected result:\n%@\n\n", [self.lastResult detailedDescription], [self.expectedResult detailedDescription]]; }
 
 - (id)run
 {

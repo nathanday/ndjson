@@ -13,32 +13,32 @@
 enum TestOperationState
 {
     kTestOperationStateInitial, 
+    kTestOperationStateFinished,
     kTestOperationStateExecuting,
 	kTestOperationStateException,
-    kTestOperationStateFinished,
 	kTestOperationStateTestFailed,
 	kTestOperationStateError
 };
 
 @protocol TestProtocol <NSObject>
 
-@property(assign)	TestGroup					* testGroup;
-@property(readonly,copy)	NSString			* name;
-@property(readonly,retain)	id					lastResult;
-@property(readonly)	BOOL					hasError;
-@property(readonly,retain)	NSError				* error;
-@property(assign) enum TestOperationState		operationState;
-@property(readonly)	NSString				* details;
+@property(assign)			TestGroup		* testGroup;
+@property(readonly,copy)	NSString		* name;
+@property(readonly,retain)	id				lastResult;
+@property(readonly)			BOOL			hasError;
+@property(readonly,retain)	NSError			* error;
+@property(assign) enum TestOperationState	operationState;
+@property(readonly)			NSString		* details;
 - (id)run;
 
 @optional
-@property(readonly)	id							expectedResult;
+@property(readonly)			id				expectedResult;
 
 @end
 
 @interface TestGroup : NSObject
 
-@property(retain)	NSString					* name;
+@property(retain)			NSString			* name;
 @property(readonly) enum TestOperationState		operationState;
 @property(assign,getter=isEnabled)	BOOL		enabled;
 

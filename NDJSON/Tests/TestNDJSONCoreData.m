@@ -15,6 +15,7 @@
 #import "JSONChildGama.h"
 #import "NDCoreDataController.h"
 #import <CoreData/CoreData.h>
+#import "NSObject+TestUtilities.h"
 
 @interface TestNDJSONCoreData ()
 {
@@ -51,7 +52,7 @@
 	return coreDataController;
 }
 
-- (NSString *)testDescription { return @"Test input with different string encodings"; }
+- (NSString *)testDescription { return @"Test of parsing to CoreData NSManageObjects instead of property list objects."; }
 
 
 - (id)creatExpectedOneValueInCoreDataController:(NDCoreDataController *)aCoreDataController
@@ -168,7 +169,7 @@
 
 - (NSString *)details
 {
-	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", self.jsonString, self.lastResult, self.expectedResult];
+	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", self.jsonString, [self.lastResult detailedDescription], [self.expectedResult detailedDescription]];
 }
 
 #pragma mark - creation and destruction

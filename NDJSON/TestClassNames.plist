@@ -66,6 +66,12 @@
 			<key>name</key>
 			<string>Change of Parse Output method</string>
 		</dict>
+		<dict>
+			<key>class</key>
+			<string>TestJSONPrimativeConversion</string>
+			<key>name</key>
+			<string>JSON Primative Conversion</string>
+		</dict>
 	</array>
 </dict>
 </plist>

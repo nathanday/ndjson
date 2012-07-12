@@ -9,6 +9,7 @@
 #import "TestFunctionAndBlockInput.h"
 #import "TestProtocolBase.h"
 #import "NDJSONParser.h"
+#import "NSObject+TestUtilities.h"
 
 @interface TestFunctionAndBlockInput ()
 @end
@@ -85,7 +86,7 @@ NSInteger sourceFuction(uint8_t ** aBuffer, void * aContext );
 
 - (NSString *)details
 {
-	return [NSString stringWithFormat:@"block size range: {%lu,%lu}\n\njson:\n%@\n\nresult:\n%@\n\n", minBlockSize, maxBlockSize, jsonString, self.lastResult];
+	return [NSString stringWithFormat:@"block size range: {%lu,%lu}\n\njson:\n%@\n\nresult:\n%@\n\n", minBlockSize, maxBlockSize, jsonString, [self.lastResult detailedDescription]];
 }
 
 - (id)run

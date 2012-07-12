@@ -10,6 +10,7 @@
 #import "NDJSON.h"
 #import "NDJSONParser.h"
 #import "TestProtocolBase.h"
+#import "NSObject+TestUtilities.h"
 
 @interface TestFileInput ()
 - (void)addName:(NSString *)name fileName:(NSString *)path;
@@ -81,7 +82,7 @@
 - (NSString *)details
 {
 	NSError		* theError = nil;
-	return [NSString stringWithFormat:@"path:\n%@\n\njson:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", self.path, [NSString stringWithContentsOfFile:self.path encoding:NSUTF8StringEncoding error:&theError], self.lastResult, self.expectedResult];
+	return [NSString stringWithFormat:@"path:\n%@\n\njson:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", self.path, [NSString stringWithContentsOfFile:self.path encoding:NSUTF8StringEncoding error:&theError], [self.lastResult detailedDescription], [self.expectedResult detailedDescription]];
 }
 
 - (id)run

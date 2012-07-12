@@ -28,21 +28,36 @@ NSString		* const NDJSONBadCollectionClassException = @"NDJSONBadCollectionClass
 				* const NDJSONObjectUserInfoKey = @"Object",
 				* const NDJSONPropertyNameUserInfoKey = @"PropertyName";
 
+static const size_t		kMaximumClassNameLenght = 512;
+
 /**
  functions used by NDJSONParser to build tree
  */
-
-static BOOL getClassNameFromPropertyAttributes( char * aClassName, size_t aLen, const char * aPropertyAttributes )
+static NDJSONValueType getTypeNameFromPropertyAttributes( char * aClassName, size_t aLen, const char * aPropertyAttributes )
 {
-	BOOL	theResult = NO;
-	if( strstr( aPropertyAttributes, "T@\"" ) == aPropertyAttributes )
+	NSCParameterAssert(*aPropertyAttributes == 'T');
+	NDJSONValueType	theResult = NDJSONValueNone;
+	aPropertyAttributes++;
+	if( strchr("islqISLQ", *aPropertyAttributes) != NULL )
+		theResult = NDJSONValueInteger;
+	else if( strchr("fd", *aPropertyAttributes) != NULL )
+		theResult = NDJSONValueFloat;
+	else if( strchr("Bc", *aPropertyAttributes) != NULL )
+		theResult = NDJSONValueBoolean;
+	else if( memcmp(aPropertyAttributes, "@\"NSString\"", 11) == 0 || memcmp(aPropertyAttributes, "@\"NSMutableString\"", 18) == 0 )
+		theResult = NDJSONValueString;
+	else if( *aPropertyAttributes == '@' )
 	{
-		NSUInteger		i = 0;
-		aPropertyAttributes += 3;
-		for( ; aPropertyAttributes[i] != '"' && aPropertyAttributes[i] != '\0' && i < aLen-1; i++ )
-			aClassName[i] = aPropertyAttributes[i];
-		aClassName[i] = '\0';
-		theResult = i > 0;
+		aPropertyAttributes++;
+		if( *aPropertyAttributes == '"' && aClassName != NULL )
+		{
+			NSUInteger		i = 0;
+			aPropertyAttributes++;
+			for( ; aPropertyAttributes[i] != '"' && aPropertyAttributes[i] != '\0' && i < aLen-1; i++ )
+				aClassName[i] = aPropertyAttributes[i];
+			aClassName[i] = '\0';
+		}
+		theResult = NDJSONValueObject;
 	}
 	return theResult;
 }
@@ -359,7 +374,12 @@ static void pushContainerForJSONParser( NDJSONParser * self, id aContainer, BOOL
 	if( theCurrentContainer != nil )
 	{
 		if( currentProperty == nil )
+		{
+			NSCParameterAssert( [theCurrentContainer respondsToSelector:@selector(addObject:)] );
+			if( [theCurrentContainer respondsToSelector:@selector(count)] && [aValue respondsToSelector:@selector(jsonParser:setIndex:)] )
+				[aValue jsonParser:self setIndex:[theCurrentContainer count]];
 			[theCurrentContainer addObject:aValue];
+		}
 		else
 			[theCurrentContainer setValue:aValue forKey:currentProperty];
 	}
@@ -458,10 +478,10 @@ id popCurrentContainerForJSONParser( NDJSONParser * self )
 				objc_property_t		theProperty = class_getProperty(aClass, [aName UTF8String]);
 				if( theProperty != NULL )
 				{
-					char			theClassName[256];
+					char			theClassName[kMaximumClassNameLenght];
 					const char		* thePropertyAttributes = property_getAttributes(theProperty);
 					
-					if( getClassNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
+					if( getTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
 						theClass = objc_getClass( theClassName );
 					else
 						theClass = [NSMutableDictionary class];
@@ -498,10 +518,10 @@ id popCurrentContainerForJSONParser( NDJSONParser * self )
 				objc_property_t		theProperty = class_getProperty(aClass, [aName UTF8String]);
 				if( theProperty != NULL )
 				{
-					char			theClassName[256];
+					char			theClassName[kMaximumClassNameLenght];
 					const char		* thePropertyAttributes = property_getAttributes(theProperty);
 					
-					if( getClassNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
+					if( getTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
 						theClass = objc_getClass( theClassName );
 				}
 				else
@@ -535,6 +555,139 @@ id popCurrentContainerForJSONParser( NDJSONParser * self )
 	return theClass;
 }
 
+static SEL conversionSelectorForPropertyAndType( NSString * aProperty, NDJSONValueType aType )
+{
+	SEL				theResult = (SEL)0;
+	NSUInteger		theLen = [aProperty lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
+	char			* theSelectorName  = malloc(theLen+3+12+12);
+	char			* thePos = theSelectorName;
+	memcpy(thePos, "set", sizeof("set")-1);
+	thePos += sizeof("set")-1;
+	memcpy(thePos, [aProperty UTF8String], theLen );
+	*thePos = (char)toupper((char)*thePos);
+	thePos+=theLen;
+	memcpy(thePos, "ByConverting", 12);
+	thePos += 12;
+	switch( aType )
+	{
+		case NDJSONValueArray:
+			memcpy(thePos, "Array:", sizeof("Array:"));
+			theResult = sel_registerName(theSelectorName);
+			break;
+		case NDJSONValueObject:
+			memcpy(thePos, "Dictionary:", sizeof("Dictionary:"));
+			theResult = sel_registerName(theSelectorName);
+			break;
+		case NDJSONValueString:
+			memcpy(thePos, "String:", sizeof("String:"));
+			theResult = sel_registerName(theSelectorName);
+			break;
+		case NDJSONValueInteger:
+		case NDJSONValueFloat:
+		case NDJSONValueBoolean:
+			memcpy(thePos, "Number:", sizeof("Number:"));
+			theResult = sel_registerName(theSelectorName);
+			break;
+		case NDJSONValueNull:
+			memcpy(thePos, "Null:", sizeof("Null:"));
+			theResult = sel_registerName(theSelectorName);
+			break;
+		case NDJSONValueNone:
+			break;
+	}
+	free(theSelectorName);
+	return theResult;
+}
+
+static SEL instanceInitSelectorForType( NDJSONValueType aType )
+{
+	SEL				theResult = (SEL)0;
+	char			* theSelectorName = malloc(sizeof("initWith")+12);
+	char			* thePos = theSelectorName;
+	memcpy(thePos, "initWith", sizeof("initWith")-1);
+	thePos += sizeof("initWith")-1;
+	switch( aType )
+	{
+	case NDJSONValueArray:
+		memcpy(thePos, "Array:", sizeof("Array:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueObject:
+		memcpy(thePos, "Dictionary:", sizeof("Dictionary:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueString:
+		memcpy(thePos, "String:", sizeof("String:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueInteger:
+	case NDJSONValueFloat:
+	case NDJSONValueBoolean:
+		memcpy(thePos, "Number:", sizeof("Number:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueNull:
+		memcpy(thePos, "Null:", sizeof("Null:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueNone:
+		break;
+	}
+	free(theSelectorName);
+	return theResult;
+}
+
+static void setValueByConvertingPrimativeType( id aContainer, id aValue, NSString * aPropertyName, NDJSONValueType aType )
+{
+	objc_property_t		theProperty = class_getProperty([aContainer class], [aPropertyName UTF8String]);
+	const char			* thePropertyAttributes = property_getAttributes(theProperty);
+	char				theClassName[kMaximumClassNameLenght];
+	NDJSONValueType		theTargetType = getTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes );
+	if( jsonValueEquivelentObjectTypes(theTargetType, aType) )
+	{
+		[aContainer setValue:aValue forKey:aPropertyName];
+	}
+	else
+	{
+		SEL		theSelector = conversionSelectorForPropertyAndType( aPropertyName, aType );
+		if( [aContainer respondsToSelector:theSelector] )
+		{
+			[aContainer performSelector:theSelector withObject:aValue];
+		}
+		else if(theTargetType&NDJSONValuePrimativeFlag)
+		{
+			switch (theTargetType)
+			{
+			case NDJSONValueString:
+				[aContainer setValue:[aValue stringValue] forKey:aPropertyName];
+				break;
+			case NDJSONValueInteger:
+				[aContainer setValue:[NSNumber numberWithInteger:[aValue integerValue]] forKey:aPropertyName];
+				break;
+			case NDJSONValueFloat:
+				[aContainer setValue:[NSNumber numberWithFloat:[aValue floatValue]] forKey:aPropertyName];
+				break;
+			case NDJSONValueBoolean:
+				[aContainer setValue:[NSNumber numberWithBool:[aValue boolValue]] forKey:aPropertyName];
+				break;
+			default:
+				break;
+			}
+		}
+		else
+		{
+			Class		theClass = objc_getClass(theClassName);
+			SEL			theSelector = instanceInitSelectorForType( aType );
+			if( [theClass instancesRespondToSelector:theSelector] )
+			{
+				id		theValue = [[theClass alloc] performSelector:theSelector withObject:aValue];
+				[aContainer setValue:theValue forKey:aPropertyName];
+				[theValue release];
+			}
+		}
+	}
+}
+
 - (void)addValue:(id)aValue type:(NDJSONValueType)aType
 {
 	id			theCurrentContainer = self.currentContainer;;
@@ -543,6 +696,8 @@ id popCurrentContainerForJSONParser( NDJSONParser * self )
 		if( currentProperty == nil )
 		{
 			NSCParameterAssert( [theCurrentContainer respondsToSelector:@selector(addObject:)] );
+			if( [theCurrentContainer respondsToSelector:@selector(count)] && [aValue respondsToSelector:@selector(jsonParser:setIndex:)] )
+				[aValue jsonParser:self setIndex:[theCurrentContainer count]];
 			[theCurrentContainer addObject:aValue];
 		}
 		else
@@ -556,10 +711,8 @@ id popCurrentContainerForJSONParser( NDJSONParser * self )
 			}
 			@try
 			{
-				if( options.convertPrimativeJSONTypes )
-				{
-					
-				}
+				if( options.convertPrimativeJSONTypes && (aType & NDJSONValuePrimativeFlag) )
+					setValueByConvertingPrimativeType( theCurrentContainer, aValue, thePropertyName, aType );
 				else
 					[theCurrentContainer setValue:aValue forKey:thePropertyName];
 			}

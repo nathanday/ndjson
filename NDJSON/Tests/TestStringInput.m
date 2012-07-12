@@ -10,6 +10,7 @@
 #import "NDJSONParser.h"
 #import "TestProtocolBase.h"
 #import "Utility.h"
+#import "NSObject+TestUtilities.h"
 
 @interface TestStringInput ()
 - (void)addName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)expectedResult options:(NDJSONOptionFlags)anOptions;
@@ -88,7 +89,7 @@
 
 - (NSString *)details
 {
-	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", self.jsonString, self.lastResult, self.expectedResult];
+	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", self.jsonString, [self.lastResult detailedDescription], [self.expectedResult detailedDescription]];
 }
 
 #pragma mark - creation and destruction

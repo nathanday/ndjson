@@ -10,6 +10,7 @@
 #import "NDJSONParser.h"
 #import "TestProtocolBase.h"
 #import "Utility.h"
+#import "NSObject+TestUtilities.h"
 
 @interface TestStringEncodings ()
 - (void)addName:(NSString *)name jsonString:(NSString *)json expectedResult:(id)expectedResult encoding:(NSStringEncoding)encoding;
@@ -86,7 +87,7 @@ static id expectedResult()
 
 - (NSString *)details
 {
-	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", self.jsonString, self.lastResult, self.expectedResult];
+	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", self.jsonString, [self.lastResult detailedDescription], [self.expectedResult detailedDescription]];
 }
 
 - (NSString *)jsonString

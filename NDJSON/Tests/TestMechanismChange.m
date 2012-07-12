@@ -14,6 +14,7 @@
 #import "ChangeParseFromEventToPropertyList.h"
 #import "ChangeParseFromEventToCustom.h"
 #import "ChangeParseFromEventToCoreData.h"
+#import "NSObject+TestUtilities.h"
 
 @interface TestMechanismChange ()
 {
@@ -49,7 +50,7 @@
 	return coreDataController.managedObjectContext;
 }
 
-- (NSString *)testDescription { return @"Test input with string, all bytes are available, tests ability to recongnize all kinds of JSON"; }
+- (NSString *)testDescription { return @"Test changing parsing method from event drive to one of the other methods"; }
 
 - (void)willLoad
 {
@@ -80,7 +81,7 @@
 
 - (NSString *)details
 {
-	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", self.jsonString, self.lastResult, self.expectedResult];
+	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", self.jsonString, [self.lastResult detailedDescription], [self.expectedResult detailedDescription]];
 }
 
 #pragma mark - creation and destruction

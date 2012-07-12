@@ -11,6 +11,7 @@
 #import "NDJSONParser.h"
 #import "TestCustomObjectsSimple.h"
 #import "TestCustomObjectsExtended.h"
+#import "TestSettingIndex.h"
 
 @implementation TestCustomObjects
 
@@ -20,6 +21,7 @@
 {
 	[TestCustomObjectsSimple addTestsToTestGroup:self];
     [TestCustomObjectsExtended addTestsToTestGroup:self];
+	[TestSettingIndex addTestsToTestGroup:self];
 }
 
 @end
