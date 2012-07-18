@@ -42,13 +42,12 @@
 
 static id expectedResult()
 {
-	return DICT( @"A String", @"string",
-				INTNUM(42),@"integer",
-				REALNUM(3.1415),@"float",
-				BOOLNUM(true),@"boolean",
-				ARRAY(@"array",INTNUM(12)),@"array",
-				DICT(@"one",@"value1",INTNUM(2),@"value2"),@"object"
-				);
+	return @{@"string":@"A String",
+			@"integer":@42,
+			@"float":@3.1415,
+			@"boolean":@YES,
+			@"array":@[@"array",@12],
+			@"object":@{@"value1":@"one",@"value2":@2}};
 }
 
 - (void)willLoad

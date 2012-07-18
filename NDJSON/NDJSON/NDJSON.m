@@ -17,7 +17,6 @@
 //#define NDJSONDebug
 //#define NDJSONPrintStream
 
-//#define NDJSONSupportUTF8Only
 
 #ifdef NDJSONDebug
 #define NDJSONLog(...) NSLog(__VA_ARGS__)

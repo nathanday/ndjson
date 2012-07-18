@@ -25,6 +25,8 @@
 
 #import <Foundation/Foundation.h>
 
+//#define NDJSONSupportUTF8Only
+
 typedef enum
 {
 	NDJSONValueNone,

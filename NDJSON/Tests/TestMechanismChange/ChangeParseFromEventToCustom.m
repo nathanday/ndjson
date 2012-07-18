@@ -34,7 +34,7 @@
 	theChangeParseFromEventToCustom.genValue = theGenObject;
 	theGenObject.stringValue = @"alpha";
 	theGenObject.integerValue = 3;
-	theGenObject.arrayValue = [NSSet setWithObjects:REALNUM(3.14),BOOLNUM(true),@"bob",nil];
+	theGenObject.arrayValue = [NSSet setWithObjects:@3.14,@YES,@"bob",nil];
 	[theGenObject release];
 	return [theChangeParseFromEventToCustom autorelease];
 }

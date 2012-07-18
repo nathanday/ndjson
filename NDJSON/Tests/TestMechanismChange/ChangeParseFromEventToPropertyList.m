@@ -22,7 +22,7 @@
 {
 	ChangeParseFromEventToPropertyList		* theChangeParseFromEventToPropertyList = [[ChangeParseFromEventToPropertyList alloc] init];
 	theChangeParseFromEventToPropertyList.dValue = @"delta";
-	theChangeParseFromEventToPropertyList.genValue = DICT(@"alpha",@"stringValue",INTNUM(3),@"integerValue",ARRAY(REALNUM(3.14),BOOLNUM(true),@"bob"),@"arrayValue");
+	theChangeParseFromEventToPropertyList.genValue = @{@"stringValue":@"alpha",@"integerValue":@3,@"arrayValue":@[@3.14,@YES,@"bob"]};
 	return [theChangeParseFromEventToPropertyList autorelease];
 }
 

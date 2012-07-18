@@ -90,6 +90,8 @@
 		D85D476C159540F8006785EF /* Utility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utility.m; sourceTree = "<group>"; };
 		D85D476E15954169006785EF /* ChangeParseFromEventToPropertyList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChangeParseFromEventToPropertyList.h; sourceTree = "<group>"; };
 		D85D476F15954169006785EF /* ChangeParseFromEventToPropertyList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChangeParseFromEventToPropertyList.m; sourceTree = "<group>"; };
+		D8A6026B15AEF984005FB39A /* NDJSONOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONOutput.h; sourceTree = "<group>"; };
+		D8A6026C15AEF984005FB39A /* NDJSONOutput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONOutput.m; sourceTree = "<group>"; };
 		D8B6D9BD154D665200C483CF /* TestCustomObjectsExtended.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestCustomObjectsExtended.h; sourceTree = "<group>"; };
 		D8B6D9BE154D665200C483CF /* TestCustomObjectsExtended.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestCustomObjectsExtended.m; sourceTree = "<group>"; };
 		D8C1EDBD142A056800FED1B0 /* file1.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = file1.plist; sourceTree = "<group>"; };
@@ -209,6 +211,8 @@
 				D8CCFCFD1489B06A0015DF1E /* NDJSON.m */,
 				D8CCFD001489B06A0015DF1E /* NDJSONParser.h */,
 				D8CCFD011489B06A0015DF1E /* NDJSONParser.m */,
+				D8A6026B15AEF984005FB39A /* NDJSONOutput.h */,
+				D8A6026C15AEF984005FB39A /* NDJSONOutput.m */,
 				D8EA091B159D908C000858FD /* NDJSON+NDJSONKeyValueObserving.h */,
 				D8EA091C159D908C000858FD /* NDJSON+NDJSONKeyValueObserving.m */,
 			);
@@ -567,7 +571,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "NDJSON/NDJSON-Prefix.pch";
 				INFOPLIST_FILE = "NDJSON/NDJSON-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -579,7 +583,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "NDJSON/NDJSON-Prefix.pch";
 				INFOPLIST_FILE = "NDJSON/NDJSON-Info.plist";
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
