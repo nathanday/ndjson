@@ -11,14 +11,14 @@
 
 @interface TestProtocolBase : NSObject <TestProtocol>
 {
-	NSString					* name;
-	id							lastResult;
-	NSError						* error;
-	TestGroup					* testGroup;
+	__strong NSString			* name;
+	__strong id					lastResult;
+	__strong NSError			* error;
+	__weak TestGroup			* testGroup;
 	enum TestOperationState		operationState;
 }
 
-@property(readwrite,assign)	TestGroup			* testGroup;
+@property(readwrite,weak)	TestGroup			* testGroup;
 @property(readwrite,copy)	NSString			* name;
 @property(readwrite,retain)	id					lastResult;
 @property(readwrite,retain)	NSError				* error;

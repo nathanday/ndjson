@@ -35,8 +35,7 @@
 	theGenObject.stringValue = @"alpha";
 	theGenObject.integerValue = 3;
 	theGenObject.arrayValue = [NSSet setWithObjects:@3.14,@YES,@"bob",nil];
-	[theGenObject release];
-	return [theChangeParseFromEventToCustom autorelease];
+	return theChangeParseFromEventToCustom;
 }
 
 - (id)initWithManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext { return [super init]; }
@@ -58,7 +57,6 @@
 		NDJSONParser	* theJSONParser = [[NDJSONParser alloc] initWithRootClass:[GenObject class]];
 		NSError			* theError = nil;
 		self.genValue = [theJSONParser objectForJSON:aJSON options:NDJSONOptionStrict error:&theError];
-		[theJSONParser release];
 		if( self.genValue == nil )
 			@throw [NSException exceptionWithName:@"error" reason:@"nil result" userInfo:theError.userInfo];
 	}

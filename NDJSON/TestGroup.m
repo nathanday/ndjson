@@ -10,10 +10,10 @@
 
 @interface TestGroup ()
 {
-	NSString				* name;
-	NSMutableDictionary		* testsByName;
-	NSMutableArray			* everyTest;
-	BOOL					enabled;
+	__strong NSString				* name;
+	__strong NSMutableDictionary	* testsByName;
+	__strong NSMutableArray			* everyTest;
+	BOOL							enabled;
 }
 
 @property(readonly)		NSMutableDictionary		* testsByName;
@@ -38,14 +38,6 @@
 {
 	NSAssert( [self isKindOfClass:[TestGroup class]], @"The class %@ is abstract.", NSStringFromClass([self class]) );
 	return [super init];
-}
-
-- (void)dealloc
-{
-	[testsByName release];
-	[name release];
-	[everyTest release];
-    [super dealloc];
 }
 
 - (enum TestOperationState)operationState

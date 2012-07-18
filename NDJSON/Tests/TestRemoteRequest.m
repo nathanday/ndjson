@@ -55,19 +55,13 @@
 
 + (id)remoteRequestWithName:(NSString *)aName URL:(NSURL *)aURL
 {
-	return [[[self alloc] initWithName:aName URL:aURL] autorelease];
+	return [[self alloc] initWithName:aName URL:aURL];
 }
 - (id)initWithName:(NSString *)aName URL:(NSURL *)aURL
 {
 	if( (self = [super initWithName:aName]) != nil )
-		url = [aURL retain];
+		url = [aURL copy];
 	return self;
-}
-
-- (void)dealloc
-{
-    [url release];
-    [super dealloc];
 }
 
 - (NSString *)details
@@ -85,9 +79,6 @@
 	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
 
-	[theJSONParser release];
-	[theJSON release];
-	[theURLRequest release];
 	return lastResult;
 }
 

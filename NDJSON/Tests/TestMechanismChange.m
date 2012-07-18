@@ -62,7 +62,7 @@
 	for( NSUInteger i = 0; i < sizeof(theTestSubElements)/sizeof(*theTestSubElements); i++ )
 	{
 		[self addTest:theTestSubElements[i]];
-		[theTestSubElements[i] release], theTestSubElements[i] = nil;
+		theTestSubElements[i] = nil;
 	}
 	[super willLoad];
 }
@@ -92,21 +92,13 @@
 	NSParameterAssert(aManagedObjectContext != nil);
 	if( (self = [super initWithName:[aClass name]]) != nil )
 	{
-		class = [aClass retain];
+		class = aClass;
 		jsonString = [[aClass jsonString] copy];
-		managedObjectContext = [aManagedObjectContext retain];
-		expectedResult = [[aClass expectedResultForManagedObjectContext:aManagedObjectContext] retain];
+		managedObjectContext = aManagedObjectContext;
+		expectedResult = [aClass expectedResultForManagedObjectContext:aManagedObjectContext];
 		options = [aClass options];
 	}
 	return self;
-}
-
-- (void)dealloc
-{
-	[class release];
-	[jsonString release];
-	[expectedResult release];
-	[super dealloc];
 }
 
 #pragma mark - execution
@@ -122,8 +114,6 @@
 	if( [theJSON parseWithOptions:self.options] )
 		self.lastResult = theResult;
 	self.error = theError;
-	[theResult release];
-	[theJSON release];
 	return self.lastResult;
 }
 

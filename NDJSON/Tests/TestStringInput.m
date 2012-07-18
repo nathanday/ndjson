@@ -96,24 +96,17 @@
 
 + (id)testStringWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult options:(NDJSONOptionFlags)anOptions
 {
-	return [[[self alloc] initWithName:aName jsonString:aJSON expectedResult:aResult options:anOptions] autorelease];
+	return [[self alloc] initWithName:aName jsonString:aJSON expectedResult:aResult options:anOptions];
 }
 - (id)initWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult options:(NDJSONOptionFlags)anOptions
 {
 	if( (self = [super initWithName:aName]) != nil )
 	{
 		jsonString = [aJSON copy];
-		expectedResult = [aResult retain];
+		expectedResult = aResult;
 		options = anOptions;
 	}
 	return self;
-}
-
-- (void)dealloc
-{
-	[jsonString release];
-	[expectedResult release];
-	[super dealloc];
 }
 
 #pragma mark - execution
@@ -127,8 +120,6 @@
 	id				theResult = [theJSONParser objectForJSON:theJSON options:self.options error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
-	[theJSONParser release];
-	[theJSON release];
 	return self.lastResult;
 }
 

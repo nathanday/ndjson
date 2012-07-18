@@ -43,7 +43,7 @@
 {
 	NSParameterAssert( aManagedObjectContext != nil );
 	if( (self = [super init]) != nil )
-		managedObjectContext = [aManagedObjectContext retain];
+		managedObjectContext = aManagedObjectContext;
 	return self;
 }
 
@@ -65,7 +65,6 @@
 		NSError					* theError = nil;
 
 		self.genValue = [theJSONParser objectForJSON:aJSON options:NDJSONOptionStrict error:&theError];
-		[theJSONParser release];
 		if( self.genValue == nil )
 			@throw [NSException exceptionWithName:@"error" reason:@"nil result" userInfo:theError.userInfo];
 	}

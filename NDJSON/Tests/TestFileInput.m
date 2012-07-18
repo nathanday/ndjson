@@ -57,24 +57,17 @@
 
 + (id)testFileWithName:(NSString *)aName fileName:(NSString *)aFileName
 {
-	return [[[self alloc] initWithName:aName fileName:aFileName] autorelease];
+	return [[self alloc] initWithName:aName fileName:aFileName];
 }
 - (id)initWithName:(NSString *)aName fileName:(NSString *)aFileName
 {
 	if( (self = [super initWithName:aName]) != nil )
 	{
 		NSString	* theExpectedResultFilePath = [[NSBundle mainBundle] pathForResource:aFileName ofType:@"plist"];
-		path = [[[NSBundle mainBundle] pathForResource:aFileName ofType:@"json"] retain];
+		path = [[NSBundle mainBundle] pathForResource:aFileName ofType:@"json"];
 		expectedResult = [[NSDictionary alloc] initWithContentsOfFile:theExpectedResultFilePath];
 	}
 	return self;
-}
-
-- (void)dealloc
-{
-	[path release];
-	[expectedResult release];
-    [super dealloc];
 }
 
 #pragma mark - TestFileInput methods
@@ -93,8 +86,6 @@
 	[theJSON setContentsOfFile:self.path encoding:NSUTF8StringEncoding];
 	self.lastResult = [theJSONToPropertyList objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
-	[theJSONToPropertyList release];
-	[theJSON release];
 	return lastResult;
 }
 

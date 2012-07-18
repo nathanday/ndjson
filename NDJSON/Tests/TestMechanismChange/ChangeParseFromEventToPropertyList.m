@@ -23,7 +23,7 @@
 	ChangeParseFromEventToPropertyList		* theChangeParseFromEventToPropertyList = [[ChangeParseFromEventToPropertyList alloc] init];
 	theChangeParseFromEventToPropertyList.dValue = @"delta";
 	theChangeParseFromEventToPropertyList.genValue = @{@"stringValue":@"alpha",@"integerValue":@3,@"arrayValue":@[@3.14,@YES,@"bob"]};
-	return [theChangeParseFromEventToPropertyList autorelease];
+	return theChangeParseFromEventToPropertyList;
 }
 
 - (id)initWithManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext { return [super init]; }
@@ -45,7 +45,6 @@
 		NDJSONParser	* theJSONParser = [[NDJSONParser alloc] init];
 		NSError			* theError = nil;
 		self.genValue = [theJSONParser objectForJSON:aJSON options:NDJSONOptionStrict error:&theError];
-		[theJSONParser release];
 		if( self.genValue == nil )
 			@throw [NSException exceptionWithName:@"error" reason:@"nil result" userInfo:theError.userInfo];
 	}

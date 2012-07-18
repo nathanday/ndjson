@@ -14,10 +14,10 @@
 
 @interface TestOperation ()
 {
-	id<TestProtocol>	test;
-	BOOL				succeeded;
-	void (^beginningBlock)(void);
-	BOOL (^additionValidation)(TestOperation * aTestOperation);
+	__strong id<TestProtocol>	test;
+	BOOL						succeeded;
+	void (__strong ^beginningBlock)(void);
+	BOOL (__strong ^additionValidation)(TestOperation * aTestOperation);
 }
 
 @end
@@ -37,17 +37,10 @@
 {
 	if( (self = [super init]) != nil )
 	{
-		test = [aTest retain];
+		test = aTest;
 		test.operationState = kTestOperationStateInitial;
 	}
 	return self;
-}
-
-- (void)dealloc
-{
-    [test release];
-	[beginningBlock release];
-    [super dealloc];
 }
 
 #pragma mark - NSOperation overridden methods

@@ -40,23 +40,16 @@
 
 + (id)testCustomObjectsSimpleWithName:(NSString *)aName jsonSourceString:(NSString *)aSource expectedResult:(id)anExpectedResult
 {
-	return [[[self alloc] initWithName:(NSString *)aName jsonSourceString:aSource expectedResult:anExpectedResult] autorelease];
+	return [[self alloc] initWithName:(NSString *)aName jsonSourceString:aSource expectedResult:anExpectedResult];
 }
 - (id)initWithName:(NSString *)aName jsonSourceString:(NSString *)aSource expectedResult:(id)anExpectedResult
 {
 	if( (self = [super initWithName:aName]) != nil )
 	{
 		jsonSourceString = [aSource copy];
-		expectedResult = [anExpectedResult retain];
+		expectedResult = anExpectedResult;
 	}
 	return self;
-}
-
-- (void)dealloc
-{
-	[jsonSourceString release];
-	[expectedResult release];
-	[super dealloc];
 }
 
 - (NSString *)details
@@ -72,8 +65,6 @@
 	[theJSON setJSONString:jsonSourceString];
 	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
-	[theJSON release];
-	[theJSONParser release];
 	return lastResult;
 }
 
@@ -83,7 +74,7 @@
 
 @synthesize name, index;
 
-+ (id)withName:(NSString *)aName index:(NSUInteger)anIndex { return [[[self alloc] initWithName:aName index:anIndex] autorelease]; }
++ (id)withName:(NSString *)aName index:(NSUInteger)anIndex { return [[self alloc] initWithName:aName index:anIndex]; }
 - (id)initWithName:(NSString *)aName index:(NSUInteger)anIndex
 {
 	if( (self = [super init]) != nil )

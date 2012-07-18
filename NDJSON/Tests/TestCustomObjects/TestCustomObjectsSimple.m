@@ -57,7 +57,7 @@
 
 + (id)testCustomObjectsSimpleWithName:(NSString *)aName jsonSourceString:(NSString *)aSource rootClass:(Class)aRootClass rootCollectionClass:(Class)aRootCollectionClass
 {
-	return [[[self alloc] initWithName:(NSString *)aName jsonSourceString:aSource rootClass:aRootClass rootCollectionClass:aRootCollectionClass] autorelease];
+	return [[self alloc] initWithName:(NSString *)aName jsonSourceString:aSource rootClass:aRootClass rootCollectionClass:aRootCollectionClass];
 }
 - (id)initWithName:(NSString *)aName jsonSourceString:(NSString *)aSource rootClass:(Class)aRootClass rootCollectionClass:(Class)aRootCollectionClass
 {
@@ -68,12 +68,6 @@
 		jsonSourceString = [aSource copy];
 	}
 	return self;
-}
-
-- (void)dealloc
-{
-	[jsonSourceString release];
-	[super dealloc];
 }
 
 - (NSString *)details
@@ -89,8 +83,6 @@
 	[theJSON setJSONString:jsonSourceString];
 	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
-	[theJSON release];
-	[theJSONParser release];
 	return lastResult;
 }
 

@@ -22,7 +22,7 @@ enum TestOperationState
 
 @protocol TestProtocol <NSObject>
 
-@property(assign)			TestGroup		* testGroup;
+@property(weak)				TestGroup		* testGroup;
 @property(readonly,copy)	NSString		* name;
 @property(readonly,retain)	id				lastResult;
 @property(readonly)			BOOL			hasError;

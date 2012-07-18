@@ -91,32 +91,25 @@ static id expectedResult()
 
 - (NSString *)jsonString
 {
-	return [[[NSString alloc] initWithData:self.jsonData encoding:self.stringEncoding] autorelease];
+	return [[NSString alloc] initWithData:self.jsonData encoding:self.stringEncoding];
 }
 
 #pragma mark - creation and destruction
 
 + (id)testStringWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult encoding:(NSStringEncoding)anEncoding
 {
-	return [[[self alloc] initWithName:aName jsonString:aJSON expectedResult:aResult encoding:anEncoding] autorelease];
+	return [[self alloc] initWithName:aName jsonString:aJSON expectedResult:aResult encoding:anEncoding];
 }
 - (id)initWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult encoding:(NSStringEncoding)anEncoding
 {
 	if( (self = [super initWithName:aName]) != nil )
 	{
-		jsonData = [[aJSON dataUsingEncoding:anEncoding] retain];
+		jsonData = [aJSON dataUsingEncoding:anEncoding];
 		NSAssert( jsonData!= nil, @"Cannot get data for encoding %ld", anEncoding );
-		expectedResult = [aResult retain];
+		expectedResult = aResult;
 		stringEncoding = anEncoding;
 	}
 	return self;
-}
-
-- (void)dealloc
-{
-	[jsonData release];
-	[expectedResult release];
-	[super dealloc];
 }
 
 #pragma mark - execution
@@ -130,8 +123,6 @@ static id expectedResult()
 	id				theResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
-	[theJSONParser release];
-	[theJSON release];
 	return self.lastResult;
 }
 

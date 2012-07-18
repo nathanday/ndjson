@@ -39,7 +39,6 @@
 {
 	EscapeSquences		* theEscapeSquences = [[EscapeSquences alloc] initWithName:aName characterRange:aCharacterRange];
 	[self addTest:theEscapeSquences];
-	[theEscapeSquences release];
 }
 
 - (void)willLoad
@@ -104,8 +103,6 @@
 	id					theResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
-	[theJSON release];
-	[theJSONParser release];
 	return self.lastResult;
 }
 

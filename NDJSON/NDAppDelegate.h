@@ -14,17 +14,17 @@ void NDError( NSString *format, ... ) NS_FORMAT_FUNCTION(1,2);
 @interface NDAppDelegate : NSObject <NSApplicationDelegate,NSOutlineViewDataSource,NSOutlineViewDelegate,NSSplitViewDelegate>
 {
 @private
-	IBOutlet	NSWindow	* window;
-	IBOutlet	NSTextView	* logTextView;
-	IBOutlet NSOutlineView	* testsOutlineView;
-	IBOutlet	NSButton	* runStopButton;
-	IBOutlet	NSButton	* detailsButton;
-	IBOutlet	NSButton	* showMessagesCheckBoxButton;
-	IBOutlet	NSButton	* checkButton;
-	IBOutlet	NSButton	* uncheckButton;
+	IBOutlet __weak				NSWindow		* window;
+	IBOutlet __unsafe_unretained NSTextView		* logTextView;
+	IBOutlet __weak NSOutlineView	* testsOutlineView;
+	IBOutlet __weak NSButton		* runStopButton;
+	IBOutlet __weak NSButton		* detailsButton;
+	IBOutlet __weak NSButton		* showMessagesCheckBoxButton;
+	IBOutlet __weak NSButton		* checkButton;
+	IBOutlet __weak NSButton		* uncheckButton;
 }
 
-@property (assign)		NSWindow	* window;
+@property (weak)		NSWindow	* window;
 @property (readonly)	NSArray		* everyCheckedTest;
 @property(nonatomic,assign,getter=isShowMessages)	BOOL	showMessages;
 

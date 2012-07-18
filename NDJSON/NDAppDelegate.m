@@ -115,7 +115,6 @@ void NDError( NSString *aFormat, ... )
 		NSParameterAssert( theClassNames != nil );
 		
 		self.checkForTestGroups = theCheckForTestGroups;
-		[theCheckForTestGroups release];
 
 		onOffFlags = [[NSMutableData alloc] initWithCapacity:theEveryTest.count];
 
@@ -126,14 +125,12 @@ void NDError( NSString *aFormat, ... )
 			theTest.name = [theClassData objectForKey:@"name"];
 			[theTest willLoad];
 			[theEveryTest addObject:theTest];
-			[theTest release];
 			if( theEnabledFlag == nil )
 				[theCheckForTestGroups setObject:[TestGroupChecks testGroupChecksWithBool:YES] forKey:theTest.name];
 			else
 				[theCheckForTestGroups setObject:[TestGroupChecks testGroupChecksWithBool:[theEnabledFlag boolValue]] forKey:theTest.name];
 		}
 		everyTestGroup = theEveryTest;
-		[theTestProps release];
 	}
 	return everyTestGroup;
 		
@@ -164,7 +161,7 @@ void NDError( NSString *aFormat, ... )
 		  }];
 
 	 }];
-	return [[theResult copy] autorelease];
+	return [theResult copy];
 }
 
 - (NSOperationQueue *)queue
@@ -181,17 +178,6 @@ void NDError( NSString *aFormat, ... )
 }
 
 #pragma mark - creation destruction
-
-- (void)dealloc
-{
-	[everyTestGroup release];
-	[checkForTestGroups release];
-	[onOffFlags release];
-	[everyTestGroup release];
-	[checkForTestGroups release];
-	[queue release];
-	[super dealloc];
-}
 
 #pragma mark - NSApplicationDelegate methods
 
@@ -240,7 +226,7 @@ void NDError( NSString *aFormat, ... )
 		[self resetAllTests];
 		for( id<TestProtocol> theTest in self.everyCheckedTest )
 			[self runTest:theTest waitUntilFinished:NO];
-		[theGregorianCalendar release];
+		theGregorianCalendar;
 	}
 	else
 		[self finishedAllTests];
@@ -327,7 +313,6 @@ void NDError( NSString *aFormat, ... )
 		[self appendString:theString];
 	else
 		[self performSelectorOnMainThread:@selector(appendString:) withObject:theString waitUntilDone:NO];
-	[theString release];
 }
 
 - (void)runTest:(id<TestProtocol>)aTest waitUntilFinished:(BOOL)aFlag
@@ -336,7 +321,6 @@ void NDError( NSString *aFormat, ... )
 	theTestOpp.beginningBlock = ^{[self startedTest:aTest];};
 	theTestOpp.completionBlock = ^{[self finshedTest:aTest];};
 	[self.queue addOperation:theTestOpp];
-	[theTestOpp release];
 	if( aFlag )
 		[self.queue waitUntilAllOperationsAreFinished];
 }
@@ -562,7 +546,7 @@ void NDError( NSString *aFormat, ... )
 				stateForTest,
 				running;
 
-+ (TestGroupChecks *)testGroupChecksWithBool:(BOOL)aValue { return [[[self alloc] initWithBool:aValue] autorelease]; }
++ (TestGroupChecks *)testGroupChecksWithBool:(BOOL)aValue { return [[self alloc] initWithBool:aValue]; }
 - (TestGroupChecks *)initWithBool:(BOOL)aValue
 {
 	if( (self = [super init]) != nil )
@@ -573,12 +557,7 @@ void NDError( NSString *aFormat, ... )
 	}
 	return self;
 }
-- (void)dealloc
-{
-	[checkForTest release];
-	[stateForTest release];
-	[super dealloc];
-}
+
 - (NSNumber *)value { return [NSNumber numberWithBool:groupCheck]; }
 - (void)setValue:(NSNumber *)aValue
 {

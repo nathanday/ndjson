@@ -66,7 +66,7 @@
 
 + (id)fragementedInputWithName:(NSString *)aName json:(NSString *)aJSON minBlockSize:(NSUInteger)aMinBlockSize maxBlockSize:(NSUInteger)aMaxBlockSize
 {
-	return [[[self alloc] initWithName:aName json:aJSON minBlockSize:aMinBlockSize maxBlockSize:aMaxBlockSize] autorelease];
+	return [[self alloc] initWithName:aName json:aJSON minBlockSize:aMinBlockSize maxBlockSize:aMaxBlockSize];
 }
 - (id)initWithName:(NSString *)aName json:(NSString *)aJSON minBlockSize:(NSUInteger)aMinBlockSize maxBlockSize:(NSUInteger)aMaxBlockSize
 {
@@ -92,8 +92,6 @@
 	[theJSON setInputStream:[FragementedInputStream fragementedInputWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize]  encoding:NSUTF8StringEncoding];
 	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
-	[theJSONParser release];
-	[theJSON release];
 	return lastResult;
 }
 
@@ -103,7 +101,7 @@
 
 + (id)fragementedInputWithJSON:(NSString *)aJSON minBlockSize:(NSUInteger)aMinBlockSize maxBlockSize:(NSUInteger)aMaxBlockSize
 {
-	return [[[self alloc] initWithJSON:aJSON minBlockSize:aMinBlockSize maxBlockSize:aMaxBlockSize] autorelease];
+	return [[self alloc] initWithJSON:aJSON minBlockSize:aMinBlockSize maxBlockSize:aMaxBlockSize];
 }
 - (id)initWithJSON:(NSString *)aJSON minBlockSize:(NSUInteger)aMinBlockSize maxBlockSize:(NSUInteger)aMaxBlockSize
 {

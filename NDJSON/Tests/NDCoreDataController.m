@@ -42,7 +42,7 @@ NSString			* const kPersistentStoreCoordinatorCreationFailureNotification = @"Pe
     if( (self = [super init]) != nil )
 	{
 		location = [aLocation copy];
-		dataBaseName = [aName retain];
+		dataBaseName = [aName copy];
 		clean = aFlag;
 	}
     
@@ -52,11 +52,6 @@ NSString			* const kPersistentStoreCoordinatorCreationFailureNotification = @"Pe
 - (void)dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	[dataBaseName release];
-	[managedObjectContextDictionary release];
-	[managedObjectModel release];
-	[persistentStoreCoordinator release];
-    [super dealloc];
 }
 
 - (void)managedObjectContextDidSaveNotification:(NSNotification *)aNotification
@@ -87,12 +82,8 @@ NSString			* const kPersistentStoreCoordinatorCreationFailureNotification = @"Pe
 	theEntityArray = [theManagedObjectContext executeFetchRequest:theFetchRequest error:&theError];
 	
 	if( theError != nil )
-	{
 		NSLog( @"Error: %@", theError );
-	}
 	
-	[theFetchRequest release];
-
 	return theEntityArray;
 }
 
@@ -109,8 +100,7 @@ NSString			* const kPersistentStoreCoordinatorCreationFailureNotification = @"Pe
 		[theFetchRequest setPredicate:aPredicate];
 
 	theEntityArray = [theManagedObjectContext executeFetchRequest:theFetchRequest error:&theError];
-	
-	[theFetchRequest release];
+
 	for( NSManagedObject * theEntity in theEntityArray )
 		[theManagedObjectContext deleteObject:theEntity];
 }
@@ -128,14 +118,14 @@ NSString			* const kPersistentStoreCoordinatorCreationFailureNotification = @"Pe
 	{
 		if( managedObjectContextDictionary == nil)
 			managedObjectContextDictionary = [[NSMutableDictionary alloc] init];
-		theResult = [managedObjectContextDictionary objectForKey:[NSValue valueWithPointer:[NSThread currentThread]]];
+		theResult = [managedObjectContextDictionary objectForKey:[NSValue valueWithPointer:(__bridge const void *)([NSThread currentThread])]];
 		if( theResult == nil )
 		{
 			NSPersistentStoreCoordinator * theCoordinator = [self persistentStoreCoordinator];
 			if (theCoordinator != nil)
 			{
 				theResult = [[NSManagedObjectContext alloc] init];
-				[managedObjectContextDictionary setObject:theResult forKey:[NSValue valueWithPointer:[NSThread currentThread]]];
+				[managedObjectContextDictionary setObject:theResult forKey:[NSValue valueWithPointer:(__bridge const void *)([NSThread currentThread])]];
 				[theResult setPersistentStoreCoordinator:theCoordinator];
 				[[NSNotificationCenter defaultCenter] addObserver:self
 														 selector:@selector(managedObjectContextDidSaveNotification:)

@@ -28,14 +28,6 @@
 	return self;
 }
 
-- (void)dealloc
-{
-	[name release];
-	[lastResult release];
-	[error release];
-    [super dealloc];
-}
-
 - (NSString *)details { return [NSString stringWithFormat:@"result:\n%@\n\nexpected result:\n%@\n\n", [self.lastResult detailedDescription], [self.expectedResult detailedDescription]]; }
 
 - (id)run

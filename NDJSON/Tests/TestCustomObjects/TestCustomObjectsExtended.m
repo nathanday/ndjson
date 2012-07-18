@@ -40,7 +40,7 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 
 + (id)testCustomObjectsSimpleWithName:(NSString *)aName jsonSourceString:(NSString *)aSource rootClass:(Class)aRootClass
 {
-    return [[[self alloc] initWithName:aName jsonSourceString:aSource rootClass:aRootClass] autorelease];
+    return [[self alloc] initWithName:aName jsonSourceString:aSource rootClass:aRootClass];
 }
 
 - (id)initWithName:(NSString *)aName jsonSourceString:(NSString *)aSource rootClass:(Class)aRootClass
@@ -66,8 +66,6 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 	[theJSON setJSONString:jsonSourceString];
 	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionConvertKeysToMedialCapitals error:&theError];
 	self.error = theError;
-	[theJSONParser release];
-	[theJSON release];
 	return lastResult;
 }
 
@@ -83,10 +81,7 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 	theChildAlpha.everyChild = [NSSet setWithObjects:theChildBeta1, theChildBeta2, nil];
 	theChildBeta1.name = @"Beta Object 1";
 	theChildBeta2.name = @"Beta Object 2";
-	[theChildAlpha release];
-	[theChildBeta1 release];
-	[theChildBeta2 release];
-	return [theResult autorelease];
+	return theResult;
 }
 
 @end

@@ -63,7 +63,7 @@ NSInteger sourceFuction(uint8_t ** aBuffer, void * aContext );
 
 + (id)fragementedInputWithName:(NSString *)aName json:(NSString *)aJSON minBlockSize:(NSUInteger)aMinBlockSize maxBlockSize:(NSUInteger)aMaxBlockSize useBlock:(BOOL)aUseBlock
 {
-	return [[[self alloc] initWithName:aName json:aJSON minBlockSize:aMinBlockSize maxBlockSize:aMaxBlockSize useBlock:aUseBlock] autorelease];
+	return [[self alloc] initWithName:aName json:aJSON minBlockSize:aMinBlockSize maxBlockSize:aMaxBlockSize useBlock:aUseBlock];
 }
 - (id)initWithName:(NSString *)aName json:(NSString *)aJSON minBlockSize:(NSUInteger)aMinBlockSize maxBlockSize:(NSUInteger)aMaxBlockSize useBlock:(BOOL)aUseBlock
 {
@@ -75,13 +75,6 @@ NSInteger sourceFuction(uint8_t ** aBuffer, void * aContext );
 		useBlock =  aUseBlock;
 	}
 	return self;
-}
-
-- (void)dealloc
-{
-	[jsonString release];
-	[inputFunctionSource release];
-	[super dealloc];
 }
 
 - (NSString *)details
@@ -96,13 +89,11 @@ NSInteger sourceFuction(uint8_t ** aBuffer, void * aContext );
 	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] init];
 	inputFunctionSource = [[InputFunctionSource alloc] initWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize];
 	if( useBlock )
-		[theJSON setSourceBlock:^(uint8_t ** aBuffer){return sourceFuction(aBuffer, inputFunctionSource);} encoding:NSUTF8StringEncoding];
+		[theJSON setSourceBlock:^(uint8_t ** aBuffer){return sourceFuction(aBuffer, (__bridge void *)(inputFunctionSource));} encoding:NSUTF8StringEncoding];
 	else
-		[theJSON setSourceFunction:sourceFuction context:inputFunctionSource encoding:NSUTF8StringEncoding];
+		[theJSON setSourceFunction:sourceFuction context:(__bridge void *)(inputFunctionSource) encoding:NSUTF8StringEncoding];
 	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
-	[theJSON release];
-	[theJSONParser release];
 	return lastResult;
 }
 
@@ -126,7 +117,7 @@ NSInteger sourceFuction(uint8_t ** aBuffer, void * aContext );
 
 NSInteger sourceFuction(uint8_t ** aBuffer, void * aContext )
 {
-	InputFunctionSource		* self = (InputFunctionSource*)aContext;
+	InputFunctionSource		* self = (__bridge InputFunctionSource*)aContext;
 	NSUInteger	theResult = 0;
 	if( self->position < self->jsonLength )
 	{

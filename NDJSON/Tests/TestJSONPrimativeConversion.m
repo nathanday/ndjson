@@ -104,26 +104,18 @@
 
 + (id)testConversionWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult options:(NDJSONOptionFlags)anOptions targetClass:(Class)aTargetClass
 {
-	return [[[self alloc] initWithName:aName jsonString:aJSON expectedResult:aResult options:anOptions targetClass:aTargetClass] autorelease];
+	return [[self alloc] initWithName:aName jsonString:aJSON expectedResult:aResult options:anOptions targetClass:aTargetClass];
 }
 - (id)initWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult options:(NDJSONOptionFlags)anOptions targetClass:(Class)aTargetClass
 {
 	if( (self = [super initWithName:aName]) != nil )
 	{
 		jsonString = [aJSON copy];
-		expectedResult = [aResult retain];
+		expectedResult = aResult;
 		options = anOptions;
-		targetClass = [aTargetClass retain];
+		targetClass = aTargetClass;
 	}
 	return self;
-}
-
-- (void)dealloc
-{
-	[jsonString release];
-	[expectedResult release];
-	[targetClass release];
-	[super dealloc];
 }
 
 #pragma mark - execution
@@ -137,8 +129,6 @@
 	id				theResult = [theJSONParser objectForJSON:theJSON options:self.options error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
-	[theJSONParser release];
-	[theJSON release];
 	return self.lastResult;
 }
 
@@ -156,7 +146,7 @@
 					valueAlpha;
 + (id)testConversionTargetWithValueSigma:(NSString *)aString valueIota:(NSUInteger)aInteger valueDelta:(NSDate *)aDate valueAlpha:(NSArray*)anArray valueChi:(NSArray *)aValueChi
 {
-	return [[[self alloc] initWithValueSigma:aString valueIota:aInteger valueDelta:aDate valueAlpha:anArray valueChi:aValueChi] autorelease];
+	return [[self alloc] initWithValueSigma:aString valueIota:aInteger valueDelta:aDate valueAlpha:anArray valueChi:aValueChi];
 }
 - (id)initWithValueSigma:(NSString *)aString valueIota:(NSUInteger)aInteger valueDelta:(NSDate *)aDate valueAlpha:(NSArray*)anArray valueChi:(NSArray *)aValueChi
 {

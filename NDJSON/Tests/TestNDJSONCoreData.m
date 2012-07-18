@@ -73,7 +73,6 @@
 	theResult.integerValue = 42;
 	[theResult setAlphaObject:theChildA];
 	[theResult setBetaObject:theChildren];
-	[theChildren release];
 
 	theChildA.stringAlphaValue = @"String Alpha Value";
 	theChildA.booleanAlphaValue = true;
@@ -116,7 +115,6 @@
 	theResult.integerValue = 45;
 	[theResult setAlphaObject:theChildA];
 	[theResult setBetaObject:theChildren];
-	[theChildren release];
 	
 	theChildA.stringAlphaValue = @"String Delta Value";
 	theChildA.booleanAlphaValue = true;
@@ -144,9 +142,11 @@
 - (void)willLoad
 {
 	static NSString		* const kTestJSONString1 = @"{\"stringValue\":\"Root String Value\",\"integerValue\":42,\"alphaObject\":{\"stringAlphaValue\":\"String Alpha Value\",\"booleanAlphaValue\":true},\"betaObject\":[{\"stringBetaValue\":\"String Beta Value One\",\"floatBetaValue\":3.14,\"subChildC\":{\"stringGamaValue\":\"String Gama Value A\"}},{\"stringBetaValue\":\"String Beta Value Two\",\"floatBetaValue\":2.71,\"subChildC\":{\"stringGamaValue\":\"String Gama Value B\"}}]}",
-						* const kTestJSONString2 = @"[{\"stringValue\":\"Root String Value\",\"integerValue\":42,\"alphaObject\":{\"stringAlphaValue\":\"String Alpha Value\",\"booleanAlphaValue\":true},\"betaObject\":[{\"stringBetaValue\":\"String Beta Value One\",\"floatBetaValue\":3.14,\"subChildC\":{\"stringGamaValue\":\"String Gama Value A\"}},{\"stringBetaValue\":\"String Beta Value Two\",\"floatBetaValue\":2.71,\"subChildC\":{\"stringGamaValue\":\"String Gama Value B\"}}]},{\"stringValue\":\"Root String Value 2\",\"integerValue\":45,\"alphaObject\":{\"stringAlphaValue\":\"String Delta Value\",\"booleanAlphaValue\":true},\"betaObject\":[{\"stringBetaValue\":\"String Sigma Value One\",\"floatBetaValue\":3.14,\"subChildC\":{\"stringGamaValue\":\"String Epsilon Value A\"}},{\"stringBetaValue\":\"String Sigma Value Two\",\"floatBetaValue\":2.71,\"subChildC\":{\"stringGamaValue\":\"String Epsilon Value B\"}}]}]";
+						* const kTestJSONString2 = @"[{\"stringValue\":\"Root String Value\",\"integerValue\":42,\"alphaObject\":{\"stringAlphaValue\":\"String Alpha Value\",\"booleanAlphaValue\":true},\"betaObject\":[{\"stringBetaValue\":\"String Beta Value One\",\"floatBetaValue\":3.14,\"subChildC\":{\"stringGamaValue\":\"String Gama Value A\"}},{\"stringBetaValue\":\"String Beta Value Two\",\"floatBetaValue\":2.71,\"subChildC\":{\"stringGamaValue\":\"String Gama Value B\"}}]},{\"stringValue\":\"Root String Value 2\",\"integerValue\":45,\"alphaObject\":{\"stringAlphaValue\":\"String Delta Value\",\"booleanAlphaValue\":true},\"betaObject\":[{\"stringBetaValue\":\"String Sigma Value One\",\"floatBetaValue\":3.14,\"subChildC\":{\"stringGamaValue\":\"String Epsilon Value A\"}},{\"stringBetaValue\":\"String Sigma Value Two\",\"floatBetaValue\":2.71,\"subChildC\":{\"stringGamaValue\":\"String Epsilon Value B\"}}]}]",
+						* const kTestJSONString3 = @"{\"stringValue\":\"Root String Value\",\"integerValue\":42,\"alphaObject\":{\"stringAlphaValue\":\"String Alpha Value\",\"booleanAlphaValue\":true},\"betaObject\":[{\"stringBetaValue\":\"String Beta Value One\",\"floatBetaValue\":\"3.14\",\"subChildC\":{\"stringGamaValue\":\"String Gama Value A\"}},{\"stringBetaValue\":\"String Beta Value Two\",\"floatBetaValue\":\"2.71\",\"subChildC\":{\"stringGamaValue\":\"String Gama Value B\"}}]}";
 	[self addTest:[TestCoreDataItem testStringWithName:@"Core Data with Object Root" jsonString:kTestJSONString1 expectedResult:[self creatExpectedOneValueInCoreDataController:self.coreDataController] inCoreDataController:self.coreDataController]];
 	[self addTest:[TestCoreDataItem testStringWithName:@"Core Data with Array Root" jsonString:kTestJSONString2 expectedResult:[self creatExpectedTwoValueInCoreDataController:self.coreDataController] inCoreDataController:self.coreDataController]];
+	[self addTest:[TestCoreDataItem testStringWithName:@"Automatic Primative Type Conversion" jsonString:kTestJSONString3 expectedResult:[self creatExpectedOneValueInCoreDataController:self.coreDataController] inCoreDataController:self.coreDataController]];
 	[super willLoad];
 }
 
@@ -176,24 +176,17 @@
 
 + (id)testStringWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult inCoreDataController:(NDCoreDataController *)aCoreDataController
 {
-	return [[[self alloc] initWithName:aName jsonString:aJSON expectedResult:aResult inCoreDataController:aCoreDataController] autorelease];
+	return [[self alloc] initWithName:aName jsonString:aJSON expectedResult:aResult inCoreDataController:aCoreDataController];
 }
 - (id)initWithName:(NSString *)aName jsonString:(NSString *)aJSON expectedResult:(id)aResult inCoreDataController:(NDCoreDataController *)aCoreDataController
 {
 	if( (self = [super initWithName:aName]) != nil )
 	{
-		jsonString = [aJSON retain];
-		expectedResult = [aResult retain];
-		coreDataController = [aCoreDataController retain];
+		jsonString = [aJSON copy];
+		expectedResult = aResult;
+		coreDataController = aCoreDataController;
 	}
 	return self;
-}
-
-- (void)dealloc
-{
-	[jsonString release];
-	[expectedResult release];
-	[super dealloc];
 }
 
 #pragma mark - execution
@@ -204,11 +197,9 @@
 	NDJSON				* theJSON = [[NDJSON alloc] init];
 	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] initWithRootEntityName:@"Root" inManagedObjectContext:self.managedObjectContext];
 	[theJSON setJSONString:self.jsonString];
-	id					theResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
+	id					theResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionCovertPrimitiveJSONTypes error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
-	[theJSONParser release];
-	[theJSON release];
 	return self.lastResult;
 }
 
