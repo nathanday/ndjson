@@ -9,6 +9,7 @@
 #import "JSONRoot.h"
 #import "JSONChildAlpha.h"
 #import "JSONChildBeta.h"
+#import "NDJSONParser.h"
 
 
 @implementation JSONRoot
@@ -17,5 +18,7 @@
 @dynamic stringValue;
 @dynamic alphaObject;
 @dynamic betaObject;
+
+NDJSONPropertyNamesForKeys( @"stringValue", @"otherStringValue" );
 
 @end
