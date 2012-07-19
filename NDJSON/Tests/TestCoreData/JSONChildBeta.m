@@ -18,4 +18,10 @@
 @dynamic parent;
 @dynamic subChildC;
 
+- (void)setSubChildCByConvertingString:(NSString *)aString
+{
+	self.subChildC = [NSEntityDescription insertNewObjectForEntityForName:@"ChildGama" inManagedObjectContext:self.managedObjectContext];
+	self.subChildC.stringGamaValue = aString;
+}
+
 @end
