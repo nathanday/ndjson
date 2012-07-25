@@ -220,13 +220,12 @@ void NDError( NSString *aFormat, ... )
 		NSCalendar			* theGregorianCalendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
 		NSDateComponents	* theHourComps = [theGregorianCalendar components:NSHourCalendarUnit|NSMinuteCalendarUnit|NSSecondCalendarUnit fromDate:[NSDate date]];
 
-		[self logFormat:@"\n--------------------------------------------- Time: %02d:%02d:%02d ---------------------------------------------\n", theHourComps.hour, theHourComps.minute, theHourComps.second];
+		[self logFormat:@"\n----------------------------------- Time: %02d:%02d:%02d -----------------------------------\n", theHourComps.hour, theHourComps.minute, theHourComps.second];
 		[runStopButton setTitle:NSLocalizedString(@"Stop", @"Text for run/stop button when tests are running")];
 		[self.queue setMaxConcurrentOperationCount:NSOperationQueueDefaultMaxConcurrentOperationCount];
 		[self resetAllTests];
 		for( id<TestProtocol> theTest in self.everyCheckedTest )
 			[self runTest:theTest waitUntilFinished:NO];
-		theGregorianCalendar;
 	}
 	else
 		[self finishedAllTests];

@@ -39,8 +39,8 @@
 
 @property(readonly)		NSManagedObjectContext		* managedObjectContext;
 @property(readonly)		NDCoreDataController		* coreDataController;
-@property(readonly)			NSString				* jsonString;
-@property(readonly)			id						expectedResult;
+@property(readonly)		NSString					* jsonString;
+@property(readonly)		id							expectedResult;
 @end
 
 @implementation TestNDJSONCoreData
@@ -161,10 +161,7 @@
 
 #pragma mark - manually implemented properties
 
-- (NSManagedObjectContext *)managedObjectContext
-{
-	return self.coreDataController.managedObjectContext;
-}
+- (NSManagedObjectContext *)managedObjectContext { return self.coreDataController.managedObjectContext; }
 
 
 - (NSString *)details
@@ -200,15 +197,17 @@
 	id					theResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionCovertPrimitiveJSONTypes error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;
+	if( ![self.managedObjectContext save:&theError] )
+	{
+		NSLog( @"Failed to context, error: %@", theError );
+		self.error = theError;
+	}
 	return self.lastResult;
 }
 
 #pragma mark - NSObject overridden methods
 
-- (NSString *)description
-{
-	return [NSString stringWithFormat:@"%@, name: %@", [self class], self.name];
-}
+- (NSString *)description { return [NSString stringWithFormat:@"%@, name: %@", [self class], self.name]; }
 
 
 @end
