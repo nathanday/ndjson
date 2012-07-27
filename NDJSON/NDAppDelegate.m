@@ -138,26 +138,21 @@ void NDError( NSString *aFormat, ... )
 
 - (void)resetAllTests
 {
-	[self.everyTestGroup enumerateObjectsUsingBlock:^(id anObject, NSUInteger anIndex, BOOL *aStop )
+	[self.everyTestGroup enumerateObjectsUsingBlock:^(TestGroup * aGroup, NSUInteger anIndex, BOOL *aStop )
 	 {
-		 TestGroup		* theGroup = (TestGroup*)anObject;
-		 [theGroup.everyTest enumerateObjectsUsingBlock:^(id<TestProtocol> anObject, NSUInteger anIndex, BOOL *aStop)
-		  {
-			  anObject.operationState = kTestOperationStateInitial;
-		  }];
+		 [aGroup.everyTest enumerateObjectsUsingBlock:^(id<TestProtocol> aTest, NSUInteger anIndexIn, BOOL *aStopIn) { aTest.operationState = kTestOperationStateInitial; }];
 	  }];
 }
 
 - (NSArray *)everyCheckedTest
 {
 	__block NSMutableArray		* theResult = [NSMutableArray array];
-	[self.everyTestGroup enumerateObjectsUsingBlock:^(id anObject, NSUInteger anIndex, BOOL *aStop )
+	[self.everyTestGroup enumerateObjectsUsingBlock:^(TestGroup * aGroup, NSUInteger anIndex, BOOL *aStop )
 	 {
-		 TestGroup		* theGroup = (TestGroup*)anObject;
-		 [theGroup.everyTest enumerateObjectsUsingBlock:^(id anObject, NSUInteger anIndex, BOOL *aStop)
+		 [aGroup.everyTest enumerateObjectsUsingBlock:^(id<TestProtocol> aTest, NSUInteger anIndexInnner, BOOL *aStopInnner)
 		  {
-			  if( [[[self.checkForTestGroups objectForKey:theGroup.name] valueForTestName:[anObject name]] boolValue] )
-				  [theResult addObject:anObject];
+			  if( [[[self.checkForTestGroups objectForKey:aGroup.name] valueForTestName:[aTest name]] boolValue] )
+				  [theResult addObject:aTest];
 		  }];
 
 	 }];
@@ -316,6 +311,7 @@ void NDError( NSString *aFormat, ... )
 
 - (void)runTest:(id<TestProtocol>)aTest waitUntilFinished:(BOOL)aFlag
 {
+	NSParameterAssert([aTest conformsToProtocol:@protocol(TestProtocol)] );
 	TestOperation	* theTestOpp = [[TestOperation alloc] initWithTestProtocol:aTest];
 	theTestOpp.beginningBlock = ^{[self startedTest:aTest];};
 	theTestOpp.completionBlock = ^{[self finshedTest:aTest];};

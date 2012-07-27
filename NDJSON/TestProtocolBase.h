@@ -22,7 +22,7 @@
 @property(readwrite,copy)	NSString			* name;
 @property(readwrite,retain)	id					lastResult;
 @property(readwrite,retain)	NSError				* error;
-@property(assign) enum TestOperationState		operationState;
+@property(assign,nonatomic) enum TestOperationState		operationState;
 
 - (id)initWithName:(NSString *)name;
 

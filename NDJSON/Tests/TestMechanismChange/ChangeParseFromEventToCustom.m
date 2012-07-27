@@ -20,7 +20,8 @@
 @implementation ChangeParseFromEventToCustom
 
 @synthesize		dValue,
-				genValue;
+				genValue,
+				nextValueForD;
 
 + (NDJSONOptionFlags)options { return NDJSONOptionNone; }
 + (NSString *)name { return @"Change Parse from event to Custom Object"; }

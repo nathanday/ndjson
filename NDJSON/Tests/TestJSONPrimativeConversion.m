@@ -71,11 +71,13 @@
 
 - (void)willLoad
 {
-	TestConversionTarget	* theTestConversionTarget = [TestConversionTarget testConversionTargetWithValueSigma:@"12"
-																									valueIota:24
-																								   valueDelta:[NSDate dateWithString:@"1968-01-22 06:30:00 +0600"]
-																								   valueAlpha:nil
-																									 valueChi:nil];
+	TestConversionTarget	* theTestConversionTarget = nil;
+
+	theTestConversionTarget = [TestConversionTarget testConversionTargetWithValueSigma:@"12"
+																			 valueIota:24
+																			valueDelta:[NSDate dateWithString:@"1968-01-22 06:30:00 +0600"]
+																			valueAlpha:nil
+																			  valueChi:nil];
 	[self addName:@"String to Date by converting methods" jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:\"1968-01-22 06:30:00 +0600\"}" expectedResult:theTestConversionTarget options:NDJSONOptionCovertPrimitiveJSONTypes targetClass:[TestConversionTargetWithConversion class]];
 	[self addName:@"Number to Date by converting method" jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:-61342200.00}" expectedResult:theTestConversionTarget options:NDJSONOptionCovertPrimitiveJSONTypes targetClass:[TestConversionTargetWithConversion class]];
 	[self addName:@"String to Date by initWithDate" jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:\"1968-01-22 06:30:00 +0600\"}" expectedResult:theTestConversionTarget options:NDJSONOptionCovertPrimitiveJSONTypes targetClass:[TestConversionTarget class]];
@@ -144,6 +146,7 @@
 					valueIota,
 					valueDelta,
 					valueAlpha;
+
 + (id)testConversionTargetWithValueSigma:(NSString *)aString valueIota:(NSUInteger)aInteger valueDelta:(NSDate *)aDate valueAlpha:(NSArray*)anArray valueChi:(NSArray *)aValueChi
 {
 	return [[self alloc] initWithValueSigma:aString valueIota:aInteger valueDelta:aDate valueAlpha:anArray valueChi:aValueChi];
@@ -184,6 +187,13 @@
 	for( NSUInteger i = 0; i < valueChiLen; i++ )
 		[theMutableString appendFormat:@"%s%ld", i > 0 ? "," : "", valueChi[i]];
 	return [NSString stringWithFormat:@"valueIota: %lu, valueSigma: %@, valueDelta: %@, valueAlpha: %@, valueChi: [%@]", self.valueIota, self.valueSigma, self.valueDelta, self.valueAlpha, theMutableString];
+}
+
+- (NSInteger *)valueChi { return valueChi; }
+- (void)setValueChi:(NSInteger *)aValues
+{
+	for( valueChiLen = 0; valueChiLen < sizeof(valueChi)/sizeof(*valueChi) && aValues[valueChiLen] != NSNotFound; valueChiLen++ )
+		valueChi[valueChiLen] = aValues[valueChiLen];
 }
 
 @end

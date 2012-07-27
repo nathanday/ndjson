@@ -26,6 +26,9 @@
 #import <Foundation/Foundation.h>
 
 //#define NDJSONSupportUTF8Only
+//#define NDJSONDebug
+//#define NDJSONPrintStream
+#define NDJSONSupportZippedData
 
 typedef enum
 {
@@ -68,6 +71,7 @@ enum {
 	 #Non strict JSON features
 	 - object keys do not have to be quoted.
 	 - arrays may have a trailing comment.
+	 - control characters are allowed in strings (including quoted keys)
  */
 	NDJSONOptionStrict = 1<<0
 };

@@ -21,7 +21,9 @@
 
 @implementation TestGroup
 
-@synthesize name;
+@synthesize		name,
+				enabled,
+				operationState;
 
 #pragma mark - manually implemented properties
 

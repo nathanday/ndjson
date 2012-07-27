@@ -98,22 +98,22 @@ BOOL jsonValueEquivelentObjectTypes( NDJSONValueType aTypeA, NDJSONValueType aTy
 
 static NSString		* const kContentTypeHTTPHeaderKey = @"Content-Type";
 
-enum CharacterWordSize
+enum NDJSONCharacterWordSize
 {
-	kCharacterWord8 = 0,			// the values for these enums is important
-	kCharacterWord16 = 1,
-	kCharacterWord32 = 2
+	kNDJONCharacterWord8 = 0,			// the values for these enums is important
+	kNDJSONCharacterWord16 = 1,
+	kNDJSONCharacterWord32 = 2
 };
 
 #ifndef NDJSONSupportUTF8Only
 static NSStringEncoding	kNSStringEncodingFromCharacterWordSize[] = { NSUTF8StringEncoding, NSUTF16LittleEndianStringEncoding, NSUTF32LittleEndianStringEncoding };
 #endif
 
-enum CharacterEndian
+enum NDJSONCharacterEndian
 {
-	kUnknownEndian,
-	kLittleEndian,
-	kBigEndian
+	kNDJSONUnknownEndian,
+	kNDJSONLittleEndian,
+	kNDJSONBigEndian
 };
 
 struct NDBytesBuffer
@@ -130,8 +130,8 @@ static const NSUInteger		kBufferSize = 2048;
 NSString	* const NDJSONErrorDomain = @"NDJSONError";
 
 static const struct NDBytesBuffer	NDBytesBufferInit = {NULL,0,0};
-static BOOL appendBytes( struct NDBytesBuffer * aBuffer, uint32_t aBytes, enum CharacterWordSize aWordSize );
-static BOOL appendCharacter( struct NDBytesBuffer * aBuffer, unsigned int aValue, enum CharacterWordSize aWordSize );
+static BOOL appendBytes( struct NDBytesBuffer * aBuffer, uint32_t aBytes, enum NDJSONCharacterWordSize aWordSize );
+static BOOL appendCharacter( struct NDBytesBuffer * aBuffer, unsigned int aValue, enum NDJSONCharacterWordSize aWordSize );
 //static BOOL truncateByte( struct NDBytesBuffer * aBuffer, uint32_t aBytes );
 static void freeByte( struct NDBytesBuffer * aBuffer );
 
@@ -192,7 +192,7 @@ static BOOL is8BitWordSizeForNSStringEncoding( NSStringEncoding anEncoding )
 	}
 }
 #else
-static BOOL getCharacterWordSizeAndEndianFromNSStringEncoding( enum CharacterWordSize * aWordSize, enum CharacterEndian * anEndian, NSStringEncoding anEncoding )
+static BOOL getCharacterWordSizeAndEndianFromNSStringEncoding( enum NDJSONCharacterWordSize * aWordSize, enum NDJSONCharacterEndian * anEndian, NSStringEncoding anEncoding )
 {
 	BOOL		theResult = YES;
 	NSCParameterAssert( aWordSize != NULL );
@@ -215,33 +215,33 @@ static BOOL getCharacterWordSizeAndEndianFromNSStringEncoding( enum CharacterWor
 	case NSWindowsCP1254StringEncoding:
 	case NSWindowsCP1250StringEncoding:
 	case NSISO2022JPStringEncoding:
-		*aWordSize = kCharacterWord8;
-		*anEndian = kLittleEndian;	
+		*aWordSize = kNDJONCharacterWord8;
+		*anEndian = kNDJSONLittleEndian;
 		break;
 //	case NSUnicodeStringEncoding:
 	case NSUTF16StringEncoding:
-		*aWordSize = kCharacterWord16;
-		*anEndian = kUnknownEndian;
+		*aWordSize = kNDJSONCharacterWord16;
+		*anEndian = kNDJSONUnknownEndian;
 		break;
 	case NSUTF16BigEndianStringEncoding:
-		*aWordSize = kCharacterWord16;
-		*anEndian = kBigEndian;	
+		*aWordSize = kNDJSONCharacterWord16;
+		*anEndian = kNDJSONBigEndian;
 		break;
 	case NSUTF16LittleEndianStringEncoding:
-		*aWordSize = kCharacterWord16;
-		*anEndian = kLittleEndian;	
+		*aWordSize = kNDJSONCharacterWord16;
+		*anEndian = kNDJSONLittleEndian;
 		break;
 	case NSUTF32StringEncoding:
-		*aWordSize = kCharacterWord32;
-		*anEndian = kUnknownEndian;
+		*aWordSize = kNDJSONCharacterWord32;
+		*anEndian = kNDJSONUnknownEndian;
 		break;
 	case NSUTF32BigEndianStringEncoding:
-		*aWordSize = kCharacterWord32;
-		*anEndian = kBigEndian;	
+		*aWordSize = kNDJSONCharacterWord32;
+		*anEndian = kNDJSONBigEndian;
 		break;
 	case NSUTF32LittleEndianStringEncoding:
-		*aWordSize = kCharacterWord32;
-		*anEndian = kLittleEndian;	
+		*aWordSize = kNDJSONCharacterWord32;
+		*anEndian = kNDJSONLittleEndian;
 		break;
 	}
 	return theResult;
@@ -299,9 +299,9 @@ enum JSONInputType
 #ifndef NDJSONSupportUTF8Only
 	struct
 	{
-		enum CharacterWordSize		wordSize;
-		enum CharacterEndian		endian;
-	}							character;
+		enum NDJSONCharacterWordSize	wordSize;
+		enum NDJSONCharacterEndian		endian;
+	}								character;
 #endif
 	uint32_t					backUpByte;
 	BOOL						hasSkippedValueForCurrentKey,
@@ -329,24 +329,26 @@ enum JSONInputType
 			void					* context;
 		};
 	}							source;
-	NSString					* currentKey;
+#ifdef NDJSONSupportZippedData
+#endif
+	NSString			* currentKey;
 	struct
 	{
-		IMP						didStartDocument,
-									didEndDocument,
-									didStartArray,
-									didEndArray,
-									didStartObject,
-									didEndObject,
-									shouldSkipValueForKey,
-									foundKey,
-									foundString,
-									foundInteger,
-									foundFloat,
-									foundBool,
-									foundNULL,
-									foundError;
-	}							delegateMethod;
+		IMP				didStartDocument,
+							didEndDocument,
+							didStartArray,
+							didEndArray,
+							didStartObject,
+							didEndObject,
+							shouldSkipValueForKey,
+							foundKey,
+							foundString,
+							foundInteger,
+							foundFloat,
+							foundBool,
+							foundNULL,
+							foundError;
+	}					delegateMethod;
 }
 
 - (void)setUpRespondsTo;
@@ -407,11 +409,8 @@ static void zeroOutInstanceVaribles( NDJSON * self )
 	self->bytes.word8 = NULL;
 	self->bytes.word16 = NULL;
 	self->bytes.word32 = NULL;
-}
-
-static void initializeZipStream( NDJSON * self )
-{
-	
+#ifdef NDJSONSupportZippedData
+#endif
 }
 
 #pragma mark - parsing methods
@@ -436,8 +435,8 @@ static void initializeZipStream( NDJSON * self )
 		bytes.word8 = inputBytes = (uint8_t*)CFStringGetCStringPtr((CFStringRef)aString, theStringEncoding);
 		ownsBytes = NO;
 		numberOfBytes = aString.length;
-		character.wordSize = kCharacterWord8;
-		character.endian = kLittleEndian;
+		character.wordSize = kNDJONCharacterWord8;
+		character.endian = kNDJSONLittleEndian;
 		break;
 	case kCFStringEncodingUnicode:
 //	case kCFStringEncodingUTF16:
@@ -446,8 +445,8 @@ static void initializeZipStream( NDJSON * self )
 		bytes.word8 = inputBytes = (uint8_t*)CFStringGetCharactersPtr((CFStringRef)aString);
 		ownsBytes = NO;
 		numberOfBytes = aString.length<<1;
-		character.wordSize = kCharacterWord16;
-		character.endian = kLittleEndian;
+		character.wordSize = kNDJSONCharacterWord16;
+		character.endian = kNDJSONLittleEndian;
 		break;
 	case kCFStringEncodingUTF32:
 	case kCFStringEncodingUTF32BE:
@@ -587,7 +586,7 @@ static void initializeZipStream( NDJSON * self )
 	if( delegateMethod.didStartDocument != NULL )
 		delegateMethod.didStartDocument( delegate, @selector(jsonDidStartDocument:), self );
 
-	if( options.strictJSONOnly )
+	if( options.zipJSON )
 		bytes.word8 = malloc(kBufferSize);
 
 	switch( inputType )
@@ -687,6 +686,76 @@ static uint32_t integerForHexidecimalDigit( uint32_t d )
 	}
 }
 
+static uint32_t convertedBytes( NDJSON * self )
+{
+	uint32_t	theResult = '\0';
+	switch( self->character.wordSize )
+	{
+	case kNDJONCharacterWord8:
+		theResult = self->bytes.word8[self->position];
+		break;
+	case kNDJSONCharacterWord16:
+		theResult = self->bytes.word16[self->position];
+		if( self->position == 0 )
+		{
+			if( theResult == k16BitLittleEndianBOM )
+			{
+				self->character.endian = kNDJSONLittleEndian;
+				theResult = ' ';
+			}
+			else if( theResult == k16BitBigEndianBOM )
+			{
+				self->character.endian = kNDJSONBigEndian;
+				theResult = 0x2000;
+			}
+			else if( self->character.endian == kNDJSONUnknownEndian )
+			{
+				if( (theResult & 0xFF00) == 0 )			// first character is most likly < 256
+					self->character.endian = kNDJSONLittleEndian;
+				else if( (theResult & 0x00FF) == 0 )			// first character is most likly < 256
+					self->character.endian = kNDJSONBigEndian;
+				else
+					self->character.endian = kNDJSONLittleEndian;
+			}
+		}
+		if( self->character.endian == kNDJSONBigEndian )
+			theResult = CFSwapInt16BigToHost((uint16_t)theResult);
+		else
+			theResult = CFSwapInt16HostToLittle((uint16_t)theResult);
+		break;
+	case kNDJSONCharacterWord32:
+		theResult = self->bytes.word32[self->position];
+		if( self->position == 0 )
+		{
+			if( theResult == k32BitLittleEndianBOM )
+			{
+				self->character.endian = kNDJSONLittleEndian;
+				theResult = ' ';
+			}
+			else if( theResult == k32BitBigEndianBOM )
+			{
+				self->character.endian = kNDJSONBigEndian;
+				theResult = 0x20000000;
+			}
+			else if( self->character.endian == kNDJSONUnknownEndian )
+			{
+				if( (theResult & 0xFFFF0000) == 0 )			// first character is most likly < 65536
+					self->character.endian = kNDJSONLittleEndian;
+				else if( (theResult & 0x0000FFFF) == 0 )			// first character is most likly < 65536
+					self->character.endian = kNDJSONBigEndian;
+				else
+					self->character.endian = kNDJSONLittleEndian;
+			}
+		}
+		if( self->character.endian == kNDJSONBigEndian )
+			theResult = CFSwapInt32BigToHost(theResult);
+		else
+			theResult = CFSwapInt32HostToLittle(theResult);
+		break;
+	}
+	return theResult;
+}
+
 static uint32_t currentChar( NDJSON * self )
 {
 	uint32_t	theResult = '\0';
@@ -753,70 +822,7 @@ static uint32_t currentChar( NDJSON * self )
 #ifdef NDJSONSupportUTF8Only
 		theResult = self->bytes.word8[self->position];
 #else
-		switch( self->character.wordSize )
-		{
-		case kCharacterWord8:
-			theResult = self->bytes.word8[self->position];
-			break;
-		case kCharacterWord16:
-			theResult = self->bytes.word16[self->position];
-			if( self->position == 0 )
-			{
-				if( theResult == k16BitLittleEndianBOM )
-				{
-					self->character.endian = kLittleEndian;
-					theResult = ' ';
-				}
-				else if( theResult == k16BitBigEndianBOM )
-				{
-					self->character.endian = kBigEndian;
-					theResult = 0x2000;
-				}
-				else if( self->character.endian == kUnknownEndian )
-				{
-					if( (theResult & 0xFF00) == 0 )			// first character is most likly < 256
-						self->character.endian = kLittleEndian;
-					else if( (theResult & 0x00FF) == 0 )			// first character is most likly < 256
-						self->character.endian = kBigEndian;
-					else
-						self->character.endian = kLittleEndian;
-				}
-			}
-			if( self->character.endian == kBigEndian )
-				theResult = CFSwapInt16BigToHost((uint16_t)theResult);
-			else
-				theResult = CFSwapInt16HostToLittle((uint16_t)theResult);
-			break;
-		case kCharacterWord32:
-			theResult = self->bytes.word32[self->position];
-			if( self->position == 0 )
-			{
-				if( theResult == k32BitLittleEndianBOM )
-				{
-					self->character.endian = kLittleEndian;
-					theResult = ' ';
-				}
-				else if( theResult == k32BitBigEndianBOM )
-				{
-					self->character.endian = kBigEndian;
-					theResult = 0x20000000;
-				}
-				else if( self->character.endian == kUnknownEndian )
-				{
-					if( (theResult & 0xFFFF0000) == 0 )			// first character is most likly < 65536
-						self->character.endian = kLittleEndian;
-					else if( (theResult & 0x0000FFFF) == 0 )			// first character is most likly < 65536
-						self->character.endian = kBigEndian;
-					else
-						self->character.endian = kLittleEndian;
-				}
-			}
-			if( self->character.endian == kBigEndian )
-				theResult = CFSwapInt32BigToHost(theResult);
-			else
-				theResult = CFSwapInt32HostToLittle(theResult);
-			break;
-		}
+		theResult = convertedBytes( self );
 #endif
 	}
 	return theResult;
@@ -929,7 +935,7 @@ BOOL parseURLRequest( NDJSON * self )
 			CFTypeRef theHttpHeaderMessage = NULL;
 			[self->source.stream open];
 			theHttpHeaderMessage = CFReadStreamCopyProperty( (CFReadStreamRef)self->source.stream, kCFStreamPropertyHTTPResponseHeader );
-			if( theHttpHeaderMessage != NULL )
+/*			if( theHttpHeaderMessage != NULL )
 			{
 				NSDictionary	* theHeaders = (NSDictionary*)CFHTTPMessageCopyAllHeaderFields(theHttpHeaderMessage);
 #ifndef NDJSONSupportUTF8Only
@@ -938,6 +944,7 @@ BOOL parseURLRequest( NDJSON * self )
 				CFRelease(theHttpHeaderMessage);
 				CFRelease(theHeaders);
 			}
+ */
 		}
 		theResult = parseJSONUnknown( self );
 		[self->source.stream close];
@@ -1161,9 +1168,9 @@ BOOL parseJSONText( NDJSON * self, struct NDBytesBuffer * aValueBuffer, BOOL aIs
 	BOOL					theResult = YES,
 							theEnd = NO;
 #ifdef NDJSONSupportUTF8Only
-	enum CharacterWordSize	theWordSize = kCharacterWord8;
+	enum NDJSONCharacterWordSize	theWordSize = kNDJONCharacterWord8;
 #else
-	enum CharacterWordSize	theWordSize = self->character.wordSize;
+	enum NDJSONCharacterWordSize	theWordSize = self->character.wordSize;
 #endif
 	NSCParameterAssert(aValueBuffer != NULL);
 	
@@ -1246,7 +1253,9 @@ BOOL parseJSONText( NDJSON * self, struct NDBytesBuffer * aValueBuffer, BOOL aIs
 				foundError( self, NDJSONMemoryErrorError );
 			break;
 		case '\t': case '\n': case '\v': case '\f': case '\r': case ' ':
-			if( !aIsQuotesTerminated )
+			if( self->options.strictJSONOnly )
+				foundError( self, NDJSONBadFormatError );
+			else if( !aIsQuotesTerminated )
 				theEnd = YES;
 			else if( !appendBytes( aValueBuffer, theChar, theWordSize ) )
 				foundError( self, NDJSONMemoryErrorError );
@@ -1533,7 +1542,7 @@ static BOOL extendsBytesOfLen( struct NDBytesBuffer * aBuffer, NSUInteger aLen )
 	return theResult;
 }
 
-BOOL appendBytes( struct NDBytesBuffer * aBuffer, uint32_t aByte, enum CharacterWordSize aWordSize )
+BOOL appendBytes( struct NDBytesBuffer * aBuffer, uint32_t aByte, enum NDJSONCharacterWordSize aWordSize )
 {
 	BOOL	theResult = YES;
 	if( aBuffer->length >= aBuffer->capacity )
@@ -1558,69 +1567,69 @@ BOOL appendBytes( struct NDBytesBuffer * aBuffer, uint32_t aByte, enum Character
 	return theResult;
 }
 
-BOOL appendCharacter( struct NDBytesBuffer * aBuffer, uint32_t aValue, enum CharacterWordSize aWordSize )
+BOOL appendCharacter( struct NDBytesBuffer * aBuffer, uint32_t aValue, enum NDJSONCharacterWordSize aWordSize )
 {
 	switch (aWordSize)
 	{
-	case kCharacterWord8:
+	case kNDJONCharacterWord8:
 		if( aValue > 0x3ffffff )				// 1111110x	10xxxxxx	10xxxxxx	10xxxxxx	10xxxxxx	10xxxxxx
 		{
-			if( !appendBytes( aBuffer, ((aValue>>31) & 0xf) | 0xfc, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>31) & 0xf) | 0xfc, kNDJONCharacterWord8 ) )
 				return NO;
-			if( !appendBytes( aBuffer, ((aValue>>30) & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>30) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
-			if( !appendBytes( aBuffer, ((aValue>>24) & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>24) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
-			if( !appendBytes( aBuffer, ((aValue>>18) & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>18) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
-			if( !appendBytes( aBuffer, ((aValue>>12) & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>12) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
-			if( !appendBytes( aBuffer, ((aValue>>6) & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>6) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
 		}
 		else if( aValue > 0x1fffff )			// 111110xx	10xxxxxx	10xxxxxx	10xxxxxx	10xxxxxx
 		{
-			if( !appendBytes( aBuffer, ((aValue>>24) & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>24) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
-			if( !appendBytes( aBuffer, ((aValue>>18) & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>18) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
-			if( !appendBytes( aBuffer, ((aValue>>12) & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>12) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
-			if( !appendBytes( aBuffer, ((aValue>>6) & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>6) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
 		}
 		else if( aValue > 0xffff )				// 11110xxx	10xxxxxx	10xxxxxx	10xxxxxx
 		{
-			if( !appendBytes( aBuffer, ((aValue>>18) & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>18) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
-			if( !appendBytes( aBuffer, ((aValue>>12) & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>12) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
-			if( !appendBytes( aBuffer, ((aValue>>6) & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>6) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
 		}
 		else if( aValue > 0x7ff )				// 1110xxxx	10xxxxxx	10xxxxxx
 		{
-			if( !appendBytes( aBuffer, ((aValue>>12) & 0xf) | 0xE0, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>12) & 0xf) | 0xE0, kNDJONCharacterWord8 ) )
 				return NO;
-			if( !appendBytes( aBuffer, ((aValue>>6) & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>6) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
-			if( !appendBytes( aBuffer, (aValue & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, (aValue & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
 		}
 		else if( aValue > 0x7f )				// 110xxxxx	10xxxxxx
 		{
-			if( !appendBytes( aBuffer, ((aValue>>6) & 0x1f) | 0xc0, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, ((aValue>>6) & 0x1f) | 0xc0, kNDJONCharacterWord8 ) )
 				return NO;
-			if( !appendBytes( aBuffer, (aValue & 0x3f) | 0x80, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, (aValue & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
 				return NO;
 		}
 		else									// 0xxxxxxx
 		{
-			if( !appendBytes( aBuffer, aValue & 0x7f, kCharacterWord8 ) )
+			if( !appendBytes( aBuffer, aValue & 0x7f, kNDJONCharacterWord8 ) )
 				return NO;
 		}
 		break;
-	case kCharacterWord16:
+	case kNDJSONCharacterWord16:
 		if( aValue > 0x10ffff || (aValue >= 0Xd800 && aValue <= 0xdfff) )
 		{
 			NSLog( @"Bad unicode code point %x", aValue );
@@ -1628,18 +1637,18 @@ BOOL appendCharacter( struct NDBytesBuffer * aBuffer, uint32_t aValue, enum Char
 		}
 		else if( aValue > 0xffff )
 		{
-			if( !appendBytes( aBuffer, (uint16_t)((aValue-0x10000)>>10)+0xd800, kCharacterWord16 )
-				   && !appendBytes( aBuffer, (uint16_t)((aValue-0x10000)&0x3ff)+0xdc00, kCharacterWord16 ) )
+			if( !appendBytes( aBuffer, (uint16_t)((aValue-0x10000)>>10)+0xd800, kNDJSONCharacterWord16 )
+				   && !appendBytes( aBuffer, (uint16_t)((aValue-0x10000)&0x3ff)+0xdc00, kNDJSONCharacterWord16 ) )
 				return NO;
 		}
 		else
 		{
-			if( !appendBytes( aBuffer, aValue & 0xffff, kCharacterWord16 ) )
+			if( !appendBytes( aBuffer, aValue & 0xffff, kNDJSONCharacterWord16 ) )
 				return NO;
 		}
 		break;
-	case kCharacterWord32:
-		if( !appendBytes( aBuffer, aValue, kCharacterWord32 ) )
+	case kNDJSONCharacterWord32:
+		if( !appendBytes( aBuffer, aValue, kNDJSONCharacterWord32 ) )
 			return NO;
 		break;
 	}

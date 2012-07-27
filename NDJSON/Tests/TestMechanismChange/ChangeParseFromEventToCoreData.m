@@ -16,6 +16,7 @@
 
 @synthesize		dValue,
 				genValue,
+				nextValueForD,
 				managedObjectContext;
 
 + (NDJSONOptionFlags)options { return NDJSONOptionNone; }

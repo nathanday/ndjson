@@ -27,7 +27,7 @@ enum TestOperationState
 @property(readonly,retain)	id				lastResult;
 @property(readonly)			BOOL			hasError;
 @property(readonly,retain)	NSError			* error;
-@property(assign) enum TestOperationState	operationState;
+@property(assign,nonatomic) enum TestOperationState	operationState;
 @property(readonly)			NSString		* details;
 - (id)run;
 
@@ -39,7 +39,7 @@ enum TestOperationState
 @interface TestGroup : NSObject
 
 @property(retain)			NSString			* name;
-@property(readonly) enum TestOperationState		operationState;
+@property(assign,nonatomic) enum TestOperationState		operationState;
 @property(assign,getter=isEnabled)	BOOL		enabled;
 
 /**

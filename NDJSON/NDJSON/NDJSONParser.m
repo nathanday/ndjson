@@ -413,39 +413,39 @@ static SEL conversionSelectorForPropertyAndType( NSString * aProperty, NDJSONVal
 	NSUInteger		theLen = [aProperty lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
 	char			* theSelectorName  = malloc(theLen+3+12+12);
 	char			* thePos = theSelectorName;
-	memcpy(thePos, "set", sizeof("set")-1);
+	memcpy( thePos, "set", sizeof("set")-1 );
 	thePos += sizeof("set")-1;
-	memcpy(thePos, [aProperty UTF8String], theLen );
+	memcpy( thePos, [aProperty UTF8String], theLen );
 	*thePos = (char)toupper((char)*thePos);
-	thePos+=theLen;
-	memcpy(thePos, "ByConverting", 12);
+	thePos += theLen;
+	memcpy( thePos, "ByConverting", sizeof("ByConverting")-1 );
 	thePos += 12;
 	switch( aType )
 	{
-		case NDJSONValueArray:
-			memcpy(thePos, "Array:", sizeof("Array:"));
-			theResult = sel_registerName(theSelectorName);
-			break;
-		case NDJSONValueObject:
-			memcpy(thePos, "Dictionary:", sizeof("Dictionary:"));
-			theResult = sel_registerName(theSelectorName);
-			break;
-		case NDJSONValueString:
-			memcpy(thePos, "String:", sizeof("String:"));
-			theResult = sel_registerName(theSelectorName);
-			break;
-		case NDJSONValueInteger:
-		case NDJSONValueFloat:
-		case NDJSONValueBoolean:
-			memcpy(thePos, "Number:", sizeof("Number:"));
-			theResult = sel_registerName(theSelectorName);
-			break;
-		case NDJSONValueNull:
-			memcpy(thePos, "Null:", sizeof("Null:"));
-			theResult = sel_registerName(theSelectorName);
-			break;
-		case NDJSONValueNone:
-			break;
+	case NDJSONValueArray:
+		memcpy(thePos, "Array:", sizeof("Array:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueObject:
+		memcpy(thePos, "Dictionary:", sizeof("Dictionary:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueString:
+		memcpy(thePos, "String:", sizeof("String:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueInteger:
+	case NDJSONValueFloat:
+	case NDJSONValueBoolean:
+		memcpy(thePos, "Number:", sizeof("Number:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueNull:
+		memcpy(thePos, "Null:", sizeof("Null:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueNone:
+		break;
 	}
 	free(theSelectorName);
 	return theResult;
@@ -454,38 +454,37 @@ static SEL conversionSelectorForPropertyAndType( NSString * aProperty, NDJSONVal
 static SEL instanceInitSelectorForType( NDJSONValueType aType )
 {
 	SEL				theResult = (SEL)0;
-	char			* theSelectorName = malloc(sizeof("initWith")+12);
+	char			theSelectorName[sizeof("initWith")+sizeof("Dictionary:")];
 	char			* thePos = theSelectorName;
-	memcpy(thePos, "initWith", sizeof("initWith")-1);
+	memcpy(thePos, "initWith", sizeof("initWith"));
 	thePos += sizeof("initWith")-1;
 	switch( aType )
 	{
-		case NDJSONValueArray:
-			memcpy(thePos, "Array:", sizeof("Array:"));
-			theResult = sel_registerName(theSelectorName);
-			break;
-		case NDJSONValueObject:
-			memcpy(thePos, "Dictionary:", sizeof("Dictionary:"));
-			theResult = sel_registerName(theSelectorName);
-			break;
-		case NDJSONValueString:
-			memcpy(thePos, "String:", sizeof("String:"));
-			theResult = sel_registerName(theSelectorName);
-			break;
-		case NDJSONValueInteger:
-		case NDJSONValueFloat:
-		case NDJSONValueBoolean:
-			memcpy(thePos, "Number:", sizeof("Number:"));
-			theResult = sel_registerName(theSelectorName);
-			break;
-		case NDJSONValueNull:
-			memcpy(thePos, "Null:", sizeof("Null:"));
-			theResult = sel_registerName(theSelectorName);
-			break;
-		case NDJSONValueNone:
-			break;
+	case NDJSONValueArray:
+		memcpy(thePos, "Array:", sizeof("Array:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueObject:
+		memcpy(thePos, "Dictionary:", sizeof("Dictionary:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueString:
+		memcpy(thePos, "String:", sizeof("String:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueInteger:
+	case NDJSONValueFloat:
+	case NDJSONValueBoolean:
+		memcpy(thePos, "Number:", sizeof("Number:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueNull:
+		memcpy(thePos, "Null:", sizeof("Null:"));
+		theResult = sel_registerName(theSelectorName);
+		break;
+	case NDJSONValueNone:
+		break;
 	}
-	free(theSelectorName);
 	return theResult;
 }
 
@@ -535,7 +534,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 			}
 			else
 			{
-				SEL			theSelector = instanceInitSelectorForType( aSourceType );
+				theSelector = instanceInitSelectorForType( aSourceType );
 				if( theTargetClass == Nil )
 					theTargetClass = objc_getClass(theClassName);
 				if( [theTargetClass instancesRespondToSelector:theSelector] )
@@ -761,7 +760,8 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 
 @implementation NDJSONCoreData
 
-@synthesize		managedObjectContext,
+@synthesize		currentEntityDescription,
+				managedObjectContext,
 				rootEntity;
 
 - (NSEntityDescription *)currentEntityDescription

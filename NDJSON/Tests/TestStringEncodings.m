@@ -89,10 +89,7 @@ static id expectedResult()
 	return [NSString stringWithFormat:@"json:\n%@\n\nresult:\n%@\n\nexpected result:\n%@\n\n", self.jsonString, [self.lastResult detailedDescription], [self.expectedResult detailedDescription]];
 }
 
-- (NSString *)jsonString
-{
-	return [[NSString alloc] initWithData:self.jsonData encoding:self.stringEncoding];
-}
+- (NSString *)jsonString { return [[NSString alloc] initWithData:self.jsonData encoding:self.stringEncoding]; }
 
 #pragma mark - creation and destruction
 
@@ -128,11 +125,7 @@ static id expectedResult()
 
 #pragma mark - NSObject overridden methods
 
-- (NSString *)description
-{
-	return [NSString stringWithFormat:@"%@, name: %@", [self class], self.name];
-}
-
+- (NSString *)description { return [NSString stringWithFormat:@"%@, name: %@", [self class], self.name]; }
 
 @end
 

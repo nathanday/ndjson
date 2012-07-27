@@ -20,7 +20,7 @@
 {
 	NDCoreDataController			* coreDataController;
 }
-@property(readonly)			NDCoreDataController			* coreDataController;
+@property(readonly)			NDCoreDataController		* coreDataController;
 @property(readonly)			NSManagedObjectContext		* managedObjectContext;
 @end
 
@@ -42,6 +42,8 @@
 @end
 
 @implementation TestMechanismChange
+
+@synthesize			coreDataController;
 
 - (NSManagedObjectContext *)managedObjectContext
 {
