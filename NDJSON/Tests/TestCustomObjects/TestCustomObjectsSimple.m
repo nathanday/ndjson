@@ -7,7 +7,7 @@
 //
 
 #import "TestCustomObjectsSimple.h"
-#import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 #import "NSObject+TestUtilities.h"
 
 @interface TestJSONClassChildA : NSObject
@@ -80,7 +80,7 @@
 {
 	NSError				* theError = nil;
 	NDJSON				* theJSON = [[NDJSON alloc] init];
-	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] initWithRootClass:rootClass rootCollectionClass:rootCollectionClass];
+	NDJSONDeserializer		* theJSONParser = [[NDJSONDeserializer alloc] initWithRootClass:rootClass rootCollectionClass:rootCollectionClass];
 	[theJSON setJSONString:jsonSourceString];
 	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
@@ -101,7 +101,7 @@ childElements;
 	return [anObject isKindOfClass:[TestRootJSONClass class]] && [[anObject childElement] isEqual:self.childElement];
 }
 
-+ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONParser *)aParser
++ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONDeserializer *)aParser
 {
 	static NSDictionary		* kResult = nil;
 	if( kResult == nil )

@@ -7,7 +7,7 @@
 //
 
 #import "TestStringEncodings.h"
-#import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 #import "TestProtocolBase.h"
 #import "Utility.h"
 #import "NSObject+TestUtilities.h"
@@ -115,7 +115,7 @@ static id expectedResult()
 {
 	NSError			* theError = nil;
 	NDJSON			* theJSON = [[NDJSON alloc] init];
-	NDJSONParser	* theJSONParser = [[NDJSONParser alloc] init];
+	NDJSONDeserializer	* theJSONParser = [[NDJSONDeserializer alloc] init];
 	[theJSON setJSONData:self.jsonData encoding:self.stringEncoding];
 	id				theResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.lastResult = theResult;

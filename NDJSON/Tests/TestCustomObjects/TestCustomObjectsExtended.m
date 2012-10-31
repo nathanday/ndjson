@@ -7,7 +7,7 @@
 //
 
 #import "TestCustomObjectsExtended.h"
-#import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 #import "NSObject+TestUtilities.h"
 
 static double magn( double a ) { return a >= 0 ? a : -a; }
@@ -62,7 +62,7 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 {
 	NSError				* theError = nil;
 	NDJSON				* theJSON = [[NDJSON alloc] init];
-	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] initWithRootClass:rootClass rootCollectionClass:Nil];
+	NDJSONDeserializer		* theJSONParser = [[NDJSONDeserializer alloc] initWithRootClass:rootClass rootCollectionClass:Nil];
 	[theJSON setJSONString:jsonSourceString];
 	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionConvertKeysToMedialCapitals error:&theError];
 	self.error = theError;
@@ -101,7 +101,7 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 
 @implementation ChildAlpha
 @synthesize     everyChild;
-+ (NSSet *)keysIgnoreSetJSONParser:(NDJSONParser *)aParser
++ (NSSet *)keysIgnoreSetJSONParser:(NDJSONDeserializer *)aParser
 {
     static NSSet       * kIgnoreSet = nil;
     if( kIgnoreSet == nil )
@@ -109,7 +109,7 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
     return kIgnoreSet;
 }
 
-+ (NSDictionary *)collectionClassesForPropertyNamesJSONParser:(NDJSONParser *)aParser
++ (NSDictionary *)collectionClassesForPropertyNamesJSONParser:(NDJSONDeserializer *)aParser
 {
     static NSDictionary     * kClassesForKeys = nil;
     if( kClassesForKeys == nil )
@@ -117,7 +117,7 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 	return kClassesForKeys;
 }
 
-+ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONParser *)aParser
++ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONDeserializer *)aParser
 {
     static NSDictionary     * kClassesForKeys = nil;
     if( kClassesForKeys == nil )
@@ -157,7 +157,7 @@ static double magn( double a ) { return a >= 0 ? a : -a; }
 
 NDJSONKeysConsiderSet(@"child", @"value");
 /*
-+ (NSSet *)keysConsiderSetJSONParser:(NDJSONParser *)aParser
++ (NSSet *)keysConsiderSetJSONParser:(NDJSONDeserializer *)aParser
 {
     static NSSet       * kConsiderSet = nil;
     if( kConsiderSet == nil )
@@ -168,7 +168,7 @@ NDJSONKeysConsiderSet(@"child", @"value");
 
 NDJSONPropertyNamesForKeys(@"doubleValue", @"value");
 /*
-+ (NSDictionary *)propertyNamesForKeysJSONParser:(NDJSONParser *)aParser
++ (NSDictionary *)propertyNamesForKeysJSONParser:(NDJSONDeserializer *)aParser
 {
     static NSDictionary     * kNamesForKeys = nil;
     if( kNamesForKeys == nil )
@@ -179,7 +179,7 @@ NDJSONPropertyNamesForKeys(@"doubleValue", @"value");
 
 NDJSONClassesForPropertyNames([ChildAlpha class], @"child");
 /*
-+ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONParser *)aParser
++ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONDeserializer *)aParser
 {
     static NSDictionary     * kClassesForKeys = nil;
     if( kClassesForKeys == nil )

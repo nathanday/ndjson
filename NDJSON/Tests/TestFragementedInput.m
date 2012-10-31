@@ -8,7 +8,7 @@
 
 #import "TestFragementedInput.h"
 #import "TestProtocolBase.h"
-#import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 #import "NSObject+TestUtilities.h"
 
 @interface TestFragementedInput ()
@@ -88,7 +88,7 @@
 {
 	NSError				* theError = nil;
 	NDJSON				* theJSON = [[NDJSON alloc] init];
-	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] init];
+	NDJSONDeserializer		* theJSONParser = [[NDJSONDeserializer alloc] init];
 	[theJSON setInputStream:[FragementedInputStream fragementedInputWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize]  encoding:NSUTF8StringEncoding];
 	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;

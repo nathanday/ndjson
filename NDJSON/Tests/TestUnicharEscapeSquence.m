@@ -7,7 +7,7 @@
 //
 
 #import "TestUnicharEscapeSquence.h"
-#import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 #import "TestProtocolBase.h"
 #import "NSObject+TestUtilities.h"
 
@@ -98,7 +98,7 @@
 {
 	NSError				* theError = nil;
 	NDJSON				* theJSON = [[NDJSON alloc] init];
-	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] init];
+	NDJSONDeserializer		* theJSONParser = [[NDJSONDeserializer alloc] init];
 	[theJSON setJSONString:self.jsonString];
 	id					theResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.lastResult = theResult;

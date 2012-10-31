@@ -1,5 +1,5 @@
 /*
- NDJSON.h
+ NDJSONParser.h
  
  Created by Nathan Day on 31.02.12 under a MIT-style license. 
  Copyright (c) 2012 Nathan Day
@@ -78,7 +78,7 @@ enum {
 
 extern NSString	* const NDJSONErrorDomain;
 
-@protocol		NDJSONDelegate;
+@protocol		NDJSONParserDelegate;
 
 /**
  Instances of this class parse JSON documents in an event-driven manner. An NDJSON notifies its delegate about the JSON items (objects, arrays, strings, integers, floats, booleans and nulls) that it encounters as it processes an JSON document. It does not itself do anything with those parsed items except report them. It also reports parsing errors. NDJSON does not need to have the entire source JSON document in memory.
@@ -86,9 +86,9 @@ extern NSString	* const NDJSONErrorDomain;
 @interface NDJSON : NSObject
 
 /**
-	The JSON parser’s delegate object. The delegate must conform to the NDJSONDelegate Protocol protocol.
+	The JSON parser’s delegate object. The delegate must conform to the NDJSONParserDelegate Protocol protocol.
  */
-@property(assign,nonatomic)		id<NDJSONDelegate>	delegate;
+@property(assign,nonatomic)		id<NDJSONParserDelegate>	delegate;
 
 /**
 	key for the current JSON value, if the value is contained within an array, then the currentKey is for the array.
@@ -103,7 +103,7 @@ extern NSString	* const NDJSONErrorDomain;
 /**
 	intialise a *NDJSON* instance with a delegate
  */
-- (id)initWithDelegate:(id<NDJSONDelegate>)delegate;
+- (id)initWithDelegate:(id<NDJSONParserDelegate>)delegate;
 
 /**
  set a JSON string to parse
@@ -152,9 +152,9 @@ extern NSString	* const NDJSONErrorDomain;
 @end
 
 /**
-	The NDJSONDelegate protocol defines the optional methods implemented by delegates of NDJSON objects.
+	The NDJSONParserDelegate protocol defines the optional methods implemented by delegates of NDJSON objects.
  */
-@protocol NDJSONDelegate <NSObject>
+@protocol NDJSONParserDelegate <NSObject>
 
 @optional
 /**

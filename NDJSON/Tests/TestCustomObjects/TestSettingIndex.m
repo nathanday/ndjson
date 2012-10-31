@@ -7,7 +7,7 @@
 //
 
 #import "TestSettingIndex.h"
-#import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 #import "NSObject+TestUtilities.h"
 
 @interface IndexClass : NSObject
@@ -61,7 +61,7 @@
 {
 	NSError				* theError = nil;
 	NDJSON				* theJSON = [[NDJSON alloc] init];
-	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] initWithRootClass:[IndexClass class] rootCollectionClass:[NSSet class]];
+	NDJSONDeserializer		* theJSONParser = [[NDJSONDeserializer alloc] initWithRootClass:[IndexClass class] rootCollectionClass:[NSSet class]];
 	[theJSON setJSONString:jsonSourceString];
 	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
@@ -85,7 +85,7 @@
 	return self;
 }
 
-- (void)jsonParser:(NDJSONParser *)aParser setIndex:(NSUInteger)anIndex { index = anIndex; }
+- (void)jsonParser:(NDJSONDeserializer *)aParser setIndex:(NSUInteger)anIndex { index = anIndex; }
 - (NSString *)description { return [NSString stringWithFormat:@"{name:%@,index:%lu}", self.name, self.index]; }
 
 - (BOOL)isEqual:(id)anObject { return [anObject isKindOfClass:[IndexClass class]] && [[anObject name] isEqualToString:self.name] && [anObject index] == self.index; }

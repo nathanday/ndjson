@@ -6,7 +6,7 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "NDJSON.h"
+#import "NDJSONParser.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -94,7 +94,7 @@ BOOL jsonValueEquivelentObjectTypes( NDJSONValueType aTypeA, NDJSONValueType aTy
 	return theResult;
 }
 
-@protocol NDJSONDelegate;
+@protocol NDJSONParserDelegate;
 
 static NSString		* const kContentTypeHTTPHeaderKey = @"Content-Type";
 
@@ -262,7 +262,7 @@ enum JSONInputType
 
 @interface NDJSON ()
 {
-	__weak id<NDJSONDelegate>		_delegate;
+	__weak id<NDJSONParserDelegate>		_delegate;
 	NSUInteger						_position,
 									_numberOfBytes,
 									_lineNumber;
@@ -342,7 +342,7 @@ enum JSONInputType
 
 #pragma mark - manually implemented properties
 
-- (void)setDelegate:(id<NDJSONDelegate>)aDelegate
+- (void)setDelegate:(id<NDJSONParserDelegate>)aDelegate
 {
 	_delegate = aDelegate;
 	[self setUpRespondsTo];
@@ -352,7 +352,7 @@ enum JSONInputType
 
 - (id)init { return [self initWithDelegate:nil]; }
 
-- (id)initWithDelegate:(id<NDJSONDelegate>)aDelegate
+- (id)initWithDelegate:(id<NDJSONParserDelegate>)aDelegate
 {
 	if( (self = [super init]) != nil )
 	{

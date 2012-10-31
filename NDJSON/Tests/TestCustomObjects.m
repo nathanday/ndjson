@@ -8,7 +8,7 @@
 
 #import "TestCustomObjects.h"
 #import "TestProtocolBase.h"
-#import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 #import "TestCustomObjectsSimple.h"
 #import "TestCustomObjectsExtended.h"
 #import "TestSettingIndex.h"

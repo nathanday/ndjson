@@ -54,15 +54,15 @@
 	return [theObject isKindOfClass:[ChangeParseFromEventToCoreData class]] && [self.dValue isEqualToString:theObject.dValue] && [self.genValue isEqualToDictionary:theObject.genValue];
 }
 
-#pragma mark - NDJSONDelegate methods
+#pragma mark - NDJSONParserDelegate methods
 
-- (void)json:(NDJSON *)aJSON foundKey:(NSString *)aValue
+- (void)json:(NDJSONParser *)aJSON foundKey:(NSString *)aValue
 {
 	if( [aValue isEqualToString:@"d"] )
 		self.nextValueForD = YES;
 	else if( [aValue isEqualToString:@"gen"] )
 	{
-		NDJSONParser			* theJSONParser = [[NDJSONParser alloc] initWithRootEntityName:@"GenRoot" inManagedObjectContext:self.managedObjectContext];
+		NDJSONDeserializer			* theJSONParser = [[NDJSONDeserializer alloc] initWithRootEntityName:@"GenRoot" inManagedObjectContext:self.managedObjectContext];
 		NSError					* theError = nil;
 
 		self.genValue = [theJSONParser objectForJSON:aJSON options:NDJSONOptionStrict error:&theError];
@@ -71,7 +71,7 @@
 	}
 }
 
-- (void)json:(NDJSON *)aJSON foundString:(NSString *)aValue
+- (void)json:(NDJSONParser *)aJSON foundString:(NSString *)aValue
 {
 	if( self.nextValueForD )
 	{

@@ -9,7 +9,7 @@
 #import "TestOperation.h"
 #import "TestGroup.h"
 #import "NDAppDelegate.h"
-#import "NDJSON.h"
+#import "NDJSONParser.h"
 #import "NSObject+TestUtilities.h"
 
 @interface TestOperation ()

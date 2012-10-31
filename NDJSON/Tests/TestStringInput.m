@@ -7,7 +7,7 @@
 //
 
 #import "TestStringInput.h"
-#import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 #import "TestProtocolBase.h"
 #import "Utility.h"
 #import "NSObject+TestUtilities.h"
@@ -115,7 +115,7 @@
 {
 	NSError			* theError = nil;
 	NDJSON			* theJSON = [[NDJSON alloc] init];
-	NDJSONParser	* theJSONParser = [[NDJSONParser alloc] init];
+	NDJSONDeserializer	* theJSONParser = [[NDJSONDeserializer alloc] init];
 	[theJSON setJSONString:self.jsonString];
 	id				theResult = [theJSONParser objectForJSON:theJSON options:self.options error:&theError];
 	self.lastResult = theResult;

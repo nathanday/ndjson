@@ -8,7 +8,7 @@
 
 #import "TestFunctionAndBlockInput.h"
 #import "TestProtocolBase.h"
-#import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 #import "NSObject+TestUtilities.h"
 
 @interface TestFunctionAndBlockInput ()
@@ -86,7 +86,7 @@ NSInteger sourceFuction(uint8_t ** aBuffer, void * aContext );
 {
 	NSError				* theError = nil;
 	NDJSON				* theJSON = [[NDJSON alloc] init];
-	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] init];
+	NDJSONDeserializer		* theJSONParser = [[NDJSONDeserializer alloc] init];
 	inputFunctionSource = [[InputFunctionSource alloc] initWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize];
 	if( useBlock )
 		[theJSON setSourceBlock:^(uint8_t ** aBuffer){return sourceFuction(aBuffer, (__bridge void *)(inputFunctionSource));} encoding:NSUTF8StringEncoding];

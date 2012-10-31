@@ -7,7 +7,7 @@
 //
 
 #import "TestNDJSONCoreData.h"
-#import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 #import "TestProtocolBase.h"
 #import "JSONRoot.h"
 #import "JSONChildAlpha.h"
@@ -192,7 +192,7 @@
 {
 	NSError				* theError = nil;
 	NDJSON				* theJSON = [[NDJSON alloc] init];
-	NDJSONParser		* theJSONParser = [[NDJSONParser alloc] initWithRootEntityName:@"Root" inManagedObjectContext:self.managedObjectContext];
+	NDJSONDeserializer		* theJSONParser = [[NDJSONDeserializer alloc] initWithRootEntityName:@"Root" inManagedObjectContext:self.managedObjectContext];
 	[theJSON setJSONString:self.jsonString];
 	id					theResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionCovertPrimitiveJSONTypes error:&theError];
 	self.lastResult = theResult;

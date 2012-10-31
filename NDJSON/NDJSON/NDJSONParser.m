@@ -1,13 +1,13 @@
 /*
-	NDJSONParser.m
+	NDJSONDeserializer.m
 	NDJSON
 
 	Created by Nathan Day on 31/08/11.
 	Copyright 2011 Nathan Day. All rights reserved.
  */
 
-#import "NDJSON.h"
 #import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 
 #import <objc/runtime.h>
 
@@ -31,7 +31,7 @@ NSString				* const NDJSONBadCollectionClassException = @"NDJSONBadCollectionCla
 static const size_t		kMaximumClassNameLenght = 512;
 
 /**
- functions used by NDJSONParser to build tree
+ functions used by NDJSONDeserializer to build tree
  */
 static NDJSONValueType getTypeNameFromPropertyAttributes( char * aClassName, size_t aLen, const char * aPropertyAttributes )
 {
@@ -62,10 +62,10 @@ static NDJSONValueType getTypeNameFromPropertyAttributes( char * aClassName, siz
 	return theResult;
 }
 
-static void pushContainerForJSONParser( NDJSONParser * self, id container, BOOL isObject );
-static id popCurrentContainerForJSONParser( NDJSONParser * self );
+static void pushContainerForJSONParser( NDJSONDeserializer * self, id container, BOOL isObject );
+static id popCurrentContainerForJSONParser( NDJSONDeserializer * self );
 
-@interface NDJSONParser () <NDJSONDelegate>
+@interface NDJSONDeserializer () <NDJSONParserDelegate>
 {
 @protected
 	struct
@@ -94,7 +94,7 @@ static id popCurrentContainerForJSONParser( NDJSONParser * self );
 
 @end
 
-@interface NDJSONExtendedParser : NDJSONParser
+@interface NDJSONExtendedParser : NDJSONDeserializer
 
 @end
 
@@ -124,8 +124,8 @@ static id popCurrentContainerForJSONParser( NDJSONParser * self );
 
 @end
 
-#pragma mark - NDJSONParser implementation
-@implementation NDJSONParser
+#pragma mark - NDJSONDeserializer implementation
+@implementation NDJSONDeserializer
 
 #pragma mark - manually implemented properties
 
@@ -190,7 +190,7 @@ static id popCurrentContainerForJSONParser( NDJSONParser * self );
 	return theResult;
 }
 
-#pragma mark - NDJSONDelegate methods
+#pragma mark - NDJSONParserDelegate methods
 - (void)jsonDidStartDocument:(NDJSON *)aJSON
 {
 	_containerStack.size = 256;
@@ -351,7 +351,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 	return theResult;
 }
 
-static void pushContainerForJSONParser( NDJSONParser * self, id aContainer, BOOL anIsObject )
+static void pushContainerForJSONParser( NDJSONDeserializer * self, id aContainer, BOOL anIsObject )
 {
 	NSCParameterAssert( aContainer != nil );
 	NSCParameterAssert( self->_containerStack.bytes != NULL );
@@ -390,7 +390,7 @@ static void pushContainerForJSONParser( NDJSONParser * self, id aContainer, BOOL
 		_result = [aValue retain];
 }
 
-id popCurrentContainerForJSONParser( NDJSONParser * self )
+id popCurrentContainerForJSONParser( NDJSONDeserializer * self )
 {
 	id		theResult = nil;
 	if( self->_containerStack.count > 0 )

@@ -9,7 +9,7 @@
 #import "JSONRoot.h"
 #import "JSONChildAlpha.h"
 #import "JSONChildBeta.h"
-#import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 
 
 @implementation JSONRoot

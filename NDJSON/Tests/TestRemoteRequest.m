@@ -7,7 +7,7 @@
 //
 
 #import "TestRemoteRequest.h"
-#import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 #import "TestProtocolBase.h"
 #import "NSObject+TestUtilities.h"
 
@@ -73,7 +73,7 @@
 {
 	NSError					* theError = nil;
 	NDJSON					* theJSON = [[NDJSON alloc] init];
-	NDJSONParser			* theJSONParser = [[NDJSONParser alloc] init];
+	NDJSONDeserializer			* theJSONParser = [[NDJSONDeserializer alloc] init];
 	NSURLRequest			* theURLRequest = [[NSURLRequest alloc] initWithURL:self.url];
 	[theJSON setURLRequest:theURLRequest];
 	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];

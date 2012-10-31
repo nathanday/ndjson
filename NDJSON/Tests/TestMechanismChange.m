@@ -7,7 +7,7 @@
 //
 
 #import "TestMechanismChange.h"
-#import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 #import "TestProtocolBase.h"
 #import "Utility.h"
 #import "NDCoreDataController.h"

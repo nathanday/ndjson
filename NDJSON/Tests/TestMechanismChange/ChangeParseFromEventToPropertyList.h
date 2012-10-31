@@ -7,11 +7,11 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "NDJSON.h"
 #import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 #import "TestProtocolBase.h"
 
-@interface ChangeParseFromEventToPropertyList : TestProtocolBase<NDJSONDelegate>
+@interface ChangeParseFromEventToPropertyList : TestProtocolBase<NDJSONParserDelegate>
 
 @property(copy)			NSString		* dValue;
 @property(retain)		NSDictionary	* genValue;
