@@ -190,8 +190,8 @@
 
 - (id)run
 {
-	NSError				* theError = nil;
-	NDJSON				* theJSON = [[NDJSON alloc] init];
+	NSError					* theError = nil;
+	NDJSONParser			* theJSON = [[NDJSONParser alloc] init];
 	NDJSONDeserializer		* theJSONParser = [[NDJSONDeserializer alloc] initWithRootEntityName:@"Root" inManagedObjectContext:self.managedObjectContext];
 	[theJSON setJSONString:self.jsonString];
 	id					theResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionCovertPrimitiveJSONTypes error:&theError];

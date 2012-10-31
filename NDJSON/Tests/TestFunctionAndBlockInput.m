@@ -84,8 +84,8 @@ NSInteger sourceFuction(uint8_t ** aBuffer, void * aContext );
 
 - (id)run
 {
-	NSError				* theError = nil;
-	NDJSON				* theJSON = [[NDJSON alloc] init];
+	NSError					* theError = nil;
+	NDJSONParser			* theJSON = [[NDJSONParser alloc] init];
 	NDJSONDeserializer		* theJSONParser = [[NDJSONDeserializer alloc] init];
 	inputFunctionSource = [[InputFunctionSource alloc] initWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize];
 	if( useBlock )

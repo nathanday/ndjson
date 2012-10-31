@@ -1,847 +1,1631 @@
 /*
-	NDJSONDeserializer.m
-	NDJSON
+	NDJSONParser.m
 
 	Created by Nathan Day on 31/08/11.
 	Copyright 2011 Nathan Day. All rights reserved.
  */
 
+#import <Foundation/Foundation.h>
 #import "NDJSONParser.h"
-#import "NDJSONDeserializer.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <ctype.h>
 
-#import <objc/runtime.h>
+//#define NDJSONDebug
+//#define NDJSONPrintStream
+#define NDJSONSupportZippedData
 
-struct ContainerStackStruct
+
+#ifdef NDJSONDebug
+#define NDJSONLog(...) NSLog(__VA_ARGS__)
+#else
+#define NDJSONLog(...)
+#endif
+
+#ifndef NDJSONSupportUTF8Only
+static uint16_t		k16BitLittleEndianBOM = 0xFEFF,
+					k16BitBigEndianBOM = 0xFFFE;
+static uint32_t		k32BitLittleEndianBOM = 0x0000FEFF,
+					k32BitBigEndianBOM = 0xFFFE0000;
+#endif
+
+BOOL jsonParserValueIsPrimativeType( NDJSONValueType aType )
 {
-	NSString	* propertyName;
-	id			container;
-	BOOL		isObject;
-};
-
-static const BOOL		kIgnoreUnknownPropertyNameDefaultValue = NO,
-						kConvertKeysToMedialCapitalDefaultValue = NO,
-						kRemoveIsAdjectiveDefaultValue = NO;
-
-NSString				* const NDJSONBadCollectionClassException = @"NDJSONBadCollectionClassException",
-						* const NDJSONUnrecongnisedPropertyNameException = @"NDJSONUnrecongnisedPropertyName",
-						* const NDJSONAttributeNameUserInfoKey = @"AttributeName",
-						* const NDJSONObjectUserInfoKey = @"Object",
-						* const NDJSONPropertyNameUserInfoKey = @"PropertyName";
-
-static const size_t		kMaximumClassNameLenght = 512;
-
-/**
- functions used by NDJSONDeserializer to build tree
- */
-static NDJSONValueType getTypeNameFromPropertyAttributes( char * aClassName, size_t aLen, const char * aPropertyAttributes )
-{
-	NSCParameterAssert(*aPropertyAttributes == 'T');
-	NDJSONValueType	theResult = NDJSONValueNone;
-	aPropertyAttributes++;
-	if( strchr("islqISLQ", *aPropertyAttributes) != NULL )
-		theResult = NDJSONValueInteger;
-	else if( strchr("fd", *aPropertyAttributes) != NULL )
-		theResult = NDJSONValueFloat;
-	else if( strchr("Bc", *aPropertyAttributes) != NULL )
-		theResult = NDJSONValueBoolean;
-	else if( memcmp(aPropertyAttributes, "@\"NSString\"", 11) == 0 || memcmp(aPropertyAttributes, "@\"NSMutableString\"", 18) == 0 )
-		theResult = NDJSONValueString;
-	else if( *aPropertyAttributes == '@' )
+	switch( aType )
 	{
-		aPropertyAttributes++;
-		if( *aPropertyAttributes == '"' && aClassName != NULL )
-		{
-			NSUInteger		i = 0;
-			aPropertyAttributes++;
-			for( ; aPropertyAttributes[i] != '"' && aPropertyAttributes[i] != '\0' && i < aLen-1; i++ )
-				aClassName[i] = aPropertyAttributes[i];
-			aClassName[i] = '\0';
-		}
-		theResult = NDJSONValueObject;
+	case NDJSONValueNone:
+	case NDJSONValueArray:
+	case NDJSONValueObject:
+		return NO;
+	case NDJSONValueString:
+	case NDJSONValueInteger:
+	case NDJSONValueFloat:
+	case NDJSONValueBoolean:
+	case NDJSONValueNull:
+		return YES;
+	}
+}
+
+BOOL jsonParserValueIsNSNumberType( NDJSONValueType aType )
+{
+	switch( aType )
+	{
+	case NDJSONValueNone:
+	case NDJSONValueArray:
+	case NDJSONValueObject:
+	case NDJSONValueString:
+	case NDJSONValueNull:
+		return NO;
+	case NDJSONValueInteger:
+	case NDJSONValueFloat:
+	case NDJSONValueBoolean:
+		return YES;
+	}
+}
+
+BOOL jsonParserValueEquivelentObjectTypes( NDJSONValueType aTypeA, NDJSONValueType aTypeB )
+{
+	BOOL		theResult = NO;
+	switch( aTypeA )
+	{
+	case NDJSONValueNone:
+		theResult = aTypeB == NDJSONValueNone;
+		break;
+	case NDJSONValueArray:
+		theResult = aTypeB == NDJSONValueArray;
+		break;
+	case NDJSONValueObject:
+		theResult = aTypeB == NDJSONValueObject;
+		break;
+	case NDJSONValueString:
+		theResult = aTypeB == NDJSONValueString;
+		break;
+	case NDJSONValueInteger:
+	case NDJSONValueFloat:
+	case NDJSONValueBoolean:
+		theResult = (aTypeB == NDJSONValueInteger || aTypeB == NDJSONValueFloat || aTypeB == NDJSONValueBoolean);
+		break;
+	case NDJSONValueNull:
+		theResult = aTypeB == NDJSONValueNull;
+		break;
 	}
 	return theResult;
 }
 
-static void pushContainerForJSONParser( NDJSONDeserializer * self, id container, BOOL isObject );
-static id popCurrentContainerForJSONParser( NDJSONDeserializer * self );
+@protocol NDJSONParserDelegate;
 
-@interface NDJSONDeserializer () <NDJSONParserDelegate>
+static NSString		* const kContentTypeHTTPHeaderKey = @"Content-Type";
+
+enum NDJSONCharacterWordSize
 {
-@protected
+	kNDJONCharacterWord8 = 0,			// the values for these enums is important
+	kNDJSONCharacterWord16 = 1,
+	kNDJSONCharacterWord32 = 2
+};
+
+#ifndef NDJSONSupportUTF8Only
+static NSStringEncoding	kNSStringEncodingFromCharacterWordSize[] = { NSUTF8StringEncoding, NSUTF16LittleEndianStringEncoding, NSUTF32LittleEndianStringEncoding };
+#endif
+
+enum NDJSONCharacterEndian
+{
+	kNDJSONUnknownEndian,
+	kNDJSONLittleEndian,
+	kNDJSONBigEndian
+};
+
+struct NDBytesBuffer
+{
+	uint8_t			* bytes;
+	NSUInteger		length,
+					capacity;
+};
+
+typedef BOOL (*_ReturnBoolMethodIMP)( id, SEL, id, ...);
+
+static const NSUInteger		kBufferSize = 2048;
+
+NSString	* const NDJSONErrorDomain = @"NDJSONError";
+
+static const struct NDBytesBuffer	NDBytesBufferInit = {NULL,0,0};
+static BOOL appendBytes( struct NDBytesBuffer * aBuffer, uint32_t aBytes, enum NDJSONCharacterWordSize aWordSize );
+static BOOL appendCharacter( struct NDBytesBuffer * aBuffer, unsigned int aValue, enum NDJSONCharacterWordSize aWordSize );
+//static BOOL truncateByte( struct NDBytesBuffer * aBuffer, uint32_t aBytes );
+static void freeByte( struct NDBytesBuffer * aBuffer );
+
+static NSString * const kErrorCodeStrings[] = 
+{
+	@"General",
+	@"BadToken",
+	@"BadFormat",
+	@"BadEscapeSequence",
+	@"TrailingGarbage",
+	@"Memory",
+	@"PrematureEnd",
+	@"BadNumber"
+};
+
+static BOOL parseInputData( NDJSONParser * self );
+static BOOL parseInputStream( NDJSONParser * self );
+static BOOL parseInputFunctionOrBlock( NDJSONParser * self );
+static BOOL parseURLRequest( NDJSONParser * self );
+
+static BOOL parseJSONUnknown( NDJSONParser * self );
+static BOOL parseJSONObject( NDJSONParser * self );
+static BOOL parseJSONArray( NDJSONParser * self );
+static BOOL parseJSONKey( NDJSONParser * self );
+static BOOL parseJSONString( NDJSONParser * self );
+static BOOL parseJSONText( NDJSONParser * self, struct NDBytesBuffer * valueBuffer, BOOL aIsKey, BOOL aIsQuotesTerminated );
+static BOOL parseJSONNumber( NDJSONParser * self );
+static BOOL parseJSONTrue( NDJSONParser * self );
+static BOOL parseJSONFalse( NDJSONParser * self );
+static BOOL parseJSONNull( NDJSONParser * self );
+static BOOL skipNextValue( NDJSONParser * self );
+static void foundError( NDJSONParser * self, NDJSONErrorCode aCode );
+
+#ifdef NDJSONSupportUTF8Only
+static BOOL is8BitWordSizeForNSStringEncoding( NSStringEncoding anEncoding )
+{
+	switch( anEncoding )
+	{
+	case NSASCIIStringEncoding:
+	case NSNEXTSTEPStringEncoding:
+	case NSJapaneseEUCStringEncoding:
+	case NSUTF8StringEncoding:
+	case NSISOLatin1StringEncoding:
+	case NSSymbolStringEncoding:
+	case NSNonLossyASCIIStringEncoding:
+	case NSShiftJISStringEncoding:
+	case NSISOLatin2StringEncoding:
+	case NSMacOSRomanStringEncoding:
+	case NSWindowsCP1251StringEncoding:
+	case NSWindowsCP1252StringEncoding:
+	case NSWindowsCP1253StringEncoding:
+	case NSWindowsCP1254StringEncoding:
+	case NSWindowsCP1250StringEncoding:
+	case NSISO2022JPStringEncoding:
+		return YES;;
+	default:
+		return NO;
+	}
+}
+#else
+static BOOL getCharacterWordSizeAndEndianFromNSStringEncoding( enum NDJSONCharacterWordSize * aWordSize, enum NDJSONCharacterEndian * anEndian, NSStringEncoding anEncoding )
+{
+	BOOL		theResult = YES;
+	NSCParameterAssert( aWordSize != NULL );
+	NSCParameterAssert( anEndian != NULL );
+	switch( anEncoding )
+	{
+	case NSASCIIStringEncoding:
+	case NSNEXTSTEPStringEncoding:
+	case NSJapaneseEUCStringEncoding:
+	case NSUTF8StringEncoding:
+	case NSISOLatin1StringEncoding:
+	case NSSymbolStringEncoding:
+	case NSNonLossyASCIIStringEncoding:
+	case NSShiftJISStringEncoding:
+	case NSISOLatin2StringEncoding:
+	case NSMacOSRomanStringEncoding:
+	case NSWindowsCP1251StringEncoding:
+	case NSWindowsCP1252StringEncoding:
+	case NSWindowsCP1253StringEncoding:
+	case NSWindowsCP1254StringEncoding:
+	case NSWindowsCP1250StringEncoding:
+	case NSISO2022JPStringEncoding:
+		*aWordSize = kNDJONCharacterWord8;
+		*anEndian = kNDJSONLittleEndian;
+		break;
+//	case NSUnicodeStringEncoding:
+	case NSUTF16StringEncoding:
+		*aWordSize = kNDJSONCharacterWord16;
+		*anEndian = kNDJSONUnknownEndian;
+		break;
+	case NSUTF16BigEndianStringEncoding:
+		*aWordSize = kNDJSONCharacterWord16;
+		*anEndian = kNDJSONBigEndian;
+		break;
+	case NSUTF16LittleEndianStringEncoding:
+		*aWordSize = kNDJSONCharacterWord16;
+		*anEndian = kNDJSONLittleEndian;
+		break;
+	case NSUTF32StringEncoding:
+		*aWordSize = kNDJSONCharacterWord32;
+		*anEndian = kNDJSONUnknownEndian;
+		break;
+	case NSUTF32BigEndianStringEncoding:
+		*aWordSize = kNDJSONCharacterWord32;
+		*anEndian = kNDJSONBigEndian;
+		break;
+	case NSUTF32LittleEndianStringEncoding:
+		*aWordSize = kNDJSONCharacterWord32;
+		*anEndian = kNDJSONLittleEndian;
+		break;
+	}
+	return theResult;
+}
+
+#endif
+
+enum JSONInputType
+{
+	kJSONNoInputType,
+	kJSONDataInputType,
+	kJSONStringInputType,
+	kJSONStreamInputType,
+	kJSONStreamFunctionType,
+	kJSONStreamBlockType,
+	kJSONURLRequestType
+};
+
+@interface NDJSONParser ()
+{
+	__weak id<NDJSONParserDelegate>		_delegate;
+	NSUInteger						_position,
+									_numberOfBytes,
+									_lineNumber;
+	uint8_t							* _inputBytes;
+	union				// may represent the entire JSON document or just a part of
+	{
+		uint8_t							* word8;
+		uint16_t						* word16;
+		uint32_t						* word32;
+	}								_bytes;
+	BOOL							_ownsBytes;
+#ifndef NDJSONSupportUTF8Only
 	struct
 	{
-		NSUInteger						size,
-										count;
-		struct ContainerStackStruct		* bytes;
-	}								_containerStack;
-	NSString						* _currentProperty;
+		enum NDJSONCharacterWordSize	wordSize;
+		enum NDJSONCharacterEndian		endian;
+	}								_character;
+#endif
+	uint32_t						_backUpByte;
+	BOOL							_hasSkippedValueForCurrentKey,
+									_alreadyParsing,
+									_complete,
+									_useBackUpByte,
+									_abort;
+	struct
+	{
+		int								strictJSONOnly		: 1;
+		int								zipJSON				: 1;
+	}								_options;
+	enum JSONInputType				_inputType;
+	union
+	{
+		struct
+		{
+			NSInputStream				* stream;
+			id							object;
+		};
+		NDJSONDataStreamBlock			block;
+		struct
+		{
+			NDJSONDataStreamProc		function;
+			void						* context;
+		};
+	}								_source;
+#ifdef NDJSONSupportZippedData
+#endif
 	NSString						* _currentKey;
 	struct
 	{
-		int								ignoreUnknownPropertyName	: 1;
-		int								convertKeysToMedialCapital	: 1;
-		int								removeIsAdjective			: 1;
-		int								convertPrimativeJSONTypes	: 1;
-	}								_options;
-	id								_result;
+		IMP								didStartDocument,
+										didEndDocument,
+										didStartArray,
+										didEndArray,
+										didStartObject,
+										didEndObject,
+										shouldSkipValueForKey,
+										foundKey,
+										foundString,
+										foundInteger,
+										foundFloat,
+										foundBool,
+										foundNULL,
+										foundError;
+	}								_delegateMethod;
 }
 
-@property(readonly,nonatomic)	id				currentObject;
-@property(readonly,nonatomic)	id				currentContainer;
-@property(readonly,nonatomic)	NSString		* currentContainerPropertyName;
-
-- (void)addValue:(id)value type:(NDJSONValueType)type;
+- (void)setUpRespondsTo;
+- (BOOL)parseWithOptions:(NDJSONOptionFlags)options;
 
 @end
 
-@interface NDJSONExtendedParser : NDJSONDeserializer
+@implementation NDJSONParser
 
-@end
-
-#pragma mark - NDJSONCustomParser interface
-@interface NDJSONCustomParser : NDJSONExtendedParser
-{
-	Class	rootClass,
-			rootCollectionClass;
-}
-
-- (Class)classForPropertyName:(NSString *)name class:(Class)class;
-- (Class)collectionClassForPropertyName:(NSString *)name class:(Class)class;
-
-@end
-
-#pragma mark - NDJSONCoreData interface
-@interface NDJSONCoreData : NDJSONExtendedParser
-{
-	NSManagedObjectContext			* managedObjectContext;
-	NSEntityDescription				* rootEntity;
-	NSManagedObjectModel			* managedObjectModel;
-}
-@property(readonly,nonatomic)	NSManagedObjectModel		* managedObjectModel;
-@property(retain,nonatomic)		NSEntityDescription			* currentEntityDescription;
-
-- (NSEntityDescription *)entityDescriptionForName:(NSString *)name;
-
-@end
-
-#pragma mark - NDJSONDeserializer implementation
-@implementation NDJSONDeserializer
+@synthesize		delegate = _delegate,
+				currentKey = _currentKey,
+				lineNumber = _lineNumber;
 
 #pragma mark - manually implemented properties
 
-- (Class)rootClass { return Nil; }
-- (Class)rootCollectionClass { return Nil; }
-
-- (NSManagedObjectContext *)managedObjectContext { return nil; }
-- (NSEntityDescription *)rootEntity { return nil; }
-
-
-#pragma mark - creation and destruction
-- (id)initWithRootClass:(Class)aRootClass { return [self initWithRootClass:aRootClass rootCollectionClass:Nil]; }
-- (id)initWithRootClass:(Class)aRootClass rootCollectionClass:(Class)aRootCollectionClass
+- (void)setDelegate:(id<NDJSONParserDelegate>)aDelegate
 {
-	[self release];
-	return [[NDJSONCustomParser alloc] initWithRootClass:aRootClass rootCollectionClass:aRootCollectionClass];
+	_delegate = aDelegate;
+	[self setUpRespondsTo];
 }
 
-- (id)initWithRootEntityName:(NSString *)aRootEntityName inManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext
-{
-	NSParameterAssert( aRootEntityName != nil );
-	NSParameterAssert( aManagedObjectContext != nil );
-	return [self initWithRootEntity:[[aManagedObjectContext.persistentStoreCoordinator.managedObjectModel entitiesByName] objectForKey:aRootEntityName] inManagedObjectContext:aManagedObjectContext];
-}
+#pragma mark - creation and destruction etc
 
-- (id)initWithRootEntity:(NSEntityDescription *)aRootEntity inManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext
+- (id)init { return [self initWithDelegate:nil]; }
+
+- (id)initWithDelegate:(id<NDJSONParserDelegate>)aDelegate
 {
-	NSParameterAssert( aRootEntity != nil );
-	NSParameterAssert( aManagedObjectContext != nil );
-	[self release];
-	return [[NDJSONCoreData alloc] initWithRootEntity:aRootEntity inManagedObjectContext:aManagedObjectContext];
+	if( (self = [super init]) != nil )
+	{
+		_delegate = aDelegate;
+		if( _delegate != nil )
+			[self setUpRespondsTo];
+	}
+
+	return self;
 }
 
 - (void)dealloc
 {
-	for( NSUInteger i = 0; i < _containerStack.count; i++ )
-	{
-		[_containerStack.bytes[i].propertyName release];
-		[_containerStack.bytes[i].container release];
-	}
-	[_currentProperty release];
-	[_currentKey release];
-	[_result autorelease];
-	free(_containerStack.bytes);
+	if( _ownsBytes == YES )
+		free( _bytes.word8 );
 	[super dealloc];
+}
+
+static void zeroOutInstanceVaribles( NDJSONParser * self )
+{
+	self->_position = 0;
+	self->_numberOfBytes = 0;
+	self->_lineNumber = 0;
+	self->_complete = NO;
+	self->_abort = NO;
+	self->_useBackUpByte = NO;
+	self->_source.stream = NULL;
+	self->_source.object = NULL;
+	self->_source.function = NULL;
+	self->_source.context = NULL;
+	self->_inputType = kJSONNoInputType;
+	self->_inputBytes = NULL;
+	self->_bytes.word8 = NULL;
+	self->_bytes.word16 = NULL;
+	self->_bytes.word32 = NULL;
+#ifdef NDJSONSupportZippedData
+#endif
 }
 
 #pragma mark - parsing methods
-- (id)objectForJSON:(NDJSON *)aJSON options:(NDJSONOptionFlags)anOptions error:(NSError **)anError
+- (BOOL)setJSONString:(NSString *)aString
 {
-	id		theResult = nil;
-	id		theOriginalDelegate = aJSON.delegate;
-	NSAssert( aJSON != nil, @"nil JSON parser" );
-	aJSON.delegate = self;
-	_options.ignoreUnknownPropertyName = anOptions&NDJSONOptionIgnoreUnknownProperties ? YES : NO;
-	_options.convertKeysToMedialCapital = anOptions&NDJSONOptionConvertKeysToMedialCapitals ? YES : NO;
-	_options.removeIsAdjective = anOptions&NDJSONOptionConvertRemoveIsAdjective ? YES : NO;
-	_options.convertPrimativeJSONTypes = anOptions&NDJSONOptionCovertPrimitiveJSONTypes ? YES : NO;
-	if( [aJSON parseWithOptions:anOptions] )
-		theResult = _result;
-	aJSON.delegate = theOriginalDelegate;
-	return theResult;
-}
-
-#pragma mark - NDJSONParserDelegate methods
-- (void)jsonDidStartDocument:(NDJSON *)aJSON
-{
-	_containerStack.size = 256;
-	_containerStack.count = 0;
-	if( _containerStack.bytes != NULL )
-		free( _containerStack.bytes );
-	_containerStack.bytes = calloc(_containerStack.size,sizeof(struct ContainerStackStruct));
-	[_currentProperty release], _currentProperty = nil;
-	[_currentKey release], _currentKey = nil;
-	[_result autorelease], _result = nil;
-}
-- (void)jsonDidEndDocument:(NDJSON *)aJSON
-{
-	for( NSUInteger i = 0; i < _containerStack.count; i++ )
+#ifdef NDJSONSupportUTF8Only
+	return [self setJSONData:[aString dataUsingEncoding:NSUTF8StringEncoding] encoding:NSUTF8StringEncoding];
+#else
+	BOOL		theResult = NO;
+	NSAssert( aString != nil, @"nil input JSON string" );
+	CFStringEncoding		theStringEncoding = CFStringGetFastestEncoding( (CFStringRef)aString );
+	zeroOutInstanceVaribles(self);
+	switch( theStringEncoding )
 	{
-		[_containerStack.bytes[i].propertyName release];
-		[_containerStack.bytes[i].container release];
-	}
-	_containerStack.count = 0;
-	[_currentProperty release], _currentProperty = nil;
-	[_currentKey release], _currentKey = nil;
-	if( _containerStack.bytes != NULL )
-		free(_containerStack.bytes);
-	_containerStack.bytes = NULL;
-}
-
-- (void)jsonDidStartArray:(NDJSON *)aJSON
-{
-	NSMutableArray		* theArrayRep = [[NSMutableArray alloc] init];
-	pushContainerForJSONParser( self, theArrayRep, NO );
-	[_currentProperty release], _currentProperty = nil;
-	[theArrayRep release];
-}
-
-- (void)jsonDidEndArray:(NDJSON *)aJSON
-{
-	id		theArray = popCurrentContainerForJSONParser(self);
-	[self addValue:theArray type:NDJSONValueArray];
-}
-
-- (void)jsonDidStartObject:(NDJSON *)aJSON
-{
-	id			theObjectRep = theObjectRep = [[NSMutableDictionary alloc] init];
-
-	pushContainerForJSONParser( self, theObjectRep, YES );
-	[_currentProperty release], _currentProperty = nil;
-	[theObjectRep release];
-}
-
-- (void)jsonDidEndObject:(NDJSON *)aJSON
-{
-	id		theObject = popCurrentContainerForJSONParser(self);
-	[self addValue:theObject type:NDJSONValueObject];
-}
-
-static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemoveIs, BOOL aConvertToCamelCase )
-{
-	NSString	* theResult = aString;
-	NSUInteger	theBufferLen = aString.length;
-	if( theBufferLen > 0 )
-	{
-		unichar		theBuffer[theBufferLen];
-		unichar		* theResultingBytes = theBuffer;
-		[aString getCharacters:theBuffer range:NSMakeRange(0, theBufferLen)];
-		if( aRemoveIs && theResultingBytes[0] == 'i' && theResultingBytes[1] == 's' && isupper(theResultingBytes[2]) )
-		{
-			theResultingBytes[2] += 'a' - 'A';
-			theBufferLen -= 2;
-			theResultingBytes += 2;
-		}
-		
-		if( aConvertToCamelCase )
-		{
-			BOOL		theIsFirstChar = YES,
-						theCaptializeNext = NO;
-			for( NSUInteger i = 0, o = 0, theSourceLen = theBufferLen; i < theSourceLen; i++ )
-			{
-				if( isalpha(theResultingBytes[i]) || (!theIsFirstChar && isalnum(theResultingBytes[i])) )
-				{
-					if( islower(theResultingBytes[i]) && theCaptializeNext && !theIsFirstChar )
-						theResultingBytes[o] = theResultingBytes[i] - ('a' - 'A');
-					else if( isupper(theResultingBytes[i]) && theCaptializeNext && theIsFirstChar )
-						theResultingBytes[o] = theResultingBytes[i] + ('a' - 'A');
-					else
-						theResultingBytes[o] = theResultingBytes[i];
-					o++;
-					theIsFirstChar = NO;
-					theCaptializeNext = NO;
-				}
-				else
-				{
-					theCaptializeNext = YES;
-					theBufferLen --;
-				}
-			}
-		}
-		
-		if( aRemoveIs || aConvertToCamelCase )
-			theResult = [NSString stringWithCharacters:theResultingBytes length:theBufferLen];
-	}
-	
-	return theResult;
-}
-
-- (void)json:(NDJSON *)aJSON foundKey:(NSString *)aValue
-{
-	NSParameterAssert( _containerStack.count == 0 || _containerStack.bytes[_containerStack.count-1].isObject );
-	NSString	* theKey = stringByConvertingPropertyName( aValue, _options.removeIsAdjective != 0, _options.convertKeysToMedialCapital != 0 );
-	[_currentProperty release], _currentProperty = [theKey retain];
-	[_currentKey release], _currentKey = [aValue retain];
-}
-- (void)json:(NDJSON *)aJSON foundString:(NSString *)aValue
-{
-	[self addValue:aValue type:NDJSONValueString];
-	[_currentProperty release], _currentProperty = nil;
-}
-- (void)json:(NDJSON *)aJSON foundInteger:(NSInteger)aValue
-{
-	[self addValue:[NSNumber numberWithInteger:aValue] type:NDJSONValueInteger];
-	[_currentProperty release], _currentProperty = nil;
-}
-- (void)json:(NDJSON *)aJSON foundFloat:(double)aValue
-{
-	[self addValue:[NSNumber numberWithDouble:aValue] type:NDJSONValueFloat];
-	[_currentProperty release], _currentProperty = nil;
-}
-- (void)json:(NDJSON *)aJSON foundBool:(BOOL)aValue
-{
-	[self addValue:[NSNumber numberWithBool:aValue] type:NDJSONValueBoolean];
-	[_currentProperty release], _currentProperty = nil;
-}
-- (void)jsonFoundNULL:(NDJSON *)aJSON
-{
-	[self addValue:[NSNull null] type:NDJSONValueBoolean];
-	[_currentProperty release], _currentProperty = nil;
-}
-
-#pragma mark - private
-
-- (id)currentContainer { return _containerStack.count > 0 ? _containerStack.bytes[_containerStack.count-1].container : nil; }
-- (id)currentObject
-{
-	id				theResult = nil;
-	NSInteger		theIndex = (NSInteger)_containerStack.count;
-	while( theResult == nil && theIndex > 0 )
-	{
-		theIndex--;
-		if( _containerStack.bytes[theIndex].isObject )
-			theResult = _containerStack.bytes[theIndex].container;
-	}
-	return theResult;
-}
-- (NSString *)currentContainerPropertyName
-{
-	NSString			* theResult = _currentProperty;
-	if( theResult == nil && _containerStack.count > 0 )
-		theResult = _containerStack.bytes[_containerStack.count-1].propertyName;
-	return theResult;
-}
-
-static void pushContainerForJSONParser( NDJSONDeserializer * self, id aContainer, BOOL anIsObject )
-{
-	NSCParameterAssert( aContainer != nil );
-	NSCParameterAssert( self->_containerStack.bytes != NULL );
-	
-	if( self->_containerStack.count >= self->_containerStack.size )
-	{
-		void		* theBytes = NULL;
-		self->_containerStack.size *= 2;
-		theBytes = realloc(self->_containerStack.bytes, self->_containerStack.size);
-		NSCAssert( theBytes != NULL, @"Memory error" );
-		self->_containerStack.bytes = theBytes;
-	}
-	self->_containerStack.bytes[self->_containerStack.count].container = [aContainer retain];
-	self->_containerStack.bytes[self->_containerStack.count].propertyName = self->_currentProperty;
-	self->_currentProperty = nil;
-	self->_containerStack.bytes[self->_containerStack.count].isObject = anIsObject;
-	self->_containerStack.count++;
-}
-
-- (void)addValue:(id)aValue type:(NDJSONValueType)aType
-{
-	id			theCurrentContainer = self.currentContainer;;
-	if( theCurrentContainer != nil )
-	{
-		if( _currentProperty == nil )
-		{
-			NSCParameterAssert( [theCurrentContainer respondsToSelector:@selector(addObject:)] );
-			if( [theCurrentContainer respondsToSelector:@selector(count)] && [aValue respondsToSelector:@selector(jsonParser:setIndex:)] )
-				[aValue jsonParser:self setIndex:[theCurrentContainer count]];
-			[theCurrentContainer addObject:aValue];
-		}
-		else
-			[theCurrentContainer setValue:aValue forKey:_currentProperty];
-	}
-	else
-		_result = [aValue retain];
-}
-
-id popCurrentContainerForJSONParser( NDJSONDeserializer * self )
-{
-	id		theResult = nil;
-	if( self->_containerStack.count > 0 )
-	{
-		self->_containerStack.count--;
-		[self->_currentProperty release], self->_currentProperty = nil;
-		self->_currentProperty = self->_containerStack.bytes[self->_containerStack.count].propertyName;
-		theResult = [self->_containerStack.bytes[self->_containerStack.count].container autorelease];
-	}
-	return theResult;
-}
-
-@end
-
-@implementation NDJSONExtendedParser
-
-static SEL conversionSelectorForPropertyAndType( NSString * aProperty, NDJSONValueType aType )
-{
-	SEL				theResult = (SEL)0;
-	NSUInteger		theLen = [aProperty lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-	char			* theSelectorName  = malloc(theLen+3+12+12);
-	char			* thePos = theSelectorName;
-	memcpy( thePos, "set", sizeof("set")-1 );
-	thePos += sizeof("set")-1;
-	memcpy( thePos, [aProperty UTF8String], theLen );
-	*thePos = (char)toupper((char)*thePos);
-	thePos += theLen;
-	memcpy( thePos, "ByConverting", sizeof("ByConverting")-1 );
-	thePos += 12;
-	switch( aType )
-	{
-	case NDJSONValueArray:
-		memcpy(thePos, "Array:", sizeof("Array:"));
-		theResult = sel_registerName(theSelectorName);
+	case kCFStringEncodingMacRoman:
+	case kCFStringEncodingWindowsLatin1:
+	case kCFStringEncodingISOLatin1:
+	case kCFStringEncodingNextStepLatin:
+	case kCFStringEncodingASCII:
+	case kCFStringEncodingUTF8:
+	case kCFStringEncodingNonLossyASCII:
+		_bytes.word8 = _inputBytes = (uint8_t*)CFStringGetCStringPtr((CFStringRef)aString, theStringEncoding);
+		_ownsBytes = NO;
+		_numberOfBytes = aString.length;
+		_character.wordSize = kNDJONCharacterWord8;
+		_character.endian = kNDJSONLittleEndian;
 		break;
-	case NDJSONValueObject:
-		memcpy(thePos, "Dictionary:", sizeof("Dictionary:"));
-		theResult = sel_registerName(theSelectorName);
+	case kCFStringEncodingUnicode:
+//	case kCFStringEncodingUTF16:
+	case kCFStringEncodingUTF16LE:
+	case kCFStringEncodingUTF16BE:
+		_bytes.word8 = _inputBytes = (uint8_t*)CFStringGetCharactersPtr((CFStringRef)aString);
+		_ownsBytes = NO;
+		_numberOfBytes = aString.length<<1;
+		_character.wordSize = kNDJSONCharacterWord16;
+		_character.endian = kNDJSONLittleEndian;
 		break;
-	case NDJSONValueString:
-		memcpy(thePos, "String:", sizeof("String:"));
-		theResult = sel_registerName(theSelectorName);
-		break;
-	case NDJSONValueInteger:
-	case NDJSONValueFloat:
-	case NDJSONValueBoolean:
-		memcpy(thePos, "Number:", sizeof("Number:"));
-		theResult = sel_registerName(theSelectorName);
-		break;
-	case NDJSONValueNull:
-		memcpy(thePos, "Null:", sizeof("Null:"));
-		theResult = sel_registerName(theSelectorName);
-		break;
-	case NDJSONValueNone:
+	case kCFStringEncodingUTF32:
+	case kCFStringEncodingUTF32BE:
+	case kCFStringEncodingUTF32LE:
 		break;
 	}
-	free(theSelectorName);
-	return theResult;
-}
 
-static SEL instanceInitSelectorForType( NDJSONValueType aType )
-{
-	SEL				theResult = (SEL)0;
-	char			theSelectorName[sizeof("initWith")+sizeof("Dictionary:")];
-	char			* thePos = theSelectorName;
-	memcpy(thePos, "initWith", sizeof("initWith"));
-	thePos += sizeof("initWith")-1;
-	switch( aType )
-	{
-	case NDJSONValueArray:
-		memcpy(thePos, "Array:", sizeof("Array:"));
-		theResult = sel_registerName(theSelectorName);
-		break;
-	case NDJSONValueObject:
-		memcpy(thePos, "Dictionary:", sizeof("Dictionary:"));
-		theResult = sel_registerName(theSelectorName);
-		break;
-	case NDJSONValueString:
-		memcpy(thePos, "String:", sizeof("String:"));
-		theResult = sel_registerName(theSelectorName);
-		break;
-	case NDJSONValueInteger:
-	case NDJSONValueFloat:
-	case NDJSONValueBoolean:
-		memcpy(thePos, "Number:", sizeof("Number:"));
-		theResult = sel_registerName(theSelectorName);
-		break;
-	case NDJSONValueNull:
-		memcpy(thePos, "Null:", sizeof("Null:"));
-		theResult = sel_registerName(theSelectorName);
-		break;
-	case NDJSONValueNone:
-		break;
-	}
-	return theResult;
-}
+	if( _options.zipJSON )
+		_bytes.word8 = malloc(kBufferSize<<1);
 
-static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSString * aPropertyName, NDJSONValueType aSourceType )
-{
-	BOOL				theResult = NO;
-	objc_property_t		theProperty = class_getProperty([aContainer class], [aPropertyName UTF8String]);
-	if( theProperty != NULL )
+	if( _bytes.word8 != NULL )
 	{
-		const char			* thePropertyAttributes = property_getAttributes(theProperty);
-		char				theClassName[kMaximumClassNameLenght];
-		NDJSONValueType		theTargetType = getTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes );
-		Class				theTargetClass = Nil;
-		if( jsonValueEquivelentObjectTypes(theTargetType, aSourceType) || (jsonValueIsNSNumberType(aSourceType) && [(theTargetClass = objc_getClass(theClassName)) isSubclassOfClass:[NSNumber class]]) )
-		{
-			[aContainer setValue:aValue forKey:aPropertyName];
-		}
-		else
-		{
-			SEL		theSelector = conversionSelectorForPropertyAndType( aPropertyName, aSourceType );
-			if( [aContainer respondsToSelector:theSelector] )
-			{
-				[aContainer performSelector:theSelector withObject:aValue];
-			}
-			else if( jsonValueIsPrimativeType(theTargetType) )
-			{
-				switch (theTargetType)
-				{
-				case NDJSONValueString:
-					[aContainer setValue:[aValue stringValue] forKey:aPropertyName];
-					break;
-				case NDJSONValueInteger:
-					[aContainer setValue:[NSNumber numberWithInteger:[aValue integerValue]] forKey:aPropertyName];
-					break;
-				case NDJSONValueFloat:
-					[aContainer setValue:[NSNumber numberWithFloat:[aValue floatValue]] forKey:aPropertyName];
-					break;
-				case NDJSONValueBoolean:
-					[aContainer setValue:[NSNumber numberWithBool:[aValue boolValue]] forKey:aPropertyName];
-					break;
-				case NDJSONValueNull:
-					[aContainer setNilValueForKey:aPropertyName];
-					break;
-				default:
-					break;
-				}
-			}
-			else
-			{
-				theSelector = instanceInitSelectorForType( aSourceType );
-				if( theTargetClass == Nil )
-					theTargetClass = objc_getClass(theClassName);
-				if( [theTargetClass instancesRespondToSelector:theSelector] )
-				{
-					id	theValue = [theTargetClass alloc];
-					[aContainer setValue:[theValue performSelector:theSelector withObject:aValue] forKey:aPropertyName];
-					[theValue release];
-				}
-			}
-		}
+		_source.object = [aString retain];
+		_inputType = kJSONStringInputType;
 		theResult = YES;
 	}
+	else						// failed to get poiter to string bytes.word8, convert to quickest NSData and use that instead
+	{
+		NSStringEncoding		theEncoding = CFStringConvertEncodingToNSStringEncoding(theStringEncoding);
+		theResult = [self setJSONData:[aString dataUsingEncoding:theEncoding] encoding:theEncoding];
+	}
+	return theResult;
+#endif
+}
+
+- (BOOL)setJSONData:(NSData *)aData encoding:(NSStringEncoding)anEncoding
+{
+	NSAssert( aData != nil, @"nil input JSON data" );
+	zeroOutInstanceVaribles(self);
+	_numberOfBytes = aData.length;
+	_ownsBytes = NO;
+	_bytes.word8 = _inputBytes = (uint8_t*)[aData bytes];
+	if( _options.zipJSON )
+		_bytes.word8 = malloc(kBufferSize<<1);
+	_source.object = [aData retain];
+	_inputType = kJSONDataInputType;
+#ifdef NDJSONSupportUTF8Only
+	NSAssert( is8BitWordSizeForNSStringEncoding(anEncoding), @"with NDJSONSupportUTF8Only set only 8bit character encodings are supported" );
+#else
+	getCharacterWordSizeAndEndianFromNSStringEncoding( &_character.wordSize, &_character.endian, anEncoding );
+#endif
+	return _inputBytes != NULL;
+}
+
+- (BOOL)setContentsOfFile:(NSString *)aPath encoding:(NSStringEncoding)anEncoding
+{
+	BOOL			theResult = NO;
+	NSAssert( aPath != nil, @"nil input JSON path" );
+	NSInputStream		* theInputStream = [NSInputStream inputStreamWithFileAtPath:aPath];
+	if( theInputStream != nil )
+		theResult = [self setInputStream:theInputStream encoding:anEncoding];
 	return theResult;
 }
 
-- (void)addValue:(id)aValue type:(NDJSONValueType)aType
+- (BOOL)setContentsOfURL:(NSURL *)aURL encoding:(NSStringEncoding)anEncoding
 {
-	id			theCurrentContainer = self.currentContainer;;
-	if( theCurrentContainer != nil )
+	BOOL			theResult = NO;
+	NSAssert( aURL != nil, @"nil input JSON file url" );
+	NSInputStream		* theInputStream = [NSInputStream inputStreamWithURL:aURL];
+	if( theInputStream != nil )
+		theResult = [self setInputStream:theInputStream encoding:anEncoding];
+	return theResult;
+}
+
+- (BOOL)setURLRequest:(NSURLRequest *)aURLRequest
+{
+	BOOL			theResult = NO;
+	CFHTTPMessageRef	theMessageRef = CFHTTPMessageCreateRequest( kCFAllocatorDefault, (CFStringRef)aURLRequest.HTTPMethod, (CFURLRef)aURLRequest.URL, kCFHTTPVersion1_1 );
+	_inputType = kJSONStreamInputType;
+	if ( theMessageRef != NULL )
 	{
-		if( _currentProperty == nil )
+		CFReadStreamRef		theReadStreamRef = CFReadStreamCreateForHTTPRequest( kCFAllocatorDefault, theMessageRef );
+		if( theReadStreamRef != NULL )
 		{
-			NSCParameterAssert( [theCurrentContainer respondsToSelector:@selector(addObject:)] );
-			if( [theCurrentContainer respondsToSelector:@selector(count)] && [aValue respondsToSelector:@selector(jsonParser:setIndex:)] )
-				[aValue jsonParser:self setIndex:[theCurrentContainer count]];
-			[theCurrentContainer addObject:aValue];
+			theResult = [self setInputStream:(NSInputStream*)theReadStreamRef encoding:NSUIntegerMax];
+			CFRelease(theReadStreamRef);
 		}
-		else
+		CFRelease(theMessageRef);
+	}
+	return theResult;
+}
+
+- (BOOL)setInputStream:(NSInputStream *)aStream encoding:(NSStringEncoding)anEncoding
+{
+	NSAssert( aStream != nil, @"nil input stream" );
+	zeroOutInstanceVaribles(self);
+	_bytes.word8 = _inputBytes = malloc(kBufferSize);
+	_ownsBytes = YES;
+	if( _options.zipJSON )
+		_bytes.word8 = malloc(kBufferSize<<1);
+	_source.stream = [aStream retain];
+	_inputType = kJSONStreamInputType;
+#ifdef NDJSONSupportUTF8Only
+	NSAssert( is8BitWordSizeForNSStringEncoding(anEncoding), @"with NDJSONSupportUTF8Only set only 8bit character encodings are supported" );
+#else
+	getCharacterWordSizeAndEndianFromNSStringEncoding( &_character.wordSize, &_character.endian, anEncoding );
+#endif
+	return _source.stream != NULL && _inputBytes != NULL;
+}
+
+- (BOOL)setSourceFunction:(NDJSONDataStreamProc)aFunction context:(void*)aContext encoding:(NSStringEncoding)anEncoding;
+{
+	NSAssert( aFunction != NULL, @"NULL function" );
+	zeroOutInstanceVaribles(self);
+	_source.function = aFunction;
+	_source.context = aContext;
+	_inputType = kJSONStreamFunctionType;
+#ifdef NDJSONSupportUTF8Only
+	NSAssert( is8BitWordSizeForNSStringEncoding(anEncoding), @"with NDJSONSupportUTF8Only set only 8bit character encodings are supported" );
+#else
+	getCharacterWordSizeAndEndianFromNSStringEncoding( &_character.wordSize, &_character.endian, anEncoding );
+#endif
+	return _source.function != NULL;
+}
+
+- (BOOL)setSourceBlock:(NDJSONDataStreamBlock)aBlock encoding:(NSStringEncoding)anEncoding;
+{
+	NSAssert( aBlock != NULL, @"NULL function" );
+	zeroOutInstanceVaribles(self);
+	_source.block = [aBlock copy];
+	_inputType = kJSONStreamBlockType;
+#ifdef NDJSONSupportUTF8Only
+	NSAssert( is8BitWordSizeForNSStringEncoding(anEncoding), @"with NDJSONSupportUTF8Only set only 8bit character encodings are supported" );
+#else
+	getCharacterWordSizeAndEndianFromNSStringEncoding( &_character.wordSize, &_character.endian, anEncoding );
+#endif
+	return _source.function != NULL;
+}
+
+- (BOOL)parseWithOptions:(NDJSONOptionFlags)anOptions
+{
+	BOOL		theResult = NO;
+	BOOL		theAlreadyParsing = _alreadyParsing;
+
+	_alreadyParsing = YES;
+	_options.strictJSONOnly = NO;
+	if( _delegateMethod.didStartDocument != NULL )
+		_delegateMethod.didStartDocument( _delegate, @selector(jsonParserDidStartDocument:), self );
+
+	if( _options.zipJSON )
+		_bytes.word8 = malloc(kBufferSize);
+
+	switch( _inputType )
+	{
+	case kJSONDataInputType:
+	case kJSONStringInputType:
+		theResult = parseInputData( self );
+		break;
+	case kJSONStreamInputType:
+		theResult = parseInputStream( self );
+		break;
+	case kJSONStreamFunctionType:
+	case kJSONStreamBlockType:
+		theResult = parseInputFunctionOrBlock( self );
+		break;
+	case kJSONURLRequestType:
+		theResult = parseURLRequest( self );
+		break;
+	default:
+		NSCAssert(NO, @"Input type not set" );
+		break;
+	}
+
+	if( _delegateMethod.didEndDocument != NULL )
+		_delegateMethod.didEndDocument( _delegate, @selector(jsonParserDidEndDocument:), self );
+
+	if( theAlreadyParsing )
+		_hasSkippedValueForCurrentKey = YES;
+	_alreadyParsing = theAlreadyParsing;
+	
+	[_currentKey release], _currentKey = nil;
+
+	return theResult;
+}
+
+/*
+ do this once so we don't waste time sending the same message to get the same answer
+ Could ad code to look up the IMPs for the messages, and the use NULL values for them to determine whether to send the call
+ */
+- (void)setUpRespondsTo
+{
+	NSObject		* theDelegate = self.delegate;
+	_delegateMethod.didStartDocument = [theDelegate respondsToSelector:@selector(jsonParserDidStartDocument:)]
+										? [theDelegate methodForSelector:@selector(jsonParserDidStartDocument:)]
+										: NULL;
+	_delegateMethod.didEndDocument = [theDelegate respondsToSelector:@selector(jsonParserDidEndDocument:)]
+										? [theDelegate methodForSelector:@selector(jsonParserDidEndDocument:)]
+										: NULL;
+	_delegateMethod.didStartArray = [theDelegate respondsToSelector:@selector(jsonParserDidStartArray:)]
+										? [theDelegate methodForSelector:@selector(jsonParserDidStartArray:)]
+										: NULL;
+	_delegateMethod.didEndArray = [theDelegate respondsToSelector:@selector(jsonParserDidEndArray:)]
+										? [theDelegate methodForSelector:@selector(jsonParserDidEndArray:)]
+										: NULL;
+	_delegateMethod.didStartObject = [theDelegate respondsToSelector:@selector(jsonParserDidStartObject:)]
+										? [theDelegate methodForSelector:@selector(jsonParserDidStartObject:)]
+										: NULL;
+	_delegateMethod.didEndObject = [theDelegate respondsToSelector:@selector(jsonParserDidEndObject:)]
+										? [theDelegate methodForSelector:@selector(jsonParserDidEndObject:)]
+										: NULL;
+	_delegateMethod.shouldSkipValueForKey = [theDelegate respondsToSelector:@selector(jsonParser:shouldSkipValueForKey:)]
+										? [theDelegate methodForSelector:@selector(jsonParser:shouldSkipValueForKey:)]
+										: NULL;
+	_delegateMethod.foundKey = [theDelegate respondsToSelector:@selector(jsonParser:foundKey:)]
+										? [theDelegate methodForSelector:@selector(jsonParser:foundKey:)]
+										: NULL;
+	_delegateMethod.foundString = [theDelegate respondsToSelector:@selector(jsonParser:foundString:)]
+										? [theDelegate methodForSelector:@selector(jsonParser:foundString:)]
+										: NULL;
+	_delegateMethod.foundInteger = [theDelegate respondsToSelector:@selector(jsonParser:foundInteger:)]
+										? [theDelegate methodForSelector:@selector(jsonParser:foundInteger:)]
+										: NULL;
+	_delegateMethod.foundFloat = [theDelegate respondsToSelector:@selector(jsonParser:foundFloat:)]
+										? [theDelegate methodForSelector:@selector(jsonParser:foundFloat:)]
+										: NULL;
+	_delegateMethod.foundBool = [theDelegate respondsToSelector:@selector(jsonParser:foundBool:)]
+										? [theDelegate methodForSelector:@selector(jsonParser:foundBool:)]
+										: NULL;
+	_delegateMethod.foundNULL = [theDelegate respondsToSelector:@selector(jsonParserFoundNULL:)]
+										? [theDelegate methodForSelector:@selector(jsonParserFoundNULL:)]
+										: NULL;
+	_delegateMethod.foundError = [theDelegate respondsToSelector:@selector(jsonParser:error:)]
+										? [theDelegate methodForSelector:@selector(jsonParser:error:)]
+										: NULL;
+}
+
+- (void)abortParsing { _complete = _abort = YES; }
+
+static uint32_t integerForHexidecimalDigit( uint32_t d )
+{
+	switch (d)
+	{
+	case '0'...'9': return d-'0';
+	case 'a'...'f': return d-'a'+10;
+	case 'A'...'F': return d-'A'+10;
+	default:		return UINT32_MAX;			// error
+	}
+}
+
+static uint32_t convertedBytes( NDJSONParser * self )
+{
+	uint32_t	theResult = '\0';
+	switch( self->_character.wordSize )
+	{
+	case kNDJONCharacterWord8:
+		theResult = self->_bytes.word8[self->_position];
+		break;
+	case kNDJSONCharacterWord16:
+		theResult = self->_bytes.word16[self->_position];
+		if( self->_position == 0 )
 		{
-			NSString	* thePropertyName = _currentProperty;
-			if( [[theCurrentContainer class] respondsToSelector:@selector(propertyNamesForKeysJSONParser:)] )
+			if( theResult == k16BitLittleEndianBOM )
 			{
-				NSString	* theNewPropertyName = [[[theCurrentContainer class] propertyNamesForKeysJSONParser:self] objectForKey:_currentKey];
-				if( theNewPropertyName != nil )
-					thePropertyName = theNewPropertyName;
+				self->_character.endian = kNDJSONLittleEndian;
+				theResult = ' ';
 			}
-			@try
+			else if( theResult == k16BitBigEndianBOM )
 			{
-				if( _options.convertPrimativeJSONTypes && jsonValueIsPrimativeType(aType) )
-					setValueByConvertingPrimativeType( theCurrentContainer, aValue, thePropertyName, aType );
+				self->_character.endian = kNDJSONBigEndian;
+				theResult = 0x2000;
+			}
+			else if( self->_character.endian == kNDJSONUnknownEndian )
+			{
+				if( (theResult & 0xFF00) == 0 )			// first character is most likly < 256
+					self->_character.endian = kNDJSONLittleEndian;
+				else if( (theResult & 0x00FF) == 0 )			// first character is most likly < 256
+					self->_character.endian = kNDJSONBigEndian;
 				else
-					[theCurrentContainer setValue:aValue forKey:thePropertyName];
+					self->_character.endian = kNDJSONLittleEndian;
 			}
-			@catch( NSException * anException )
+		}
+		if( self->_character.endian == kNDJSONBigEndian )
+			theResult = CFSwapInt16BigToHost((uint16_t)theResult);
+		else
+			theResult = CFSwapInt16HostToLittle((uint16_t)theResult);
+		break;
+	case kNDJSONCharacterWord32:
+		theResult = self->_bytes.word32[self->_position];
+		if( self->_position == 0 )
+		{
+			if( theResult == k32BitLittleEndianBOM )
 			{
-				if( [[anException name] isEqualToString:NSUndefinedKeyException] )
+				self->_character.endian = kNDJSONLittleEndian;
+				theResult = ' ';
+			}
+			else if( theResult == k32BitBigEndianBOM )
+			{
+				self->_character.endian = kNDJSONBigEndian;
+				theResult = 0x20000000;
+			}
+			else if( self->_character.endian == kNDJSONUnknownEndian )
+			{
+				if( (theResult & 0xFFFF0000) == 0 )			// first character is most likly < 65536
+					self->_character.endian = kNDJSONLittleEndian;
+				else if( (theResult & 0x0000FFFF) == 0 )			// first character is most likly < 65536
+					self->_character.endian = kNDJSONBigEndian;
+				else
+					self->_character.endian = kNDJSONLittleEndian;
+			}
+		}
+		if( self->_character.endian == kNDJSONBigEndian )
+			theResult = CFSwapInt32BigToHost(theResult);
+		else
+			theResult = CFSwapInt32HostToLittle(theResult);
+		break;
+	}
+	return theResult;
+}
+
+static uint32_t currentChar( NDJSONParser * self )
+{
+	uint32_t	theResult = '\0';
+#ifdef NDJSONSupportUTF8Only
+	if( self->_position >= self->_numberOfBytes && !self->_abort )
+	{
+#else
+	if( self->_position<<self->_character.wordSize >= self->_numberOfBytes && !self->_abort )
+	{
+		/*
+			if numberOfBytes was not a multiple of character word size then we need to copy the partial word
+			to the begining of the buffer and append the next block onto the end, to comple the last character.
+		 */
+		NSUInteger		theRemainingLen = self->_numberOfBytes&((1<<self->_character.wordSize)-1);
+		if( theRemainingLen > 0 )
+			memcpy(self->_inputBytes, self->_inputBytes+self->_numberOfBytes-theRemainingLen, theRemainingLen );
+#endif
+		switch (self->_inputType)
+		{
+		case kJSONStreamInputType:
+#ifdef NDJSONSupportUTF8Only
+			self->_numberOfBytes = (NSUInteger)[self->_source.stream read:self->_inputBytes maxLength:kBufferSize];
+#else
+			self->_numberOfBytes = (NSUInteger)[self->_source.stream read:self->_inputBytes+theRemainingLen maxLength:kBufferSize-theRemainingLen];
+#endif
+			break;
+		case kJSONStreamFunctionType:
+#ifdef NDJSONSupportUTF8Only
+			self->_numberOfBytes = (NSUInteger)self->_source.function(&self->_inputBytes, self->_source.context);
+#else
+			self->_numberOfBytes = (NSUInteger)self->_source.function(&self->_inputBytes+theRemainingLen, self->_source.context);
+#endif
+			self->_bytes.word8 = self->_inputBytes;
+			break;
+		case kJSONStreamBlockType:
+#ifdef NDJSONSupportUTF8Only
+			self->_numberOfBytes = (NSUInteger)self->_source.block(&self->_inputBytes);
+#else
+			self->_numberOfBytes = (NSUInteger)self->_source.block(&self->_inputBytes+theRemainingLen);
+#endif
+			self->_bytes.word8 = self->_inputBytes;
+			break;
+		case kJSONURLRequestType:
+			break;
+		default:
+			self->_complete = YES;
+			break;
+		}
+		if( self->_numberOfBytes > 0 )
+			self->_position = 0;
+		else
+			self->_complete = YES;
+	}
+
+#ifdef NDJSONSupportZippedData
+	if( self->_options.zipJSON )
+	{
+		
+	}
+#endif
+
+	if( !self->_complete )
+	{
+#ifdef NDJSONSupportUTF8Only
+		theResult = self->_bytes.word8[self->_position];
+#else
+		theResult = convertedBytes( self );
+#endif
+	}
+	return theResult;
+}
+
+static uint32_t nextChar( NDJSONParser * self )
+{
+	if( !self->_useBackUpByte )
+	{
+		self->_backUpByte = currentChar( self );
+		if( self->_backUpByte != '\0' )
+		{
+			self->_position++;
+			if( self->_backUpByte == '\n' )
+				self->_lineNumber++;
+		}
+#ifdef NDJSONPrintStream
+		putc((int)self->_backUpByte, stderr);
+#endif
+	}
+	else
+		self->_useBackUpByte = NO;
+	return self->_backUpByte;
+}
+static uint32_t nextCharIgnoreWhiteSpace( NDJSONParser * self )
+{
+	uint32_t		theResult;
+	if( self->_options.strictJSONOnly )				// skip white space only
+	{
+		do
+			theResult = nextChar( self );
+		while( isspace((int)theResult) );
+	}
+	else											// skip comments as well
+	{
+		do
+		{
+			theResult = nextChar( self );
+			while( theResult == '/' )
+			{
+				if( currentChar(self) == '/' )		// single line comment
 				{
-					if( !_options.ignoreUnknownPropertyName )
+					do
+						theResult = nextChar( self );
+					while( theResult != '\n' );
+				}
+				else if( currentChar(self) == '*' )		// multiline commentß
+				{
+					BOOL		theCommentEnd = NO;
+					theResult = nextChar(self);
+					while( !theCommentEnd )
 					{
-						NSString		* theReasonString = [[NSString alloc] initWithFormat:@"Failed to set value for property name '%@'", thePropertyName];
-						NSDictionary	* theUserInfo = [[NSDictionary alloc] initWithObjectsAndKeys:self.currentObject, NDJSONObjectUserInfoKey, thePropertyName, NDJSONPropertyNameUserInfoKey, nil];
-						NSException		* theException = [NSException exceptionWithName:NDJSONUnrecongnisedPropertyNameException reason:theReasonString userInfo:theUserInfo];
-						[theReasonString release];
-						[theUserInfo release];
-						@throw theException;
+						if( theResult == '\0' )
+							goto end;
+						theResult = nextChar(self);
+						if( theResult == '*' && (theResult = nextChar(self)) == '/' )
+							theCommentEnd = YES;
+					}
+					theResult = nextChar(self);
+				}
+			}
+		}
+		while( isspace((int)theResult) );
+	}
+end:
+	return theResult;
+}
+
+static void backUp( NDJSONParser * self ) { self->_useBackUpByte = YES; }
+
+BOOL parseInputData( NDJSONParser * self )
+{
+	BOOL		theResult = NO;
+	NSCParameterAssert( self->_bytes.word8 != NULL );
+	NSCParameterAssert( self->_source.object != nil );
+	theResult = parseJSONUnknown( self );
+	[self->_source.object release], self->_source.object = nil;
+	return theResult;
+}
+
+BOOL parseInputStream( NDJSONParser * self )
+{
+	BOOL		theResult = NO;
+	NSCParameterAssert( self->_source.stream != nil );
+	[self->_source.stream open];
+	theResult = parseJSONUnknown( self );
+	[self->_source.stream close], [self->_source.stream release], self->_source.stream = nil;
+	[self->_source.object release], self->_source.object = nil;
+	return theResult;
+}
+
+BOOL parseInputFunctionOrBlock( NDJSONParser * self )
+{
+	BOOL		theResult = NO;
+	NSCParameterAssert( self->_source.block != nil || self->_source.function != nil );
+	theResult = parseJSONUnknown( self );
+	return theResult;
+}
+	
+BOOL parseURLRequest( NDJSONParser * self )
+{
+	BOOL		theResult = NO;
+	if( self->_source.stream != nil || self->_bytes.word8 != NULL )
+	{
+		self->_options.strictJSONOnly = NO;
+		if( self->_delegateMethod.didStartDocument != NULL )
+			self->_delegateMethod.didStartDocument( self->_delegate, @selector(jsonParserDidStartDocument:), self );
+		if( self->_source.stream != nil )
+			[self->_source.stream open];
+		theResult = parseJSONUnknown( self );
+		[self->_source.stream close];
+
+		if( self->_delegateMethod.didEndDocument != NULL )
+			self->_delegateMethod.didEndDocument( self->_delegate, @selector(jsonParserDidEndDocument:), self );
+		
+		[self->_currentKey release], self->_currentKey = nil;
+	}
+	[self->_source.stream release], self->_source.stream = nil;
+	[self->_source.object release], self->_source.object = nil;
+	return theResult;
+}
+
+BOOL parseJSONUnknown( NDJSONParser * self )
+{
+	BOOL		theResult = YES;
+	switch( nextCharIgnoreWhiteSpace( self ) )
+	{
+	case '{':
+		theResult = parseJSONObject( self );
+		break;
+	case '[':
+		theResult = parseJSONArray( self );
+		break;
+	case '"':
+		theResult = parseJSONString( self );
+		break;
+	case '0' ... '9':
+	case '-':
+		backUp(self);
+		theResult = parseJSONNumber( self );
+		break;
+	case 't':
+		theResult = parseJSONTrue( self );
+		break;
+	case 'f':
+		theResult = parseJSONFalse( self );
+		break;
+	case 'n':
+		theResult = parseJSONNull( self );
+		break;
+	default:
+		foundError(self, NDJSONBadFormatError );
+		theResult = NO;
+		break;
+	}
+	
+	return theResult;
+}
+
+BOOL parseJSONArray( NDJSONParser * self )
+{
+	BOOL				theResult = YES;
+	BOOL				theEnd = NO;
+	NSUInteger			theCount = 0;
+	if( self->_delegateMethod.didStartArray != NULL )
+		self->_delegateMethod.didStartArray( self->_delegate, @selector(jsonParserDidStartArray:), self );
+	
+	if( nextCharIgnoreWhiteSpace(self) == ']' )
+		theEnd = YES;
+	else
+		backUp(self);
+	
+	while( !theEnd && (theResult = parseJSONUnknown( self )) == YES )
+	{
+		uint32_t		theChar = nextCharIgnoreWhiteSpace(self);
+		theCount++;
+		switch( theChar )
+		{
+		case ']':
+			theEnd = YES;
+			break;
+		case ',':
+			if( !self->_options.strictJSONOnly )					// allow trailing comma
+			{
+				if( nextCharIgnoreWhiteSpace(self) == ']' )
+					theEnd = YES;
+				else
+					backUp(self);
+			}
+			break;
+		default:
+			foundError( self, NDJSONBadFormatError );
+			backUp(self);
+			goto errorOut;
+			break;
+		}
+	}
+	if( theEnd )
+	{
+		if( self->_delegateMethod.didEndArray != NULL )
+			self->_delegateMethod.didEndArray( self->_delegate, @selector(jsonParserDidEndArray:), self );
+	}
+errorOut:
+	return theResult;
+}
+
+BOOL parseJSONObject( NDJSONParser * self )
+{
+	BOOL				theResult = YES;
+	BOOL				theEnd = NO;
+	NSUInteger			theCount = 0;
+	
+	if( self->_delegateMethod.didStartObject != NULL )
+		self->_delegateMethod.didStartObject( self->_delegate, @selector(jsonParserDidStartObject:), self );
+	
+	if( nextCharIgnoreWhiteSpace(self) == '}' )
+		theEnd = YES;
+	else
+		backUp(self);
+	
+	while( !theEnd )
+	{
+		if( (theResult = parseJSONKey(self)) )
+		{
+			if( (nextCharIgnoreWhiteSpace(self) == ':') == YES )
+			{
+				BOOL	theSkipParsingValueForCurrentKey = NO;
+
+				if( self->_delegateMethod.foundKey != NULL )
+					self->_delegateMethod.foundKey( self->_delegate, @selector(jsonParser:foundKey:), self, self->_currentKey );
+
+				if( self->_delegateMethod.shouldSkipValueForKey != NULL )
+					theSkipParsingValueForCurrentKey = ((_ReturnBoolMethodIMP)self->_delegateMethod.shouldSkipValueForKey)( self->_delegate, @selector(jsonParser:shouldSkipValueForKey:), self, self->_currentKey	);
+
+				if( theSkipParsingValueForCurrentKey )
+					theResult = skipNextValue(self);
+				else if( !self->_hasSkippedValueForCurrentKey )
+					theResult = parseJSONUnknown( self );
+				else
+				{
+					self->_hasSkippedValueForCurrentKey = NO;
+					theResult = YES;
+				}
+
+				if( theResult == YES )
+				{
+					uint32_t		theChar = nextCharIgnoreWhiteSpace(self);
+					theCount++;
+					switch( theChar )
+					{
+					case '\0':
+					case '}':
+						theEnd = YES;
+						break;
+					case ',':
+						break;
+					default:
+						foundError( self, NDJSONBadFormatError );
+						break;
 					}
 				}
 				else
-					@throw anException;
+					foundError( self, NDJSONBadFormatError );
 			}
+			else
+				foundError( self, NDJSONBadFormatError );
 		}
+		else
+			foundError( self, NDJSONBadFormatError );
+	}
+	if( theEnd )
+	{
+		if( self->_delegateMethod.didEndObject != NULL )
+			self->_delegateMethod.didEndObject( self->_delegate, @selector(jsonParserDidEndObject:), self );
+	}
+	
+	return theResult;
+}
+
+BOOL parseJSONKey( NDJSONParser * self )
+{
+	struct NDBytesBuffer	theBuffer = NDBytesBufferInit;
+	BOOL					theResult = YES;
+	if( nextCharIgnoreWhiteSpace(self) == '"' )
+		theResult = parseJSONText( self, &theBuffer, YES, YES );
+	else if( !self->_options.strictJSONOnly )				// keys don't have to be quoted
+	{
+		backUp(self);
+		theResult = parseJSONText( self, &theBuffer, YES, NO );
 	}
 	else
-		_result = [aValue retain];
+		foundError( self, NDJSONBadFormatError );
+	if( theResult != NO )
+	{
+#ifdef NDJSONSupportUTF8Only
+		[self->_currentKey release], self->_currentKey = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:NSUTF8StringEncoding];
+#else
+		[self->_currentKey release], self->_currentKey = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:kNSStringEncodingFromCharacterWordSize[self->_character.wordSize]];
+#endif
+
+		NDJSONLog( @"Found key: '%@'", self->_currentKey );
+	}
+	freeByte( &theBuffer );
+
+	return theResult;
+}
+
+BOOL parseJSONString( NDJSONParser * self )
+{
+	struct NDBytesBuffer	theBuffer = NDBytesBufferInit;
+	BOOL					theResult = parseJSONText( self, &theBuffer, NO, YES );
+	if( theResult != NO )
+	{
+#ifdef NDJSONSupportUTF8Only
+		NSString	* theValue = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:NSUTF8StringEncoding];
+#else
+		NSString	* theValue = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:kNSStringEncodingFromCharacterWordSize[self->_character.wordSize]];
+#endif
+		if( self->_delegateMethod.foundString != NULL )
+			self->_delegateMethod.foundString( self->_delegate, @selector(jsonParser:foundString:), self, theValue );
+		[theValue release];
+	}
+	freeByte( &theBuffer );
+	return theResult;
+}
+
+BOOL parseJSONText( NDJSONParser * self, struct NDBytesBuffer * aValueBuffer, BOOL aIsKey, BOOL aIsQuotesTerminated )
+{
+	BOOL					theResult = YES,
+							theEnd = NO;
+#ifdef NDJSONSupportUTF8Only
+	enum NDJSONCharacterWordSize	theWordSize = kNDJONCharacterWord8;
+#else
+	enum NDJSONCharacterWordSize	theWordSize = self->_character.wordSize;
+#endif
+	NSCParameterAssert(aValueBuffer != NULL);
+	
+	while( theResult  && !theEnd)
+	{
+		uint32_t		theChar = nextChar(self);
+		switch( theChar )
+		{
+		case '\0':
+			theResult = NO;
+			break;
+		case '\\':
+		{
+			theChar = nextChar(self);
+			switch( theChar )
+			{
+			case '\0':
+				theResult = NO;
+				break;
+			case '"':
+			case '\\':
+			case '/':
+				if( !appendBytes( aValueBuffer, theChar, theWordSize ) )
+					foundError( self, NDJSONMemoryErrorError );
+				break;
+			case 'b':
+				if( !appendCharacter( aValueBuffer, '\b', theWordSize ) )
+					foundError( self, NDJSONMemoryErrorError );
+				break;
+			case 'f':
+				if( !appendCharacter( aValueBuffer, '\f', theWordSize ) )
+					foundError( self, NDJSONMemoryErrorError );
+				break;
+			case 'n':
+				if( !appendCharacter( aValueBuffer, '\n', theWordSize ) )
+					foundError( self, NDJSONMemoryErrorError );
+				break;
+			case 'r':
+				if( !appendCharacter( aValueBuffer, '\r', theWordSize ) )
+					foundError( self, NDJSONMemoryErrorError );
+				break;
+			case 't':
+				if( !appendCharacter( aValueBuffer, '\t', theWordSize ) )
+					foundError( self, NDJSONMemoryErrorError );
+				break;
+			case 'u':
+			{
+				uint32_t			theCharacterValue = 0;
+				for( int i = 0; i < 4; i++ )
+				{
+					uint32_t		theHexChar = nextChar(self);
+					if( theHexChar == 0 )
+						break;
+					uint32_t		theDigitValue = integerForHexidecimalDigit( theHexChar );
+					if( theDigitValue <= 0xF )
+						theCharacterValue = (theCharacterValue << 4) + integerForHexidecimalDigit( theHexChar );
+					else
+						break;
+				}
+				if( !appendCharacter( aValueBuffer, theCharacterValue, theWordSize) )
+					foundError( self, NDJSONMemoryErrorError );
+			}
+				break;
+			default:
+				foundError( self, NDJSONBadEscapeSequenceError );
+				break;
+			}
+			break;
+		}
+		case '"':
+			theEnd = YES;
+			break;
+		case ':':
+			if( !aIsQuotesTerminated  )
+			{
+				theEnd = YES;
+				backUp(self);
+			}
+			else if( !appendBytes( aValueBuffer, theChar, theWordSize ) )
+				foundError( self, NDJSONMemoryErrorError );
+			break;
+		case '\t': case '\n': case '\v': case '\f': case '\r': case ' ':
+			if( self->_options.strictJSONOnly )
+				foundError( self, NDJSONBadFormatError );
+			else if( !aIsQuotesTerminated )
+				theEnd = YES;
+			else if( !appendBytes( aValueBuffer, theChar, theWordSize ) )
+				foundError( self, NDJSONMemoryErrorError );
+			break;
+		default:
+			if( !appendBytes( aValueBuffer, theChar, theWordSize ) )
+				foundError( self, NDJSONMemoryErrorError );
+			break;
+		}
+	}
+	if( !theEnd )
+		foundError( self, NDJSONBadFormatError );
+	return theResult;
+}
+
+BOOL parseJSONNumber( NDJSONParser * self )
+{
+	BOOL			theNegative = NO;
+	BOOL			theEnd = NO,
+					theResult = YES;
+	long long		theIntegerValue = 0,
+					theDecimalValue = 0,
+					theExponentValue = 0;
+	int				theDecimalPlaces = 1;
+	
+	if( nextChar(self) == '-' )
+		theNegative = YES;
+	else
+		backUp(self);
+	
+	while( !theEnd && theResult )
+	{
+		uint32_t		theChar = nextChar(self);
+		switch( theChar )
+		{
+		case '\0':
+			theEnd = YES;
+			break;
+		case '0'...'9':
+			if( theDecimalPlaces <= 0 )
+			{
+				theDecimalPlaces--;
+				theDecimalValue = theDecimalValue * 10 + (theChar - '0');
+			}
+			else
+				theIntegerValue = theIntegerValue * 10 + (theChar - '0');
+			break;
+		case 'e':
+		case 'E':
+		{
+			BOOL		theExponentNegative = 0;
+			theChar = nextChar(self);
+			if( theChar == '+' || theChar == '-' )
+				theExponentNegative = (theChar == '-');
+			else if( theChar >= '0' && theChar <= '9' )
+				theExponentValue = (theChar - '0');
+			else
+			{
+				theEnd = YES;
+				foundError( self, NDJSONBadNumberError );
+			}
+			
+			while( !theEnd && theResult )
+			{
+				theChar = nextChar(self);
+				switch( theChar )
+				{
+//				case '\0':
+//					theEnd = YES;
+//					break;
+				case '0'...'9':
+					theExponentValue = theExponentValue * 10 + (theChar - '0');
+					break;
+				default:
+					theEnd = YES;
+					break;
+				}
+			}
+			if( theExponentNegative )
+				theExponentValue = -theExponentValue;
+			break;
+		}
+		case '.':
+			if( theDecimalPlaces > 0 )
+				theDecimalPlaces = 0;
+			else
+				theEnd = YES;
+			break;
+		default:
+			theEnd = YES;
+			break;
+		}
+	}
+	
+	if( theDecimalPlaces < 0 || theExponentValue != 0 )
+	{
+		double	theValue = ((double)theIntegerValue) + ((double)theDecimalValue)*pow(10.0,theDecimalPlaces);
+		if( theExponentValue != 0 )
+			theValue *= pow(10,theExponentValue);
+		if( theNegative )
+			theValue = -theValue;
+		if( self->_delegateMethod.foundFloat != NULL )
+			self->_delegateMethod.foundFloat( self->_delegate, @selector(jsonParser:foundFloat:), self, theValue );
+	}
+	else if( theDecimalPlaces > 0 )
+	{
+		if( theNegative )
+			theIntegerValue = -theIntegerValue;
+		if( self->_delegateMethod.foundInteger != NULL )
+			self->_delegateMethod.foundInteger( self->_delegate, @selector(jsonParser:foundInteger:), self, theIntegerValue );
+	}
+	else
+		foundError(self, NDJSONBadNumberError );
+	
+	if( theResult )
+		backUp( self );
+	return theResult;
+}
+
+BOOL parseJSONTrue( NDJSONParser * self )
+{
+	BOOL		theResult = YES;
+	uint32_t	theChar;
+	if( (theChar = nextChar(self)) == 'r' && (theChar = nextChar(self)) == 'u' && (theChar = nextChar(self)) == 'e' )
+	{
+		if( self->_delegateMethod.foundBool != NULL )
+			self->_delegateMethod.foundBool( self->_delegate, @selector(jsonParser:foundBool:), self, YES );
+	}
+	else if( theChar == '\0' )
+		theResult = NO;
+	else
+		foundError( self, NDJSONBadTokenError );
+	return theResult;
+}
+
+BOOL parseJSONFalse( NDJSONParser * self )
+{
+	BOOL		theResult = YES;
+	uint32_t	theChar;
+	if( (theChar = nextChar(self)) == 'a' && (theChar = nextChar(self)) == 'l' && (theChar = nextChar(self)) == 's' && (theChar = nextChar(self)) == 'e' )
+	{
+		if( self->_delegateMethod.foundBool != NULL )
+			self->_delegateMethod.foundBool( self->_delegate, @selector(jsonParser:foundBool:), self, NO );
+	}
+	else if( theChar == '\0' )
+		theResult = NO;
+	else
+		foundError( self, NDJSONBadTokenError );
+	return theResult;
+}
+
+BOOL parseJSONNull( NDJSONParser * self )
+{
+	BOOL		theResult = YES;
+	uint32_t	theChar;
+	if( (theChar = nextChar(self)) == 'u' && (theChar = nextChar(self)) == 'l' && (theChar = nextChar(self)) == 'l' )
+	{
+		if( self->_delegateMethod.foundNULL != NULL )
+			self->_delegateMethod.foundNULL( self->_delegate, @selector(jsonParserFoundNULL:), self );
+	}
+	else if( theChar == '\0' )
+		theResult = NO;
+	else
+		foundError( self, NDJSONBadTokenError );
+	return theResult;
+}
+
+BOOL skipNextValue( NDJSONParser * self )
+{
+	NSUInteger		theBracesDepth = 0,
+					theBracketsDepth = 0;
+	BOOL			theInQuotes = NO;
+	BOOL			theEnd = NO;
+	uint32_t		theChar = '\n';
+	
+	while( !theEnd )
+	{
+		switch( (theChar = nextCharIgnoreWhiteSpace( self )) )
+		{
+		case '{':
+			theBracesDepth++;
+			break;
+		case '}':
+			if( theBracesDepth > 0 )
+				theBracesDepth--;
+			else
+			{
+				backUp(self);
+				theEnd = YES;
+			}
+			break;
+		case '[':
+			theBracketsDepth++;
+			break;
+		case ']':
+			if( theBracketsDepth > 0 )
+				theBracketsDepth--;
+			else
+			{
+				backUp(self);
+				theEnd = YES;
+			}
+			break;
+		case ',':
+			if( theBracesDepth == 0 && theBracketsDepth == 0 )
+			{
+				backUp(self);
+				theEnd = YES;
+			}
+			break;
+		case '\0':
+			theEnd = YES;
+			break;
+		case '"':
+			while( (theChar = nextCharIgnoreWhiteSpace( self )) != '"' )
+			{
+				if( theChar == '\\' )
+				{
+					if( (theChar = nextChar(self)) == '\0' )
+						break;
+				}
+			}
+			break;
+		default:
+			break;
+		}
+	}
+	
+	return theChar != '\0' && theBracesDepth == 0 && theBracketsDepth == 0 && theInQuotes == NO;
+}
+
+void foundError( NDJSONParser * self, NDJSONErrorCode aCode )
+{
+	NSMutableDictionary		* theUserInfo = [[NSMutableDictionary alloc] initWithObjectsAndKeys:kErrorCodeStrings[aCode],NSLocalizedDescriptionKey, nil];
+	NSUInteger				thePos = self->_position > 5 ? self->_position - 5 : 5,
+							theLen = self->_numberOfBytes - thePos < 10 ? self->_numberOfBytes - thePos : 10;
+	NSString				* theString = nil;
+	switch (aCode)
+	{
+	default:
+	case NDJSONGeneralError:
+		break;
+	case NDJSONBadTokenError:
+	{
+		theString = [[NSString alloc] initWithFormat:@"Bad token at pos %lu, %*s", self->_position, (int)theLen, self->_bytes.word8];
+		[theUserInfo setObject:theString forKey:NSLocalizedFailureReasonErrorKey];
+		[theString release];
+		break;
+	}
+	case NDJSONBadFormatError:
+		break;
+	case NDJSONBadEscapeSequenceError:
+		break;
+	case NDJSONTrailingGarbageError:
+		break;
+	case NDJSONMemoryErrorError:
+		break;
+	case NDJSONPrematureEndError:
+		break;
+	}
+	if( self->_delegateMethod.foundError != NULL )
+		self->_delegateMethod.foundError( self->_delegate, @selector(jsonParser:error:), self, [NSError errorWithDomain:NDJSONErrorDomain code:aCode userInfo:theUserInfo] );
+	[theUserInfo release];
 }
 
 @end
 
-@implementation NDJSONCustomParser
-
-@synthesize		rootClass,
-				rootCollectionClass;
-
-#pragma mark - creation and destruction
-- (id)initWithRootClass:(Class)aRootClass { return [self initWithRootClass:aRootClass rootCollectionClass:Nil]; }
-- (id)initWithRootClass:(Class)aRootClass rootCollectionClass:(Class)aRootCollectionClass
+static BOOL extendsBytesOfLen( struct NDBytesBuffer * aBuffer, NSUInteger aLen )
 {
-	if( (self = [super init]) != nil )
+	BOOL			theResult = YES;
+	uint8_t			* theNewBuff = NULL;
+	while( aBuffer->length + aLen >= aBuffer->capacity )
 	{
-		rootClass = aRootClass;
-		rootCollectionClass = aRootCollectionClass;
+		if( aBuffer->capacity == 0 )
+			aBuffer->capacity = 0x10;
+		else
+			aBuffer->capacity <<= 1;
 	}
-	return self;
+	theNewBuff = realloc( aBuffer->bytes , aBuffer->capacity );
+	if( theNewBuff != NULL )
+		aBuffer->bytes = theNewBuff;
+	else
+		theResult = NO;
+	return theResult;
 }
 
-- (void)dealloc
+BOOL appendBytes( struct NDBytesBuffer * aBuffer, uint32_t aByte, enum NDJSONCharacterWordSize aWordSize )
 {
-	[rootClass release];
-	[rootCollectionClass release];
-	[super dealloc];
-}
+	BOOL	theResult = YES;
+	if( aBuffer->length >= aBuffer->capacity )
+	{
+#ifdef NDJSONSupportUTF8Only
+		theResult = extendsBytesOfLen( aBuffer, 1 );
+#else
+		theResult = extendsBytesOfLen( aBuffer, 1<<aWordSize );
+#endif
+	}
 
-- (void)jsonDidStartArray:(NDJSON *)aJSON
-{
-	id		theArrayRep = [[[self collectionClassForPropertyName:_currentProperty class:[self.currentObject class]] alloc] init];
-
-	pushContainerForJSONParser( self, theArrayRep, NO );
-	[_currentProperty release], _currentProperty = nil;
-	[theArrayRep release];
-}
-
-- (void)jsonDidStartObject:(NDJSON *)aJSON
-{
-	Class		theClass = [self classForPropertyName:self.currentContainerPropertyName class:[self.currentObject class]];
-	id			theObjectRep = theObjectRep = [[theClass alloc] init];
-	
-	pushContainerForJSONParser( self, theObjectRep, YES );
-	[_currentProperty release], _currentProperty = nil;
-	[theObjectRep release];
-}
-
-- (BOOL)json:(NDJSON *)parser shouldSkipValueForKey:(NSString *)aKey
-{
-	BOOL		theResult = NO;
-	Class		theClass = [self.currentObject class];
-	if( [theClass respondsToSelector:@selector(keysIgnoreSetJSONParser:)] )
-		theResult = [[theClass keysIgnoreSetJSONParser:self] containsObject:_currentProperty];
-	else if( [theClass respondsToSelector:@selector(keysConsiderSetJSONParser:)] )
-		theResult = ![[theClass keysConsiderSetJSONParser:self] containsObject:_currentProperty];
 	if( theResult )
 	{
-		NSCParameterAssert(_currentProperty != nil);
-		[_currentProperty release], _currentProperty = nil;;
+#ifdef NDJSONSupportUTF8Only
+		aBuffer->_bytes[aBuffer->length] = (uint8_t)aByte;
+		aBuffer->length++;
+#else
+		memcpy( aBuffer->bytes+aBuffer->length, &aByte, 1<<aWordSize );
+		aBuffer->length += 1<<aWordSize;
+#endif
 	}
 	return theResult;
 }
 
-- (Class)classForPropertyName:(NSString *)aName class:(Class)aClass
+BOOL appendCharacter( struct NDBytesBuffer * aBuffer, uint32_t aValue, enum NDJSONCharacterWordSize aWordSize )
 {
-	Class		theClass = Nil,
-	theRootClass = self.rootClass;
-	if( theRootClass != nil )
+	switch (aWordSize)
 	{
-		if( aClass == Nil )
-			theClass = theRootClass;
+	case kNDJONCharacterWord8:
+		if( aValue > 0x3ffffff )				// 1111110x	10xxxxxx	10xxxxxx	10xxxxxx	10xxxxxx	10xxxxxx
+		{
+			if( !appendBytes( aBuffer, ((aValue>>31) & 0xf) | 0xfc, kNDJONCharacterWord8 ) )
+				return NO;
+			if( !appendBytes( aBuffer, ((aValue>>30) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+			if( !appendBytes( aBuffer, ((aValue>>24) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+			if( !appendBytes( aBuffer, ((aValue>>18) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+			if( !appendBytes( aBuffer, ((aValue>>12) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+			if( !appendBytes( aBuffer, ((aValue>>6) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+		}
+		else if( aValue > 0x1fffff )			// 111110xx	10xxxxxx	10xxxxxx	10xxxxxx	10xxxxxx
+		{
+			if( !appendBytes( aBuffer, ((aValue>>24) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+			if( !appendBytes( aBuffer, ((aValue>>18) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+			if( !appendBytes( aBuffer, ((aValue>>12) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+			if( !appendBytes( aBuffer, ((aValue>>6) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+		}
+		else if( aValue > 0xffff )				// 11110xxx	10xxxxxx	10xxxxxx	10xxxxxx
+		{
+			if( !appendBytes( aBuffer, ((aValue>>18) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+			if( !appendBytes( aBuffer, ((aValue>>12) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+			if( !appendBytes( aBuffer, ((aValue>>6) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+		}
+		else if( aValue > 0x7ff )				// 1110xxxx	10xxxxxx	10xxxxxx
+		{
+			if( !appendBytes( aBuffer, ((aValue>>12) & 0xf) | 0xE0, kNDJONCharacterWord8 ) )
+				return NO;
+			if( !appendBytes( aBuffer, ((aValue>>6) & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+			if( !appendBytes( aBuffer, (aValue & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+		}
+		else if( aValue > 0x7f )				// 110xxxxx	10xxxxxx
+		{
+			if( !appendBytes( aBuffer, ((aValue>>6) & 0x1f) | 0xc0, kNDJONCharacterWord8 ) )
+				return NO;
+			if( !appendBytes( aBuffer, (aValue & 0x3f) | 0x80, kNDJONCharacterWord8 ) )
+				return NO;
+		}
+		else									// 0xxxxxxx
+		{
+			if( !appendBytes( aBuffer, aValue & 0x7f, kNDJONCharacterWord8 ) )
+				return NO;
+		}
+		break;
+	case kNDJSONCharacterWord16:
+		if( aValue > 0x10ffff || (aValue >= 0Xd800 && aValue <= 0xdfff) )
+		{
+			NSLog( @"Bad unicode code point %x", aValue );
+			return NO;
+		}
+		else if( aValue > 0xffff )
+		{
+			if( !appendBytes( aBuffer, (uint16_t)((aValue-0x10000)>>10)+0xd800, kNDJSONCharacterWord16 )
+				   && !appendBytes( aBuffer, (uint16_t)((aValue-0x10000)&0x3ff)+0xdc00, kNDJSONCharacterWord16 ) )
+				return NO;
+		}
 		else
 		{
-			if( [aClass respondsToSelector:@selector(classesForPropertyNamesJSONParser:)] )
-				theClass = [[aClass classesForPropertyNamesJSONParser:self] objectForKey:aName];
-			if( theClass == Nil )
-			{
-				objc_property_t		theProperty = class_getProperty(aClass, [aName UTF8String]);
-				if( theProperty != NULL )
-				{
-					char			theClassName[kMaximumClassNameLenght];
-					const char		* thePropertyAttributes = property_getAttributes(theProperty);
-					
-					if( getTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
-						theClass = objc_getClass( theClassName );
-					else
-						theClass = [NSMutableDictionary class];
-				}
-				else
-					theClass = [NSMutableDictionary class];
-			}
+			if( !appendBytes( aBuffer, aValue & 0xffff, kNDJSONCharacterWord16 ) )
+				return NO;
 		}
+		break;
+	case kNDJSONCharacterWord32:
+		if( !appendBytes( aBuffer, aValue, kNDJSONCharacterWord32 ) )
+			return NO;
+		break;
 	}
-	else
-		theClass = [NSMutableDictionary class];
-	return theClass;
+	return YES;
 }
 
-- (Class)collectionClassForPropertyName:(NSString *)aName class:(Class)aClass
+void freeByte( struct NDBytesBuffer * aBuffer )
 {
-	Class		theClass = Nil;
-	if( self.rootClass != nil )
-	{
-		if( aClass == Nil )
-		{
-			Class		theRootCollectionClass = self.rootCollectionClass;
-			if( theRootCollectionClass != nil )
-				theClass = theRootCollectionClass;
-			else
-				theClass = [NSMutableArray class];
-		}
-		else
-		{
-			if( [aClass respondsToSelector:@selector(collectionClassesForPropertyNamesJSONParser:)] )
-				theClass = [[aClass collectionClassesForPropertyNamesJSONParser:self] objectForKey:aName];
-			if( theClass == Nil )
-			{
-				objc_property_t		theProperty = class_getProperty(aClass, [aName UTF8String]);
-				if( theProperty != NULL )
-				{
-					char			theClassName[kMaximumClassNameLenght];
-					const char		* thePropertyAttributes = property_getAttributes(theProperty);
-					
-					if( getTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
-						theClass = objc_getClass( theClassName );
-				}
-				else
-					theClass = [NSMutableArray class];
-			}
-		}
-		
-		if( theClass == [NSArray class] )
-			theClass = [NSMutableArray class];
-		else if( theClass == [NSSet class] )
-			theClass = [NSMutableSet class];
-		else if( theClass == [NSOrderedSet class] )
-			theClass = [NSMutableOrderedSet class];
-		else if( theClass == [NSIndexSet class])
-			theClass = [NSMutableIndexSet class];
-		else if( theClass == [NSDictionary class] )
-			theClass = [NSMutableDictionary class];
-	}
-	else
-		theClass = [NSMutableArray class];
-	
-	if( ![theClass instancesRespondToSelector:@selector(addObject:)] )
-	{
-		NSString		* theReason = [[NSString alloc] initWithFormat:@"The collection class '%@' for the key '%@' does not respond to the selector 'addObject:'", NSStringFromClass(theClass), aName];
-		NSDictionary	* theUserInfo = [[NSDictionary alloc] initWithObjectsAndKeys:aName, NDJSONAttributeNameUserInfoKey, nil];
-		NSException		* theException = [NSException exceptionWithName:NDJSONBadCollectionClassException reason:theReason userInfo:theUserInfo];
-		[theReason release];
-		[theUserInfo release];
-		@throw theException;
-	}
-	return theClass;
+	free(aBuffer->bytes);
+	aBuffer->bytes = NULL;
+	aBuffer->length = 0;
+	aBuffer->capacity = 0;
 }
 
-@end
 
-@implementation NDJSONCoreData
-
-@synthesize		currentEntityDescription,
-				managedObjectContext,
-				rootEntity;
-
-- (NSEntityDescription *)currentEntityDescription
-{
-	NSManagedObject		* theCurrentContainer = self.currentObject;
-	return theCurrentContainer.entity;
-}
-
-- (NSManagedObjectModel *)managedObjectModel
-{
-	if( managedObjectModel == nil )
-		managedObjectModel = [self.managedObjectContext.persistentStoreCoordinator.managedObjectModel retain];
-	return managedObjectModel;
-}
-
-#pragma mark - creation and destruction
-- (id)initWithRootEntity:(NSEntityDescription *)aRootEntity inManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext
-{
-	if( (self = [super init]) != nil )
-	{
-		managedObjectContext = [aManagedObjectContext retain];
-		rootEntity = [aRootEntity retain];
-	}
-	return self;
-}
-
-- (void)dealloc
-{
-	[managedObjectContext release];
-	[rootEntity release];
-	[managedObjectModel release];
-	[super dealloc];
-}
-
-- (NSEntityDescription *)entityDescriptionForName:(NSString *)aName { return [[self.managedObjectModel entitiesByName] objectForKey:aName]; }
-
-- (void)jsonDidStartDocument:(NDJSON *)aJSON
-{
-	self.currentEntityDescription = nil;
-	[super jsonDidStartDocument:aJSON];
-}
-
-- (void)jsonDidEndDocument:(NDJSON *)aJSON
-{
-	self.currentEntityDescription = nil;
-	[super jsonDidEndDocument:aJSON];
-}
-
-- (void)jsonDidStartArray:(NDJSON *)aJSON
-{
-	NSMutableSet		* theSet = [[NSMutableSet alloc] init];
-	pushContainerForJSONParser( self, theSet, NO );
-	[_currentProperty release], _currentProperty = nil;
-	[theSet release];
-}
-
-- (void)jsonDidStartObject:(NDJSON *)aJSON
-{
-	NSEntityDescription			* theEntityDesctipion = nil;
-	NSManagedObject				* theNewObject = nil;
-	NSEntityDescription			* theCurrentEntityDescription = self.currentEntityDescription;
-	if( theCurrentEntityDescription != nil )
-	{
-		NSRelationshipDescription		* theRelationshipDescription = [[theCurrentEntityDescription relationshipsByName] objectForKey:self.currentContainerPropertyName];
-		theEntityDesctipion = theRelationshipDescription.destinationEntity;
-	}
-	else
-		theEntityDesctipion = self.rootEntity;
-
-	theNewObject = [[NSManagedObject alloc] initWithEntity:theEntityDesctipion insertIntoManagedObjectContext:self.managedObjectContext];
-	
-	pushContainerForJSONParser( self, theNewObject, YES );
-	[_currentProperty release], _currentProperty = nil;
-	[theNewObject release];
-}
-
-- (BOOL)sonParser:(NDJSON *)aJSON shouldSkipValueForKey:(NSString *)key
-{
-	NSEntityDescription		* theEntityDescription = self.currentEntityDescription;
-	return [theEntityDescription.propertiesByName objectForKey:_currentProperty] != nil;
-}
-
-@end

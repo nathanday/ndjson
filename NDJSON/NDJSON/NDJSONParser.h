@@ -1,187 +1,220 @@
 /*
-	NDJSONDeserializer.h
-
-	Created by Nathan Day on 31.02.12 under a MIT-style license. 
-	Copyright (c) 2012 Nathan Day
-
-	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
-	furnished to do so, subject to the following conditions:
-
-	The above copyright notice and this permission notice shall be included in
-	all copies or substantial portions of the Software.
-
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-	THE SOFTWARE.
+ NDJSONParser.h
+ 
+ Created by Nathan Day on 31.02.12 under a MIT-style license. 
+ Copyright (c) 2012 Nathan Day
+ 
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ 
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+ 
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
  */
 
 #import <Foundation/Foundation.h>
-#import "NDJSONParser.h"
 
-extern NSString		* const NDJSONBadCollectionClassException;
-extern NSString		* const NDJSONUnrecongnisedPropertyNameException;
+//#define NDJSONSupportUTF8Only
+//#define NDJSONDebug
+//#define NDJSONPrintStream
+#define NDJSONSupportZippedData
 
-extern NSString		* const NDJSONAttributeNameUserInfoKey;
-extern NSString		* const NDJSONObjectUserInfoKey;
-extern NSString		* const NDJSONPropertyNameUserInfoKey;
+typedef enum
+{
+	NDJSONValueNone,
+	NDJSONValueArray,
+	NDJSONValueObject,
+	NDJSONValueNull,
+	NDJSONValueString,
+	NDJSONValueInteger,
+	NDJSONValueFloat,
+	NDJSONValueBoolean
+}		NDJSONValueType;
+
+BOOL jsonParserValueIsPrimativeType( NDJSONValueType type );
+BOOL jsonParserValueIsNSNumberType( NDJSONValueType type );
+BOOL jsonParserValueEquivelentObjectTypes( NDJSONValueType typeA, NDJSONValueType typeB );
+
+typedef enum
+{
+	NDJSONGeneralError,
+	NDJSONBadTokenError,
+	NDJSONBadFormatError,
+	NDJSONBadEscapeSequenceError,
+	NDJSONTrailingGarbageError,
+	NDJSONMemoryErrorError,
+	NDJSONPrematureEndError,
+	NDJSONBadNumberError
+}		NDJSONErrorCode;
+
+typedef NSUInteger		NDJSONOptionFlags;
+
+typedef NSInteger (*NDJSONDataStreamProc)(uint8_t ** aBuffer, void * aContext );
+typedef NSInteger (^NDJSONDataStreamBlock)(uint8_t ** aBuffer);
 
 enum {
-//	NDJSONOptionNone = 0,				// defined in NDJSON
-//	NDJSONOptionStrict = 1<<0,			// defined in NDJSON
+	NDJSONOptionNone = 0,
 /**
-	determines if the parser will fail if an attempt to setValue:forKey: fails because the property does not exist.
+	 determines whether the JSON source has to adhere to strict JSON or not.
+	 
+	 #Non strict JSON features
+	 - object keys do not have to be quoted.
+	 - arrays may have a trailing comment.
+	 - control characters are allowed in strings (including quoted keys)
  */
-	NDJSONOptionIgnoreUnknownProperties = 1<<16,
-/**
-	determines if object keys are converted to medial capitals (cammelCase) with the first character converted to cammel case, for example Cammel-case becomes cammelCase. can be used with *removeIsAdjective*
- */
-	NDJSONOptionConvertKeysToMedialCapitals = 1<<17,
-/**
-	determines if _is_ prefix is removed from object keys, for example isPrefix becoms Prefix. Can be used with *convertKeysToMedialCapital*
- */
-	NDJSONOptionConvertRemoveIsAdjective = 1<<18,
-/**
- If a parsed JSON primative doesn't match the destination property type, this option tell NDJSONDeserializer to attempt to convert it.
- */
-	NDJSONOptionCovertPrimitiveJSONTypes = 1<<19
+	NDJSONOptionStrict = 1<<0
 };
 
-/**
- The *NDJSONDeserializer* class provides methods that convert a JSON document into an object tree representation. *NDJSONDeserializer* can either generate property list type objects, *NSDictionary*s, *NSArrays*, *NSStrings* and *NSNumber*s as well as *NSNull* for the JSON value null, or by supplying your own root object and maybe implementing the methods defined in the anyomnous protocol NSObject+NDJSONDeserializer in your own classes, NDJSONDeserializer will generate a tree if your own classes.
- When generating classes of your own type, *NDJSONDeserializer* will determine the correct class type for properties by quering the Objective-C runetime, NSObject+NDJSONDeserializer methods can be used when the information is not avaialable, for example what classes to insert in an array.
- */
-@interface NDJSONDeserializer : NSObject
+extern NSString	* const NDJSONErrorDomain;
+
+@protocol		NDJSONParserDelegate;
 
 /**
-	Class used for root JSON object
+ Instances of this class parse JSON documents in an event-driven manner. An NDJSONParser notifies its delegate about the JSON items (objects, arrays, strings, integers, floats, booleans and nulls) that it encounters as it processes an JSON document. It does not itself do anything with those parsed items except report them. It also reports parsing errors. NDJSONParser does not need to have the entire source JSON document in memory.
  */
-@property(readonly,nonatomic)	Class					rootClass;
-/**
- Class used for root JSON arrays
- */
-@property(readonly,nonatomic)	Class					rootCollectionClass;
+@interface NDJSONParser : NSObject
 
 /**
- CoreData context used to insert NSManagedObjects into.
+	The JSON parser’s delegate object. The delegate must conform to the NDJSONParserDelegate Protocol protocol.
  */
-@property(readonly,nonatomic)	NSManagedObjectContext	* managedObjectContext;
-/**
- Entity Description used create the root JSON object
- */
-@property(readonly,nonatomic)	NSEntityDescription		* rootEntity;
+@property(assign,nonatomic)		id<NDJSONParserDelegate>	delegate;
 
 /**
-	initalize with the classes type to represent the root JSON object, if the root of the JSON document is an array, the the class type is what is used for the objects within the array.
+	key for the current JSON value, if the value is contained within an array, then the currentKey is for the array.
  */
-- (id)initWithRootClass:(Class)rootClass;
-/**
-	initalize with the classes type to represent the root JSON object and the class type used for root collection type (array, set etc), if the root of the JSON document is an array then the root collection class is used and the class type is what is used for the objects within the array.
- */
-- (id)initWithRootClass:(Class)rootClass rootCollectionClass:(Class)rootCollectionClass;
-
-- (id)initWithRootEntityName:(NSString *)rootEntityName inManagedObjectContext:(NSManagedObjectContext *)context;
-
-- (id)initWithRootEntity:(NSEntityDescription *)rootEntity inManagedObjectContext:(NSManagedObjectContext *)context;
+@property(readonly,nonatomic)	NSString			* currentKey;
 
 /**
-	return the root object generted from the parsers output.
+ Returns the line number of the JSON document being processed by the receiver.
  */
-- (id)objectForJSON:(NDJSON *)parser options:(NDJSONOptionFlags)options error:(NSError **)error;
-
-@end
+@property(readonly,nonatomic)	NSUInteger			lineNumber;
 
 /**
-	NSObject+NDJSONDeserializer is an informal protocol for methods that objects which can be generated from parsing can implement to control how parsing of child onjects and arrays.
-	*NDJSONDeserializer* can determine the class types for properties at runtime, but the methods of NSObject+NDJSONDeserializer can be used to override this behavor or help in situations where the type information is not available, for exmaple the class types used for the elements in a JSON array or if the type is *id*.
+	intialise a *NDJSONParser* instance with a delegate
  */
-@interface NSObject (NDJSONDeserializer)
+- (id)initWithDelegate:(id<NDJSONParserDelegate>)delegate;
 
 /**
-	implemented by classes to override the default mechanism for determining the class type used for a property, if the property is a collection type (array, set etc), then this method is used to determine the types used in the collection, by default an NSDictionat will be used but any method which implements the method setObject:forKey: method.
+ set a JSON string to parse
  */
-+ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONDeserializer *)aParser;
+- (BOOL)setJSONString:(NSString *)string;
 /**
-	implemented by classed to override the default mechanism for determining the class type used for a property collection, by default an NSArray will be used but any mehtod which implements the method addObject: method.
+ set a JSON UTF8 string data to parse
  */
-+ (NSDictionary *)collectionClassesForPropertyNamesJSONParser:(NDJSONDeserializer *)aParser;
+- (BOOL)setJSONData:(NSData *)data encoding:(NSStringEncoding)encoding;
+/**
+	set a JSON file to parse specified using a string path
+ */
+- (BOOL)setContentsOfFile:(NSString *)path encoding:(NSStringEncoding)encoding;
+/**
+	set a JSON file to parse specified using a file URL
+ */
+- (BOOL)setContentsOfURL:(NSURL *)url encoding:(NSStringEncoding)encoding;
+/**
+	set a JSON URLRequest to parse
+	Important: URLRequests are not parsed asyncronisly, see `-[NDJSONParser parseWithOptions:]`.
+ */
+- (BOOL)setURLRequest:(NSURLRequest *)urlRequest;
+/**
+	set an input stream to parse
+ */
+- (BOOL)setInputStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding;
+/**
+	set a function for supplying the data stream
+ */
+- (BOOL)setSourceFunction:(NDJSONDataStreamProc)function context:(void*)context encoding:(NSStringEncoding)anEncoding;
+/**
+	set a function for supplying the data stream
+ */
+- (BOOL)setSourceBlock:(NDJSONDataStreamBlock)block encoding:(NSStringEncoding)anEncoding;
+/**
+	parses the JSON source set up by one other the set methods, setJSONString:error:, setContentsOfFile:error:, setContentsOfURL:error, setURLRequest:error:
+	Important: This method does not return until parsing is complete, this method can be called within another thread as long as you do not change the reciever until after the method has finished.
+ */
+- (BOOL)parseWithOptions:(NDJSONOptionFlags)options;
 
 /**
-	return a set of property names to ignore, this can speed up parsing as the parsing will just scan pass the valuing in the JSON.
+ Stops the parser object.
  */
-+ (NSSet *)keysIgnoreSetJSONParser:(NDJSONDeserializer *)aParser;
-/**
-	return a set of property names to only consider, this can speed up parsing as the parsing will just scan pass the valuing in the JSON.
- */
-+ (NSSet *)keysConsiderSetJSONParser:(NDJSONDeserializer *)aParser;
-
-/**
-	return a dictionary used to map property names as determined
- */
-+ (NSDictionary *)propertyNamesForKeysJSONParser:(NDJSONDeserializer *)aParser;
-
-/**
-	returns the name of the property used as an indicies value, useful for CoreDate where one-to-many relationship are store in and unordered sets.
- */
-- (void)jsonParser:(NDJSONDeserializer *)parser setIndex:(NSUInteger)index;
-
-//- (NSString *)jsonStringJSONParser:(NDJSONDeserializer *)aParser;
+- (void)abortParsing;
 
 @end
 
 /**
-	implements the class method `+[NSObject classesForPropertyNamesJSONParser:]` returning a dictionary with the supplied arguemnts.
+	The NDJSONParserDelegate protocol defines the optional methods implemented by delegates of NDJSONParser objects.
  */
-#define NDJSONClassesForPropertyNames(...) \
-+ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONDeserializer *)aParser { \
-	static NSDictionary     * kClassesForPropertyName = nil; \
-	if( kClassesForPropertyName == nil ) kClassesForPropertyName = [[NSDictionary alloc] initWithObjectsAndKeys:__VA_ARGS__, nil]; \
-	return kClassesForPropertyName; \
-}
+@protocol NDJSONParserDelegate <NSObject>
 
+@optional
 /**
- implements the class method `+[NSObject collectionClassesForPropertyNamesJSONParser:]` returning a dictionary with the supplied arguemnts.
+	Sent by the parser object to the delegate when it begins parsing a document.
  */
-#define NDJSONCollectionClassesForPropertyNames(...) \
-+ (NSDictionary *)collectionClassesForPropertyNamesJSONParser:(NDJSONDeserializer *)aParser { \
-	static NSDictionary     * kClassesForPropertyName = nil; \
-	if( kClassesForPropertyName == nil ) kClassesForPropertyName = [[NSDictionary alloc] initWithObjectsAndKeys:__VA_ARGS__, nil]; \
-	return kClassesForPropertyName; \
-}
+- (void)jsonParserDidStartDocument:(NDJSONParser *)parser;
+/**
+	Sent by the parser object to the delegate when it has successfully completed parsing.
+ */
+- (void)jsonParserDidEndDocument:(NDJSONParser *)parser;
+/**
+ Sent by a parser object to its delegate when it encounters a the start of a JSON array.
+ */
+- (void)jsonParserDidStartArray:(NDJSONParser *)parser;
+/**
+	Sent by a parser object to its delegate when it encounters an the of a JSON array. 
+ */
+- (void)jsonParserDidEndArray:(NDJSONParser *)parser;
+/**
+ Sent by a parser object to its delegate when it encounters a the start of a JSON object.
+ */
+- (void)jsonParserDidStartObject:(NDJSONParser *)parser;
+/**
+	Sent by a parser object to its delegate when it encounters an the of a JSON object. 
+ */
+- (void)jsonParserDidEndObject:(NDJSONParser *)parser;
+/**
+	Sent by a parser object to its delegate to give the delegate a chance to tell the parser to skip parsing the value for the current key.
+ */
+- (BOOL)jsonParser:(NDJSONParser *)parser shouldSkipValueForKey:(NSString *)key;
+/**
+	Sent by a parser object to its delegate when it encounters a JSON key in the JSON source.
+ */
+- (void)jsonParser:(NDJSONParser *)parser foundKey:(NSString *)aValue;
+/**
+	Sent by a parser object to its delegate when it encounters a JSON string in the JSON source.
+ */
+- (void)jsonParser:(NDJSONParser *)parser foundString:(NSString *)aValue;
+/**
+	Sent by a parser object to its delegate when it encounters a JSON integer number in the JSON source.
+	An integer is a number in JSON which does not contain a decimal place
+ */
+- (void)jsonParser:(NDJSONParser *)parser foundInteger:(NSInteger)aValue;
+/**
+	Sent by a parser object to its delegate when it encounters a JSON float number in the JSON source.
+	An float is a number in JSON which contains a decimal place
+ */
+- (void)jsonParser:(NDJSONParser *)parser foundFloat:(double)aValue;
+/**
+	Sent by a parser object to its delegate when it encounters a JSON boolean in the JSON source.
+ */
+- (void)jsonParser:(NDJSONParser *)parser foundBool:(BOOL)aValue;
+/**
+	Sent by a parser object to its delegate when it encounters a JSON NULL in the JSON source.
+ */
+- (void)jsonParserFoundNULL:(NDJSONParser *)parser;
+/**
+	Sent by a parser object to its delegate when it encounters an error in the JSON source.
+ */
+- (void)jsonParser:(NDJSONParser *)parser error:(NSError *)error;
 
-/**
- implements the class method `+[NSObject keysConsiderSetJSONParser:]` returning a set with the supplied arguemnts.
- */
-#define NDJSONKeysConsiderSet(...) \
-+ (NSSet *)keysConsiderSetJSONParser:(NDJSONDeserializer *)aParser { \
-    static NSSet       * kSet = nil; \
-    if( kSet == nil ) kSet = [[NSSet alloc] initWithObjects:__VA_ARGS__, nil]; \
-	return kSet; \
-}
+@end
 
-/**
- implements the class method `+[NSObject keysIgnoreSetJSONParser:]` returning a set with the supplied arguemnts.
- */
-#define NDJSONKeysIgnoreSet(...) \
-+ (NSSet *)keysIgnoreSetJSONParser:(NDJSONDeserializer *)aParser { \
-	static NSSet       * kSet = nil; \
-	if( kSet == nil ) kSet = [[NSSet alloc] initWithObjects:__VA_ARGS__, nil]; \
-	return kSet; \
-}
-
-/**
- implements the class method `+[NSObject propertyNamesForKeysJSONParser:]` returning a dictionary with the supplied arguemnts.
- */
-#define NDJSONPropertyNamesForKeys(...) \
-+ (NSDictionary *)propertyNamesForKeysJSONParser:(NDJSONDeserializer *)aParser { \
-    static NSDictionary     * kNamesForKeys = nil; \
-    if( kNamesForKeys == nil ) kNamesForKeys = [[NSDictionary alloc] initWithObjectsAndKeys:__VA_ARGS__, nil]; \
-	return kNamesForKeys; \
-}

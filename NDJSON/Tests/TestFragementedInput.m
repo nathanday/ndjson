@@ -86,8 +86,8 @@
 
 - (id)run
 {
-	NSError				* theError = nil;
-	NDJSON				* theJSON = [[NDJSON alloc] init];
+	NSError					* theError = nil;
+	NDJSONParser			* theJSON = [[NDJSONParser alloc] init];
 	NDJSONDeserializer		* theJSONParser = [[NDJSONDeserializer alloc] init];
 	[theJSON setInputStream:[FragementedInputStream fragementedInputWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize]  encoding:NSUTF8StringEncoding];
 	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
