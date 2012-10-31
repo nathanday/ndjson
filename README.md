@@ -20,6 +20,7 @@ As well as strict JSON, NDJSON also add support for
 * unquoted keys in objects.
 * trailing comma in arrays.
 * JavaScript comments.
+* control characters within strings
 
 to only accept strict JSON use the option flag, **NDJSONOptionStrict**
 

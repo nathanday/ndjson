@@ -41,7 +41,7 @@
 	for( NSUInteger i = 1; i <= 4; i++ )
 	{
 		NSString	* theTestName = [NSString stringWithFormat:@"File %lu", i],
-					* theURLString = [NSString stringWithFormat:@"http://homepage.mac.com/nathan_day/SampleJSONFiles/file%lu.json", i];
+					* theURLString = [NSString stringWithFormat:@"http://www.godofcocoa.com/SampleJSONFiles/file%lu.json", i];
 		NSURL		* theURL = [NSURL URLWithString:theURLString];
 		[self addName:theTestName URL:theURL];
 	}
