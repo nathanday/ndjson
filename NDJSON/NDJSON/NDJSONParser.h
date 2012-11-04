@@ -1,29 +1,31 @@
 /*
- NDJSONParser.h
- 
- Created by Nathan Day on 31.02.12 under a MIT-style license. 
- Copyright (c) 2012 Nathan Day
- 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
- 
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
- 
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
+	NDJSONParser.h
+
+	Created by Nathan Day on 31.02.12 under a MIT-style license. 
+	Copyright (c) 2012 Nathan Day
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE.
  */
 
 #import <Foundation/Foundation.h>
+
+extern NSString			* const kNDJSONNoInputSourceExpection;
 
 //#define NDJSONSupportUTF8Only
 //#define NDJSONDebug
@@ -101,43 +103,33 @@ extern NSString	* const NDJSONErrorDomain;
 @property(readonly,nonatomic)	NSUInteger			lineNumber;
 
 /**
-	intialise a *NDJSONParser* instance with a delegate
- */
-- (id)initWithDelegate:(id<NDJSONParserDelegate>)delegate;
-
-/**
  set a JSON string to parse
  */
-- (BOOL)setJSONString:(NSString *)string;
+- (id)initWithJSONString:(NSString *)string;
 /**
  set a JSON UTF8 string data to parse
  */
-- (BOOL)setJSONData:(NSData *)data encoding:(NSStringEncoding)encoding;
+- (id)initWithJSONData:(NSData *)data encoding:(NSStringEncoding)encoding;
 /**
 	set a JSON file to parse specified using a string path
  */
-- (BOOL)setContentsOfFile:(NSString *)path encoding:(NSStringEncoding)encoding;
+- (id)initWithContentsOfFile:(NSString *)path encoding:(NSStringEncoding)encoding;
 /**
 	set a JSON file to parse specified using a file URL
  */
-- (BOOL)setContentsOfURL:(NSURL *)url encoding:(NSStringEncoding)encoding;
-/**
-	set a JSON URLRequest to parse
-	Important: URLRequests are not parsed asyncronisly, see `-[NDJSONParser parseWithOptions:]`.
- */
-- (BOOL)setURLRequest:(NSURLRequest *)urlRequest;
+- (id)initWithContentsOfURL:(NSURL *)url encoding:(NSStringEncoding)encoding;
 /**
 	set an input stream to parse
  */
-- (BOOL)setInputStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding;
+- (id)initWithInputStream:(NSInputStream *)stream encoding:(NSStringEncoding)encoding;
 /**
 	set a function for supplying the data stream
  */
-- (BOOL)setSourceFunction:(NDJSONDataStreamProc)function context:(void*)context encoding:(NSStringEncoding)anEncoding;
+- (id)initWithSourceFunction:(NDJSONDataStreamProc)function context:(void*)context encoding:(NSStringEncoding)anEncoding;
 /**
 	set a function for supplying the data stream
  */
-- (BOOL)setSourceBlock:(NDJSONDataStreamBlock)block encoding:(NSStringEncoding)anEncoding;
+- (id)initWithSourceBlock:(NDJSONDataStreamBlock)block encoding:(NSStringEncoding)anEncoding;
 /**
 	parses the JSON source set up by one other the set methods, setJSONString:error:, setContentsOfFile:error:, setContentsOfURL:error, setURLRequest:error:
 	Important: This method does not return until parsing is complete, this method can be called within another thread as long as you do not change the reciever until after the method has finished.

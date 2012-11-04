@@ -114,9 +114,8 @@ static id expectedResult()
 - (id)run
 {
 	NSError				* theError = nil;
-	NDJSONParser		* theJSON = [[NDJSONParser alloc] init];
+	NDJSONParser		* theJSON = [[NDJSONParser alloc] initWithJSONData:self.jsonData encoding:self.stringEncoding];
 	NDJSONDeserializer	* theJSONParser = [[NDJSONDeserializer alloc] init];
-	[theJSON setJSONData:self.jsonData encoding:self.stringEncoding];
 	id				theResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;

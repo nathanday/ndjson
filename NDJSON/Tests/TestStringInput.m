@@ -114,9 +114,8 @@
 - (id)run
 {
 	NSError					* theError = nil;
-	NDJSONParser			* theJSON = [[NDJSONParser alloc] init];
+	NDJSONParser			* theJSON = [[NDJSONParser alloc] initWithJSONString:self.jsonString];
 	NDJSONDeserializer		* theJSONParser = [[NDJSONDeserializer alloc] init];
-	[theJSON setJSONString:self.jsonString];
 	id				theResult = [theJSONParser objectForJSON:theJSON options:self.options error:&theError];
 	self.lastResult = theResult;
 	self.error = theError;

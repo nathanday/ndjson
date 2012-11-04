@@ -108,10 +108,9 @@
 - (id)run
 {
 	NSError			* theError = nil;
-	NDJSONParser	* theJSON = [[NDJSONParser alloc] init];
+	NDJSONParser	* theJSON = [[NDJSONParser alloc] initWithJSONString:self.jsonString];
 	id				theResult = [[[self class] alloc] initWithManagedObjectContext:self.managedObjectContext];
 
-	[theJSON setJSONString:self.jsonString];
 	theJSON.delegate = theResult;
 	if( [theJSON parseWithOptions:self.options] )
 		self.lastResult = theResult;

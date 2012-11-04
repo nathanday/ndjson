@@ -1,10 +1,10 @@
-//
-//  TestFunctionAndBlockInput.m
-//  NDJSON
-//
-//  Created by Nathan Day on 18/09/11.
-//  Copyright (c) 2011 Nathan Day. All rights reserved.
-//
+/*
+	TestFunctionAndBlockInput.m
+	NDJSON
+
+	Created by Nathan Day on 18/09/11.
+	Copyright (c) 2011 Nathan Day. All rights reserved.
+ */
 
 #import "TestFunctionAndBlockInput.h"
 #import "TestProtocolBase.h"
@@ -85,13 +85,13 @@ NSInteger sourceFuction(uint8_t ** aBuffer, void * aContext );
 - (id)run
 {
 	NSError					* theError = nil;
-	NDJSONParser			* theJSON = [[NDJSONParser alloc] init];
+	NDJSONParser			* theJSON = nil;
 	NDJSONDeserializer		* theJSONParser = [[NDJSONDeserializer alloc] init];
 	inputFunctionSource = [[InputFunctionSource alloc] initWithJSON:jsonString minBlockSize:minBlockSize maxBlockSize:maxBlockSize];
 	if( useBlock )
-		[theJSON setSourceBlock:^(uint8_t ** aBuffer){return sourceFuction(aBuffer, (__bridge void *)(inputFunctionSource));} encoding:NSUTF8StringEncoding];
+		theJSON = [[NDJSONParser alloc] initWithSourceBlock:^(uint8_t ** aBuffer){return sourceFuction(aBuffer, (__bridge void *)(inputFunctionSource));} encoding:NSUTF8StringEncoding];
 	else
-		[theJSON setSourceFunction:sourceFuction context:(__bridge void *)(inputFunctionSource) encoding:NSUTF8StringEncoding];
+		theJSON = [[NDJSONParser alloc] initWithSourceFunction:sourceFuction context:(__bridge void *)(inputFunctionSource) encoding:NSUTF8StringEncoding];
 	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionNone error:&theError];
 	self.error = theError;
 	return lastResult;
