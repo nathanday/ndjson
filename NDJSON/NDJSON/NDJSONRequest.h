@@ -25,25 +25,25 @@
 
 #import <Foundation/Foundation.h>
 
+@class		NDJSONDeserializer,
+			NDJSONResponse;
+@protocol	NDJSONRequest;
+
 @interface NDJSONRequest : NSObject
 
 @property(readonly,nonatomic,copy)		NSURLRequest			* requestURL;
-@property(readonly,nonatomic,assign)	NSURLRequestCachePolicy	cachePolicy;
-@property(readonly,nonatomic,assign)	NSTimeInterval			timeoutInterval;
-@property(readonly,nonatomic,copy)		NSURL					* URL;
-@property(readonly,nonatomic,copy)		NSString				* scheme;
-@property(readonly,nonatomic,copy)		NSString				* host;
-@property(readonly,nonatomic,copy)		NSString				* user;
-@property(readonly,nonatomic,copy)		NSString				* password;
-@property(readonly,nonatomic,assign)	NSUInteger				port;
-@property(readonly,nonatomic,copy)		NSString				* path;
-@property(readonly,nonatomic,strong)	NSArray					* pathComponents;
+@property(readonly,nonatomic,strong)	NDJSONDeserializer		* deserializer;
 
-@property(readonly,nonatomic,copy)		NSString				* query;
-@property(readonly,nonatomic,strong)	NSDictionary			* queryComponents;
+- (id)initWithURLRequest:(NSURLRequest *)urlRequest rootJSONPath:(NSString *)rootJSONPath deserializer:(NDJSONDeserializer *)deserializer;
 
 @end
 
 @interface NDJSONMutableRequest : NDJSONRequest
+
+@end
+
+@protocol NDJSONRequestDelegate <NSObject>
+
+- (void)jsonRequest:(NDJSONRequest *)request response:(NDJSONResponse *)response;
 
 @end

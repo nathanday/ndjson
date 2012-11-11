@@ -7,6 +7,8 @@
  */
 
 #import "NDJSONRequest.h"
+#import "NDJSONParser.h"
+#import "NDJSONDeserializer.h"
 
 static const NSTimeInterval		kNDJSONDefaultTimeoutInterval = 60.0;
 static NSString					* const kNDJSONDefaultScheme = @"http";
@@ -16,76 +18,32 @@ static const NSUInteger			kNDJSONDefaultPort = NSUIntegerMax;			// use NDURLRequ
 @interface NDJSONRequest ()
 {
 @protected
-	NSURLRequest	* __strong _URLRequest;
+	NSURLRequest			* __strong _URLRequest;
+	NSString				* __strong _rootJSONPath;
+	NDJSONDeserializer		* __strong _deserializer;
 }
 
 @end
 
 @implementation NDJSONRequest
 
-- (NSURLRequest *)requestURL
-{
-	if( _URLRequest == nil )
-		_URLRequest = [NSURLRequest requestWithURL:self.URL cachePolicy:self.cachePolicy timeoutInterval:self.timeoutInterval];
-	return _URLRequest;
-}
+@synthesize		requestURL = _requestURL,
+				deserializer = _deserializer;
 
-- (NSURLRequestCachePolicy)cachePolicy { return NSURLRequestUseProtocolCachePolicy; }
-- (NSTimeInterval)timeoutInterval { return kNDJSONDefaultTimeoutInterval; }
-
-- (NSURL *)URL
+- (id)initWithURLRequest:(NSURLRequest *)aURLRequest rootJSONPath:(NSString *)aRootJSONPath deserializer:(NDJSONDeserializer *)aDeserializer
 {
-	NSURL				* theURL = nil;
-	NSMutableString		* theURLString = [[NSMutableString alloc] initWithFormat:@"%@://", self.scheme];
-	NSString			* theQueryString = self.query;
-	if( self.user.length > 0 )
+	if( (self = [super init]) != nil )
 	{
-		[theURLString appendString:self.user];
-		if( self.password.length > 0 )
-			[theURLString appendFormat:@":%@",self.password];
-		[theURLString appendString:@"@"];
-	}
-	[theURLString appendString:self.host];
-	if( self.port <= 0xFFFF )
-		[theURLString appendFormat:@":%lu", self.port];
-	[theURLString appendFormat:@"/%@", self.path];
-	
-	if( theQueryString.length > 0 )
-		[theURLString appendFormat:@"?%@", theQueryString];
-
-	theURL = [NSURL URLWithString:theURLString];
-#if !__has_feature(objc_arc)
-	[theURLString release];
+		_URLRequest = [aURLRequest copy];
+		_rootJSONPath = [aRootJSONPath copy];
+#if __has_feature(objc_arc)
+		_deserializer = aDeserializer;
+#else
+		_deserializer = [aDeserializer retain];
 #endif
-	return theURL;
-}
-
-- (NSString *)scheme { return kNDJSONDefaultScheme; }
-
-- (NSString *)host { return nil; }
-- (NSString *)user { return nil; }
-- (NSString *)password { return nil; }
-- (NSUInteger)port { return kNDJSONDefaultPort; }
-- (NSString *)path { return [self.pathComponents componentsJoinedByString:@"/"]; }
-- (NSArray *)pathComponents { return nil; }
-- (NSString *)query
-{
-	__block NSMutableString		* theResult = nil;
-	if( self.queryComponents.count > 0 )
-	{
-		[self.queryComponents enumerateKeysAndObjectsUsingBlock:^(NSString * aKey, NSString * aValue, BOOL * aStop)
-		 {
-			 NSParameterAssert([aKey isKindOfClass:[NSString class]]);
-			 NSParameterAssert([aValue isKindOfClass:[NSString class]]);
-			 if( theResult == nil )
-				 theResult = [[NSMutableString alloc] initWithFormat:@"%@=%@", aKey, aValue];
-			 else
-				 [theResult appendFormat:@"&%@=%@", aKey, aValue];
-		 }];
 	}
-	return theResult;
+	return self;
 }
-- (NSDictionary *)queryComponents { return nil; }
 
 @end
 

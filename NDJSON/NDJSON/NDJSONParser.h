@@ -186,6 +186,10 @@ extern NSString	* const NDJSONErrorDomain;
  */
 - (void)jsonParser:(NDJSONParser *)parser foundString:(NSString *)aValue;
 /**
+	 Sent by a parser object to its delegate when it encounters a JSON number or boolean in the JSON source.
+ */
+- (void)jsonParser:(NDJSONParser *)parser foundNumber:(NSNumber *)number;
+/**
 	Sent by a parser object to its delegate when it encounters a JSON integer number in the JSON source.
 	An integer is a number in JSON which does not contain a decimal place
  */

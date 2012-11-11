@@ -319,6 +319,7 @@ enum JSONInputType
 										shouldSkipValueForKey,
 										foundKey,
 										foundString,
+										foundNumber,
 										foundInteger,
 										foundFloat,
 										foundBool,
@@ -329,6 +330,8 @@ enum JSONInputType
 
 - (void)setUpRespondsTo;
 - (BOOL)parseWithOptions:(NDJSONOptionFlags)options;
+
+@property(readwrite,nonatomic,retain)	NSString			* currentKey;
 
 @end
 
@@ -348,12 +351,6 @@ enum JSONInputType
 
 #pragma mark - creation and destruction etc
 
-- (id)init
-{
-	@throw [NSException exceptionWithName:kNDJSONNoInputSourceExpection reason:@"Atempted to create a NDJSONParser with not input source" userInfo:nil];
-	return self;
-}
-
 - (void)dealloc
 {
 	if( _ownsBytes == YES )
@@ -361,37 +358,41 @@ enum JSONInputType
 	[super dealloc];
 }
 
-static void zeroOutInstanceVaribles( NDJSONParser * self )
+- (id)init
 {
-	self->_position = 0;
-	self->_numberOfBytes = 0;
-	self->_lineNumber = 0;
-	self->_complete = NO;
-	self->_abort = NO;
-	self->_useBackUpByte = NO;
-	self->_source.object = NULL;
-	self->_source.function = NULL;
-	self->_source.context = NULL;
-	self->_inputType = kJSONNoInputType;
-	self->_inputBytes = NULL;
-	self->_bytes.word8 = NULL;
-	self->_bytes.word16 = NULL;
-	self->_bytes.word32 = NULL;
+	if( (self = [super init]) != nil )
+	{
+		_position = 0;
+		_numberOfBytes = 0;
+		_lineNumber = 0;
+		_complete = NO;
+		_abort = NO;
+		_useBackUpByte = NO;
+		_source.object = NULL;
+		_source.function = NULL;
+		_source.context = NULL;
+		_inputType = kJSONNoInputType;
+		_inputBytes = NULL;
+		_bytes.word8 = NULL;
+		_bytes.word16 = NULL;
+		_bytes.word32 = NULL;
 #ifdef NDJSONSupportZippedData
 #endif
+		_currentKey = nil;
+	}
+	return self;
 }
 
 #pragma mark - parsing methods
 - (id)initWithJSONString:(NSString *)aString
 {
+	NSAssert( aString != nil, @"nil input JSON string" );
 #ifdef NDJSONSupportUTF8Only
 	return [self initWithJSONData:[aString dataUsingEncoding:NSUTF8StringEncoding] encoding:NSUTF8StringEncoding];
 #else
-	if( (self = [super init]) != nil )
+	if( (self = [self init]) != nil )
 	{
-		NSAssert( aString != nil, @"nil input JSON string" );
 		CFStringEncoding		theStringEncoding = CFStringGetFastestEncoding( (CFStringRef)aString );
-		zeroOutInstanceVaribles(self);
 		switch( theStringEncoding )
 		{
 		case kCFStringEncodingMacRoman:
@@ -444,9 +445,8 @@ static void zeroOutInstanceVaribles( NDJSONParser * self )
 - (id)initWithJSONData:(NSData *)aData encoding:(NSStringEncoding)anEncoding
 {
 	NSAssert( aData != nil, @"nil input JSON data" );
-	if( (self = [super init]) != nil )
+	if( (self = [self init]) != nil )
 	{
-		zeroOutInstanceVaribles(self);
 		_numberOfBytes = aData.length;
 		_ownsBytes = NO;
 		_bytes.word8 = _inputBytes = (uint8_t*)[aData bytes];
@@ -494,9 +494,8 @@ static void zeroOutInstanceVaribles( NDJSONParser * self )
 - (id)initWithInputStream:(NSInputStream *)aStream encoding:(NSStringEncoding)anEncoding
 {
 	NSAssert( aStream != nil, @"nil input stream" );
-	if( (self = [super init]) != nil )
+	if( (self = [self init]) != nil )
 	{
-		zeroOutInstanceVaribles(self);
 		_bytes.word8 = _inputBytes = malloc(kBufferSize);
 		_ownsBytes = YES;
 		if( _options.zipJSON )
@@ -515,9 +514,8 @@ static void zeroOutInstanceVaribles( NDJSONParser * self )
 - (id)initWithSourceFunction:(NDJSONDataStreamProc)aFunction context:(void*)aContext encoding:(NSStringEncoding)anEncoding;
 {
 	NSAssert( aFunction != NULL, @"NULL function" );
-	if( (self = [super init]) != nil )
+	if( (self = [self init]) != nil )
 	{
-		zeroOutInstanceVaribles(self);
 		_source.function = aFunction;
 		_source.context = aContext;
 		_inputType = kJSONStreamFunctionType;
@@ -533,9 +531,8 @@ static void zeroOutInstanceVaribles( NDJSONParser * self )
 - (id)initWithSourceBlock:(NDJSONDataStreamBlock)aBlock encoding:(NSStringEncoding)anEncoding;
 {
 	NSAssert( aBlock != NULL, @"NULL function" );
-	if( (self = [super init]) != nil )
+	if( (self = [self init]) != nil )
 	{
-		zeroOutInstanceVaribles(self);
 		_source.block = [aBlock copy];
 		_inputType = kJSONStreamBlockType;
 #ifdef NDJSONSupportUTF8Only
@@ -587,9 +584,8 @@ static void zeroOutInstanceVaribles( NDJSONParser * self )
 	if( theAlreadyParsing )
 		_hasSkippedValueForCurrentKey = YES;
 	_alreadyParsing = theAlreadyParsing;
-	
-	[_currentKey release], _currentKey = nil;
 
+	self.currentKey = nil;
 	return theResult;
 }
 
@@ -626,6 +622,9 @@ static void zeroOutInstanceVaribles( NDJSONParser * self )
 										: NULL;
 	_delegateMethod.foundString = [theDelegate respondsToSelector:@selector(jsonParser:foundString:)]
 										? [theDelegate methodForSelector:@selector(jsonParser:foundString:)]
+										: NULL;
+	_delegateMethod.foundNumber = [theDelegate respondsToSelector:@selector(jsonParser:foundNumber:)]
+										? [theDelegate methodForSelector:@selector(jsonParser:foundNumber:)]
 										: NULL;
 	_delegateMethod.foundInteger = [theDelegate respondsToSelector:@selector(jsonParser:foundInteger:)]
 										? [theDelegate methodForSelector:@selector(jsonParser:foundInteger:)]
@@ -902,7 +901,7 @@ BOOL parseURLRequest( NDJSONParser * self )
 			[self->_source.object open];
 		theResult = parseJSONUnknown( self );
 		[self->_source.object close];
-		[self->_currentKey release], self->_currentKey = nil;
+		self.currentKey = nil;
 	}
 	[self->_source.object release], self->_source.object = nil;
 	return theResult;
@@ -1015,10 +1014,10 @@ BOOL parseJSONObject( NDJSONParser * self )
 				BOOL	theSkipParsingValueForCurrentKey = NO;
 
 				if( self->_delegateMethod.foundKey != NULL )
-					self->_delegateMethod.foundKey( self->_delegate, @selector(jsonParser:foundKey:), self, self->_currentKey );
+					self->_delegateMethod.foundKey( self->_delegate, @selector(jsonParser:foundKey:), self, self.currentKey );
 
 				if( self->_delegateMethod.shouldSkipValueForKey != NULL )
-					theSkipParsingValueForCurrentKey = ((_ReturnBoolMethodIMP)self->_delegateMethod.shouldSkipValueForKey)( self->_delegate, @selector(jsonParser:shouldSkipValueForKey:), self, self->_currentKey	);
+					theSkipParsingValueForCurrentKey = ((_ReturnBoolMethodIMP)self->_delegateMethod.shouldSkipValueForKey)( self->_delegate, @selector(jsonParser:shouldSkipValueForKey:), self, self.currentKey	);
 
 				if( theSkipParsingValueForCurrentKey )
 					theResult = skipNextValue(self);
@@ -1081,12 +1080,12 @@ BOOL parseJSONKey( NDJSONParser * self )
 	if( theResult != NO )
 	{
 #ifdef NDJSONSupportUTF8Only
-		[self->_currentKey release], self->_currentKey = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:NSUTF8StringEncoding];
+		self.currentKey = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:NSUTF8StringEncoding];
 #else
-		[self->_currentKey release], self->_currentKey = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:kNSStringEncodingFromCharacterWordSize[self->_character.wordSize]];
+		self.currentKey = [[NSString alloc] initWithBytes:theBuffer.bytes length:theBuffer.length encoding:kNSStringEncodingFromCharacterWordSize[self->_character.wordSize]];
 #endif
 
-		NDJSONLog( @"Found key: '%@'", self->_currentKey );
+		NDJSONLog( @"Found key: '%@'", self.currentKey );
 	}
 	freeByte( &theBuffer );
 
@@ -1306,14 +1305,18 @@ BOOL parseJSONNumber( NDJSONParser * self )
 			theValue *= pow(10,theExponentValue);
 		if( theNegative )
 			theValue = -theValue;
-		if( self->_delegateMethod.foundFloat != NULL )
+		if( self->_delegateMethod.foundNumber != NULL )
+			self->_delegateMethod.foundNumber( self->_delegate, @selector(jsonParser:foundNumber:), self, [NSNumber numberWithDouble:theValue] );
+		else if( self->_delegateMethod.foundFloat != NULL )
 			self->_delegateMethod.foundFloat( self->_delegate, @selector(jsonParser:foundFloat:), self, theValue );
 	}
 	else if( theDecimalPlaces > 0 )
 	{
 		if( theNegative )
 			theIntegerValue = -theIntegerValue;
-		if( self->_delegateMethod.foundInteger != NULL )
+		if( self->_delegateMethod.foundNumber != NULL )
+			self->_delegateMethod.foundNumber( self->_delegate, @selector(jsonParser:foundNumber:), self, [NSNumber numberWithInteger:theIntegerValue] );
+		else if( self->_delegateMethod.foundInteger != NULL )
 			self->_delegateMethod.foundInteger( self->_delegate, @selector(jsonParser:foundInteger:), self, theIntegerValue );
 	}
 	else
@@ -1330,7 +1333,9 @@ BOOL parseJSONTrue( NDJSONParser * self )
 	uint32_t	theChar;
 	if( (theChar = nextChar(self)) == 'r' && (theChar = nextChar(self)) == 'u' && (theChar = nextChar(self)) == 'e' )
 	{
-		if( self->_delegateMethod.foundBool != NULL )
+		if( self->_delegateMethod.foundNumber != NULL )
+			self->_delegateMethod.foundNumber( self->_delegate, @selector(jsonParser:foundNumber:), self, [NSNumber numberWithBool:YES] );
+		else if( self->_delegateMethod.foundBool != NULL )
 			self->_delegateMethod.foundBool( self->_delegate, @selector(jsonParser:foundBool:), self, YES );
 	}
 	else if( theChar == '\0' )
@@ -1346,7 +1351,9 @@ BOOL parseJSONFalse( NDJSONParser * self )
 	uint32_t	theChar;
 	if( (theChar = nextChar(self)) == 'a' && (theChar = nextChar(self)) == 'l' && (theChar = nextChar(self)) == 's' && (theChar = nextChar(self)) == 'e' )
 	{
-		if( self->_delegateMethod.foundBool != NULL )
+		if( self->_delegateMethod.foundNumber != NULL )
+			self->_delegateMethod.foundNumber( self->_delegate, @selector(jsonParser:foundNumber:), self, [NSNumber numberWithBool:NO] );
+		else if( self->_delegateMethod.foundBool != NULL )
 			self->_delegateMethod.foundBool( self->_delegate, @selector(jsonParser:foundBool:), self, NO );
 	}
 	else if( theChar == '\0' )
