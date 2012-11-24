@@ -5,6 +5,10 @@
 	Copyright 2011 Nathan Day. All rights reserved.
  */
 
+//#define NDJSONDebug
+//#define NDJSONPrintStream
+#define NDJSONSupportZippedData
+
 #import <Foundation/Foundation.h>
 #import "NDJSONParser.h"
 #include <stdlib.h>
@@ -12,13 +16,11 @@
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
+#ifdef NDJSONSupportZippedData
+#include <zlib.h>
+#endif
 
 NSString			* const kNDJSONNoInputSourceExpection = @"NDJSONNoInputSource";
-
-//#define NDJSONDebug
-//#define NDJSONPrintStream
-#define NDJSONSupportZippedData
-
 
 #ifdef NDJSONDebug
 #define NDJSONLog(...) NSLog(__VA_ARGS__)
@@ -306,6 +308,7 @@ enum JSONInputType
 		};
 	}								_source;
 #ifdef NDJSONSupportZippedData
+	z_stream						_zipStream;
 #endif
 	NSString						* _currentKey;
 	struct
@@ -377,6 +380,17 @@ enum JSONInputType
 		_bytes.word16 = NULL;
 		_bytes.word32 = NULL;
 #ifdef NDJSONSupportZippedData
+		_zipStream.total_out = 0;
+		_zipStream.zalloc = Z_NULL;
+		_zipStream.zfree = Z_NULL;
+
+		_zipStream.next_in = NULL;
+		_zipStream.avail_in = 0;
+		_zipStream.total_in = 0;
+
+		_zipStream.next_out = NULL;
+		_zipStream.avail_out = 0;
+		_zipStream.total_out = 0;
 #endif
 		_currentKey = nil;
 	}
@@ -424,9 +438,6 @@ enum JSONInputType
 			break;
 		}
 
-		if( _options.zipJSON )
-			_bytes.word8 = malloc(kBufferSize<<1);
-
 		if( _bytes.word8 != NULL )
 		{
 			_source.object = [aString retain];
@@ -450,8 +461,6 @@ enum JSONInputType
 		_numberOfBytes = aData.length;
 		_ownsBytes = NO;
 		_bytes.word8 = _inputBytes = (uint8_t*)[aData bytes];
-		if( _options.zipJSON )
-			_bytes.word8 = malloc(kBufferSize<<1);
 		_source.object = [aData retain];
 		_inputType = kJSONDataInputType;
 #ifdef NDJSONSupportUTF8Only
@@ -498,8 +507,6 @@ enum JSONInputType
 	{
 		_bytes.word8 = _inputBytes = malloc(kBufferSize);
 		_ownsBytes = YES;
-		if( _options.zipJSON )
-			_bytes.word8 = malloc(kBufferSize<<1);
 		_source.object = [aStream retain];
 		_inputType = kJSONStreamInputType;
 #ifdef NDJSONSupportUTF8Only
@@ -550,12 +557,10 @@ enum JSONInputType
 	BOOL		theAlreadyParsing = _alreadyParsing;
 
 	_alreadyParsing = YES;
-	_options.strictJSONOnly = NO;
+	_options.strictJSONOnly = (anOptions&NDJSONOptionStrict) != 0;
+	_options.zipJSON = (anOptions&NDJSONOptionZipCompressed) != 0;
 	if( _delegateMethod.didStartDocument != NULL )
 		_delegateMethod.didStartDocument( _delegate, @selector(jsonParserDidStartDocument:), self );
-
-	if( _options.zipJSON )
-		_bytes.word8 = malloc(kBufferSize);
 
 	switch( _inputType )
 	{

@@ -12,6 +12,7 @@
 #import "TestCustomObjectsSimple.h"
 #import "TestCustomObjectsExtended.h"
 #import "TestSettingIndex.h"
+#import "TestSettingParent.h"
 
 @implementation TestCustomObjects
 
@@ -22,6 +23,7 @@
 	[TestCustomObjectsSimple addTestsToTestGroup:self];
     [TestCustomObjectsExtended addTestsToTestGroup:self];
 	[TestSettingIndex addTestsToTestGroup:self];
+	[TestSettingParent addTestsToTestGroup:self];
 }
 
 @end

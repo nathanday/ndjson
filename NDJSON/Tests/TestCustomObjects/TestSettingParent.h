@@ -1,5 +1,5 @@
 //
-//  TestInitWithParent.h
+//  TestSettingParent.h
 //  NDJSON
 //
 //  Created by Nathan Day on 29/04/12.
@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "TestProtocolBase.h"
 
-@interface TestInitWithParent : TestProtocolBase
+@interface TestSettingParent : TestProtocolBase
 {
 	NSString    * jsonSourceString;
 	BOOL       multipleChildren;

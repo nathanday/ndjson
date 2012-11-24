@@ -27,18 +27,45 @@
 
 @class		NDJSONDeserializer,
 			NDJSONResponse;
-@protocol	NDJSONRequest;
+@protocol	NDJSONRequestDelegate;
+
+extern const NSUInteger				kNDJSONDefaultPortNumber;
 
 @interface NDJSONRequest : NSObject
 
-@property(readonly,nonatomic,copy)		NSURLRequest			* requestURL;
-@property(readonly,nonatomic,strong)	NDJSONDeserializer		* deserializer;
+@property(readonly,nonatomic,copy)		NSURLRequest		* URLRequest;
+@property(readonly,nonatomic,copy)		NSURL				* URL;
+@property(readonly,nonatomic,copy)		NSString			* scheme;
+@property(readonly,nonatomic,copy)		NSString			* userInfo;
+@property(readonly,nonatomic,copy)		NSString			* userName;
+@property(readonly,nonatomic,copy)		NSString			* password;
+@property(readonly,nonatomic,assign)	NSUInteger			port;
+@property(readonly,nonatomic,copy)		NSString			* domain;
+@property(readonly,nonatomic,copy)		NSString			* path;
+@property(readonly,nonatomic,copy)		NSArray				* pathComponents;
+@property(readonly,nonatomic,copy)		NSString			* query;
+@property(readonly,nonatomic,copy)		NSDictionary		* queryComponents;
 
-- (id)initWithURLRequest:(NSURLRequest *)urlRequest rootJSONPath:(NSString *)rootJSONPath deserializer:(NDJSONDeserializer *)deserializer;
+@property(readonly,nonatomic,copy)		NSString			* responseJSONRootPath;
+
+@property(readonly,nonatomic,strong)	NDJSONDeserializer	* deserializer;
+
+- (id)initWithDeserializer:(NDJSONDeserializer *)deserializer responseCompletionHandler:(void (^)(NDJSONRequest *, NDJSONResponse *))handler;
+- (id)initWithDeserializer:(NDJSONDeserializer *)deserializer responseHandler:(id<NDJSONRequestDelegate>)handler;
+- (id)initWithDeserializer:(NDJSONDeserializer *)deserializer responseHandlingSelector:(SEL)responseHandlingSelector handler:(id)handler;
+- (id)initWithDeserializer:(NDJSONDeserializer *)deserializer invocation:(NSInvocation *)invocation;
 
 @end
 
 @interface NDJSONMutableRequest : NDJSONRequest
+
+@property(readwrite,nonatomic,copy)		NSString			* scheme;
+@property(readwrite,nonatomic,copy)		NSString			* userName;
+@property(readwrite,nonatomic,copy)		NSString			* password;
+@property(readwrite,nonatomic,assign)	NSUInteger			port;
+@property(readwrite,nonatomic,copy)		NSString			* domain;
+@property(readwrite,nonatomic,copy)		NSArray				* pathComponents;
+@property(readwrite,nonatomic,copy)		NSDictionary		* queryComponents;
 
 @end
 

@@ -100,7 +100,7 @@ childElements;
 	return [anObject isKindOfClass:[TestRootJSONClass class]] && [[anObject childElement] isEqual:self.childElement];
 }
 
-+ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONDeserializer *)aParser
++ (NSDictionary *)classesForPropertyNamesWithJSONDeserializer:(NDJSONDeserializer *)aParser
 {
 	static NSDictionary		* kResult = nil;
 	if( kResult == nil )

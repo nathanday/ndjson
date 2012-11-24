@@ -54,6 +54,8 @@ enum {
 	NDJSONOptionCovertPrimitiveJSONTypes = 1<<19
 };
 
+@protocol NDJSONDeserializerDelegate;
+
 /**
  The *NDJSONDeserializer* class provides methods that convert a JSON document into an object tree representation. *NDJSONDeserializer* can either generate property list type objects, *NSDictionary*s, *NSArrays*, *NSStrings* and *NSNumber*s as well as *NSNull* for the JSON value null, or by supplying your own root object and maybe implementing the methods defined in the anyomnous protocol NSObject+NDJSONDeserializer in your own classes, NDJSONDeserializer will generate a tree if your own classes.
  When generating classes of your own type, *NDJSONDeserializer* will determine the correct class type for properties by quering the Objective-C runetime, NSObject+NDJSONDeserializer methods can be used when the information is not avaialable, for example what classes to insert in an array.
@@ -78,6 +80,8 @@ enum {
  */
 @property(readonly,nonatomic)	NSEntityDescription		* rootEntity;
 
+@property(assign,nonatomic)		id<NDJSONDeserializerDelegate>	delegate;
+
 /**
 	initalize with the classes type to represent the root JSON object, if the root of the JSON document is an array, the the class type is what is used for the objects within the array.
  */
@@ -86,6 +90,8 @@ enum {
 	initalize with the classes type to represent the root JSON object and the class type used for root collection type (array, set etc), if the root of the JSON document is an array then the root collection class is used and the class type is what is used for the objects within the array.
  */
 - (id)initWithRootClass:(Class)rootClass rootCollectionClass:(Class)rootCollectionClass;
+
+- (id)initWithRootClass:(Class)rootClass rootCollectionClass:(Class)rootCollectionClass initialParent:(id)parent;
 
 - (id)initWithRootEntityName:(NSString *)rootEntityName inManagedObjectContext:(NSManagedObjectContext *)context;
 
@@ -98,6 +104,11 @@ enum {
 
 @end
 
+@protocol NDJSONDeserializerDelegate <NDJSONParserDelegate>
+@optional
+- (id)jsonDeserializer:(NDJSONDeserializer *)jsonDeserializer objectForClass:(Class)aClass propertName:(NSString *)property;
+@end
+
 /**
 	NSObject+NDJSONDeserializer is an informal protocol for methods that objects which can be generated from parsing can implement to control how parsing of child onjects and arrays.
 	*NDJSONDeserializer* can determine the class types for properties at runtime, but the methods of NSObject+NDJSONDeserializer can be used to override this behavor or help in situations where the type information is not available, for exmaple the class types used for the elements in a JSON array or if the type is *id*.
@@ -107,81 +118,97 @@ enum {
 /**
 	implemented by classes to override the default mechanism for determining the class type used for a property, if the property is a collection type (array, set etc), then this method is used to determine the types used in the collection, by default an NSDictionat will be used but any method which implements the method setObject:forKey: method.
  */
-+ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONDeserializer *)aParser;
++ (NSDictionary *)classesForPropertyNamesWithJSONDeserializer:(NDJSONDeserializer *)aParser;
 /**
 	implemented by classed to override the default mechanism for determining the class type used for a property collection, by default an NSArray will be used but any mehtod which implements the method addObject: method.
  */
-+ (NSDictionary *)collectionClassesForPropertyNamesJSONParser:(NDJSONDeserializer *)aParser;
++ (NSDictionary *)collectionClassesForPropertyNamesWithJSONDeserializer:(NDJSONDeserializer *)aParser;
 
 /**
 	return a set of property names to ignore, this can speed up parsing as the parsing will just scan pass the valuing in the JSON.
  */
-+ (NSSet *)keysIgnoreSetJSONParser:(NDJSONDeserializer *)aParser;
++ (NSSet *)keysIgnoreSetWithJSONDeserializer:(NDJSONDeserializer *)aParser;
 /**
 	return a set of property names to only consider, this can speed up parsing as the parsing will just scan pass the valuing in the JSON.
  */
-+ (NSSet *)keysConsiderSetJSONParser:(NDJSONDeserializer *)aParser;
++ (NSSet *)keysConsiderSetWithJSONDeserializer:(NDJSONDeserializer *)aParser;
 
 /**
-	return a dictionary used to map property names as determined
+	return a dictionary used to map JSON jeys to property names
  */
-+ (NSDictionary *)propertyNamesForKeysJSONParser:(NDJSONDeserializer *)aParser;
++ (NSDictionary *)propertyNamesWithJSONDeserializer:(NDJSONDeserializer *)aParser;
 
-/**
-	returns the name of the property used as an indicies value, useful for CoreDate where one-to-many relationship are store in and unordered sets.
+/*
+	return the property name for the objects index, this property will be set for obejcts added to collections.
  */
-- (void)jsonParser:(NDJSONDeserializer *)parser setIndex:(NSUInteger)index;
++ (NSString *)indexPropertyNameWithJSONDeserializer:(NDJSONDeserializer *)aParser;
 
-//- (NSString *)jsonStringJSONParser:(NDJSONDeserializer *)aParser;
+/*
+	return the property name for the objects parent property, this property will be set if this method is implemented.
+ */
++ (NSString *)parentPropertyNameWithJSONDeserializer:(NDJSONDeserializer *)aParser;
 
 @end
 
 /**
-	implements the class method `+[NSObject classesForPropertyNamesJSONParser:]` returning a dictionary with the supplied arguemnts.
+	implements the class method `+[NSObject classesForPropertyNamesWithJSONDeserializer:]` returning a dictionary with the supplied arguemnts.
  */
 #define NDJSONClassesForPropertyNames(...) \
-+ (NSDictionary *)classesForPropertyNamesJSONParser:(NDJSONDeserializer *)aParser { \
++ (NSDictionary *)classesForPropertyNamesWithJSONDeserializer:(NDJSONDeserializer *)aParser { \
 	static NSDictionary     * kClassesForPropertyName = nil; \
 	if( kClassesForPropertyName == nil ) kClassesForPropertyName = [[NSDictionary alloc] initWithObjectsAndKeys:__VA_ARGS__, nil]; \
 	return kClassesForPropertyName; \
 }
 
 /**
- implements the class method `+[NSObject collectionClassesForPropertyNamesJSONParser:]` returning a dictionary with the supplied arguemnts.
+ implements the class method `+[NSObject collectionClassesForPropertyNamesWithJSONDeserializer:]` returning a dictionary with the supplied arguemnts.
  */
 #define NDJSONCollectionClassesForPropertyNames(...) \
-+ (NSDictionary *)collectionClassesForPropertyNamesJSONParser:(NDJSONDeserializer *)aParser { \
++ (NSDictionary *)collectionClassesForPropertyNamesWithJSONDeserializer:(NDJSONDeserializer *)aParser { \
 	static NSDictionary     * kClassesForPropertyName = nil; \
 	if( kClassesForPropertyName == nil ) kClassesForPropertyName = [[NSDictionary alloc] initWithObjectsAndKeys:__VA_ARGS__, nil]; \
 	return kClassesForPropertyName; \
 }
 
 /**
- implements the class method `+[NSObject keysConsiderSetJSONParser:]` returning a set with the supplied arguemnts.
+ implements the class method `+[NSObject keysConsiderSetWithJSONDeserializer:]` returning a set with the supplied arguemnts.
  */
 #define NDJSONKeysConsiderSet(...) \
-+ (NSSet *)keysConsiderSetJSONParser:(NDJSONDeserializer *)aParser { \
++ (NSSet *)keysConsiderSetWithJSONDeserializer:(NDJSONDeserializer *)aParser { \
     static NSSet       * kSet = nil; \
     if( kSet == nil ) kSet = [[NSSet alloc] initWithObjects:__VA_ARGS__, nil]; \
 	return kSet; \
 }
 
 /**
- implements the class method `+[NSObject keysIgnoreSetJSONParser:]` returning a set with the supplied arguemnts.
+ implements the class method `+[NSObject keysIgnoreSetWithJSONDeserializer:]` returning a set with the supplied arguemnts.
  */
 #define NDJSONKeysIgnoreSet(...) \
-+ (NSSet *)keysIgnoreSetJSONParser:(NDJSONDeserializer *)aParser { \
++ (NSSet *)keysIgnoreSetWithJSONDeserializer:(NDJSONDeserializer *)aParser { \
 	static NSSet       * kSet = nil; \
 	if( kSet == nil ) kSet = [[NSSet alloc] initWithObjects:__VA_ARGS__, nil]; \
 	return kSet; \
 }
 
 /**
- implements the class method `+[NSObject propertyNamesForKeysJSONParser:]` returning a dictionary with the supplied arguemnts.
+ implements the class method `+[NSObject propertyNamesWithJSONDeserializer:]` returning a dictionary with the supplied arguemnts.
  */
 #define NDJSONPropertyNamesForKeys(...) \
-+ (NSDictionary *)propertyNamesForKeysJSONParser:(NDJSONDeserializer *)aParser { \
++ (NSDictionary *)propertyNamesWithJSONDeserializer:(NDJSONDeserializer *)aParser { \
     static NSDictionary     * kNamesForKeys = nil; \
     if( kNamesForKeys == nil ) kNamesForKeys = [[NSDictionary alloc] initWithObjectsAndKeys:__VA_ARGS__, nil]; \
 	return kNamesForKeys; \
 }
+
+/**
+ implements the class method `+[NSObject indexPropertyNameWithJSONDeserializer:]` returning the string upplied arguemnts.
+ */
+#define NDJSONIndexPropertyName(_SELECTOR_NAME_) \
++ (NSString *)indexPropertyNameWithJSONDeserializer:(NDJSONDeserializer *)aParser { return _SELECTOR_NAME_; }
+
+
+/**
+ implements the class method `+[NSObject parentPropertyNameWithJSONDeserializer:]` returning the string upplied arguemnts.
+ */
+#define NDJSONParentPropertyName(_SELECTOR_NAME_) \
++ (NSString *)parentPropertyNameWithJSONDeserializer:(NDJSONDeserializer *)aParser { return _SELECTOR_NAME_; }

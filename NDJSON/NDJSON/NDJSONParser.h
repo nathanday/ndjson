@@ -75,7 +75,8 @@ enum {
 	 - arrays may have a trailing comment.
 	 - control characters are allowed in strings (including quoted keys)
  */
-	NDJSONOptionStrict = 1<<0
+	NDJSONOptionStrict = 1<<0,
+	NDJSONOptionZipCompressed = 1<<1
 };
 
 extern NSString	* const NDJSONErrorDomain;

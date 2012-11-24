@@ -15,8 +15,8 @@
 	NSString	* name;
 	NSUInteger	index;
 }
-@property(retain,nonatomic)	NSString		* name;
-@property(readonly,nonatomic) NSUInteger	index;
+@property(retain,nonatomic)	NSString	* name;
+@property(assign,nonatomic) NSUInteger	index;
 
 + (id)withName:(NSString *)name index:(NSUInteger)index;
 - (id)initWithName:(NSString *)name index:(NSUInteger)index;
@@ -84,9 +84,10 @@
 	return self;
 }
 
-- (void)jsonParser:(NDJSONDeserializer *)aParser setIndex:(NSUInteger)anIndex { index = anIndex; }
 - (NSString *)description { return [NSString stringWithFormat:@"{name:%@,index:%lu}", self.name, self.index]; }
 
 - (BOOL)isEqual:(id)anObject { return [anObject isKindOfClass:[IndexClass class]] && [[anObject name] isEqualToString:self.name] && [anObject index] == self.index; }
+
+NDJSONIndexPropertyName(@"index");
 
 @end
