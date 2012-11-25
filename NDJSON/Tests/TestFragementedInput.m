@@ -49,7 +49,8 @@
 
 - (void)willLoad
 {
-	static		NSString	* const kJSON = @"{\"menu\":{\"header\":\"SVG Viewer\",\"items\": [{\"id\":\"Open\"},{\"id\":\"OpenNew\",\"label\":\"Open New\"},null,{\"id\":\"ZoomIn\",\"label\":\"Zoom In\"},{\"id\":\"ZoomOut\",\"label\":\"Zoom Out\"},{\"id\":\"OriginalView\",\"label\":\"Original View\"},null,{\"id\":\"Quality\"},{\"id\":\"Pause\"},{\"id\":\"Mute\"},null,{\"id\":\"Find\",\"label\":\"Find...\"},{\"id\":\"FindAgain\",\"label\":\"Find Again\"},{\"id\":\"Copy\"},{\"id\":\"CopyAgain\",\"label\":\"Copy Again\"},{\"id\":\"CopySVG\",\"label\":\"Copy SVG\"},{\"id\":\"ViewSVG\",\"label\":\"View SVG\"},{\"id\":\"ViewSource\",\"label\":\"View Source\"},{\"id\":\"SaveAs\",\"label\":\"Save As\"},null,{\"id\":\"Help\"},{\"id\":\"About\",\"label\":\"About Adobe CVG Viewer...\"}]}}";
+	static		NSString	* const kJSON = @"{\"menu\":{\"header\":\"SVG Viewer\",\"items\": [{\"id\":\"Open\"},{\"id\":\"OpenNew\",\"label\":\"Open New\"},null,{\"id\":\"ZoomIn\",\"label\":\"Zoom In\"},{\"id\":\"ZoomOut\",\"label\":\"Zoom Out\"},{\"id\":\"OriginalView\",\"label\":\"Original View\"},null,{\"id\":\"Quality\"},{\"id\":\"Pause\"},{\"id\":\"Mute\"},null,{\"id\":\"Find\",\"label\":\"Find...\"},{\"id\":\"FindAgain\",\"label\":\"Find Again\"},{\"id\":\"Copy\"},{\"id\":\"CopyAgain\",\"label\":\"Copy Again\"},{\"id\":\"CopySVG\",\"label\":\"Copy SVG\"},{\"id\":\"ViewSVG\",\"label\":\"View SVG\"},{\"id\":\"ViewSource\",\"label\":\"View Source\"},{\"id\":\"SaveAs\",\"label\":\"Save As\"},null,{\"id\":\"Help\"},{\"id\":\"About\",\"label\":\"About Adobe CVG Viewer...\"}]}}",
+							* const kJSON2 = @"{\"a\":true,\"b\":\"string\",\"c\":42}";
 	[self addName:@"100 bytes" json:kJSON minBlockSize:100 maxBlockSize:100 usingEncoding:NSUTF8StringEncoding];
 	[self addName:@"50 bytes" json:kJSON minBlockSize:50 maxBlockSize:50 usingEncoding:NSUTF8StringEncoding];
 	[self addName:@"10 bytes" json:kJSON minBlockSize:10 maxBlockSize:10 usingEncoding:NSUTF8StringEncoding];
@@ -59,7 +60,7 @@
 	[self addName:@"(10,50) bytes" json:kJSON minBlockSize:10 maxBlockSize:20 usingEncoding:NSUTF8StringEncoding];
 	[self addName:@"(1,5) bytes" json:kJSON minBlockSize:1 maxBlockSize:5 usingEncoding:NSUTF8StringEncoding];
 	[self addName:@"(1,100) bytes" json:kJSON minBlockSize:1 maxBlockSize:100 usingEncoding:NSUTF8StringEncoding];
-	[self addName:@"(5,8) bytes, 32 bit characters" json:kJSON minBlockSize:5 maxBlockSize:8 usingEncoding:NSUTF32StringEncoding];
+	[self addName:@"(5,8) bytes, 32 bit characters" json:kJSON2 minBlockSize:5 maxBlockSize:8 usingEncoding:NSUTF32StringEncoding];
 }
 
 @end

@@ -738,7 +738,7 @@ static uint32_t currentChar( NDJSONParser * self )
 	if( self->_position >= self->_numberOfBytes && !self->_abort )
 	{
 #else
-	if( self->_position<<self->_character.wordSize >= self->_numberOfBytes && !self->_abort )
+	if( self->_position >= self->_numberOfBytes>>self->_character.wordSize && !self->_abort )
 	{
 		/*
 			if numberOfBytes was not a multiple of character word size then we need to copy the partial word
@@ -754,14 +754,14 @@ static uint32_t currentChar( NDJSONParser * self )
 #ifdef NDJSONSupportUTF8Only
 			self->_numberOfBytes = (NSUInteger)[self->_source.object read:self->_inputBytes maxLength:kBufferSize];
 #else
-			self->_numberOfBytes = (NSUInteger)[self->_source.object read:self->_inputBytes+theRemainingLen maxLength:kBufferSize-theRemainingLen];
+			self->_numberOfBytes = (NSUInteger)[self->_source.object read:self->_inputBytes+theRemainingLen maxLength:kBufferSize-theRemainingLen] + theRemainingLen;
 #endif
 			break;
 		case kJSONStreamFunctionType:
 #ifdef NDJSONSupportUTF8Only
 			self->_numberOfBytes = (NSUInteger)self->_source.function(&self->_inputBytes, self->_source.context);
 #else
-			self->_numberOfBytes = (NSUInteger)self->_source.function(&self->_inputBytes+theRemainingLen, self->_source.context);
+			self->_numberOfBytes = (NSUInteger)self->_source.function(&self->_inputBytes+theRemainingLen, self->_source.context) + theRemainingLen;
 #endif
 			self->_bytes.word8 = self->_inputBytes;
 			break;
@@ -769,7 +769,7 @@ static uint32_t currentChar( NDJSONParser * self )
 #ifdef NDJSONSupportUTF8Only
 			self->_numberOfBytes = (NSUInteger)self->_source.block(&self->_inputBytes);
 #else
-			self->_numberOfBytes = (NSUInteger)self->_source.block(&self->_inputBytes+theRemainingLen);
+			self->_numberOfBytes = (NSUInteger)self->_source.block(&self->_inputBytes+theRemainingLen) + theRemainingLen;
 #endif
 			self->_bytes.word8 = self->_inputBytes;
 			break;
