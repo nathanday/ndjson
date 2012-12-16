@@ -19,6 +19,8 @@
 		D81FC992159988EA00C0C92F /* GenChild.m in Sources */ = {isa = PBXBuildFile; fileRef = D81FC991159988EA00C0C92F /* GenChild.m */; };
 		D8202E66165A4C73003754C6 /* TestSettingParent.m in Sources */ = {isa = PBXBuildFile; fileRef = D8202E65165A4C73003754C6 /* TestSettingParent.m */; };
 		D827A0BC151E0D1A0071645A /* TestCustomObjects.m in Sources */ = {isa = PBXBuildFile; fileRef = D827A0BB151E0D1A0071645A /* TestCustomObjects.m */; };
+		D845C836167C64E700B839A9 /* TestJSONRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D845C835167C64E700B839A9 /* TestJSONRequest.m */; };
+		D845C837167C971600B839A9 /* NDJSONRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D84B47311645F5E000658A39 /* NDJSONRequest.m */; };
 		D85174F015A9A23E003870C1 /* TestSettingIndex.m in Sources */ = {isa = PBXBuildFile; fileRef = D85174EF15A9A23E003870C1 /* TestSettingIndex.m */; };
 		D854B626141508000019D7E2 /* TestClassNames.plist in Resources */ = {isa = PBXBuildFile; fileRef = D854B625141508000019D7E2 /* TestClassNames.plist */; };
 		D85D476D159540F9006785EF /* Utility.m in Sources */ = {isa = PBXBuildFile; fileRef = D85D476C159540F8006785EF /* Utility.m */; };
@@ -86,6 +88,8 @@
 		D8202E65165A4C73003754C6 /* TestSettingParent.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestSettingParent.m; sourceTree = "<group>"; };
 		D827A0BA151E0D1A0071645A /* TestCustomObjects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestCustomObjects.h; sourceTree = "<group>"; };
 		D827A0BB151E0D1A0071645A /* TestCustomObjects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestCustomObjects.m; sourceTree = "<group>"; };
+		D845C834167C64E700B839A9 /* TestJSONRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestJSONRequest.h; sourceTree = "<group>"; };
+		D845C835167C64E700B839A9 /* TestJSONRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestJSONRequest.m; sourceTree = "<group>"; };
 		D84B47301645F5E000658A39 /* NDJSONRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONRequest.h; sourceTree = "<group>"; };
 		D84B47311645F5E000658A39 /* NDJSONRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONRequest.m; sourceTree = "<group>"; };
 		D85174EE15A9A23E003870C1 /* TestSettingIndex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestSettingIndex.h; sourceTree = "<group>"; };
@@ -95,8 +99,6 @@
 		D85D476C159540F8006785EF /* Utility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utility.m; sourceTree = "<group>"; };
 		D85D476E15954169006785EF /* ChangeParseFromEventToPropertyList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChangeParseFromEventToPropertyList.h; sourceTree = "<group>"; };
 		D85D476F15954169006785EF /* ChangeParseFromEventToPropertyList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChangeParseFromEventToPropertyList.m; sourceTree = "<group>"; };
-		D8740B381647CC4A007B474D /* NDJSONResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONResponse.h; sourceTree = "<group>"; };
-		D8740B391647CC4A007B474D /* NDJSONResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONResponse.m; sourceTree = "<group>"; };
 		D8996A40165D0C7A00D1DD25 /* NDJSONMeta.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONMeta.h; sourceTree = "<group>"; };
 		D8996A41165D0C7A00D1DD25 /* NDJSONMeta.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONMeta.m; sourceTree = "<group>"; };
 		D89B050B15BAF8890078E320 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
@@ -218,8 +220,6 @@
 				D8CCFD011489B06A0015DF1E /* NDJSONDeserializer.m */,
 				D84B47301645F5E000658A39 /* NDJSONRequest.h */,
 				D84B47311645F5E000658A39 /* NDJSONRequest.m */,
-				D8740B381647CC4A007B474D /* NDJSONResponse.h */,
-				D8740B391647CC4A007B474D /* NDJSONResponse.m */,
 				D8996A40165D0C7A00D1DD25 /* NDJSONMeta.h */,
 				D8996A41165D0C7A00D1DD25 /* NDJSONMeta.m */,
 			);
@@ -320,6 +320,8 @@
 				D8D65BE31539C0F100A2FB48 /* TestCustomObjects */,
 				D8CF77121583433000013A43 /* TestNDJSONCoreData.h */,
 				D8CF77131583433000013A43 /* TestNDJSONCoreData.m */,
+				D845C834167C64E700B839A9 /* TestJSONRequest.h */,
+				D845C835167C64E700B839A9 /* TestJSONRequest.m */,
 				D85595511580E511000B5965 /* TestCoreData */,
 				D8D9D282158F590E00D385C5 /* TestMechanismChange.h */,
 				D8D9D283158F590E00D385C5 /* TestMechanismChange.m */,
@@ -472,6 +474,8 @@
 				D8EA3059159EDD63004B88B5 /* TestJSONPrimativeConversion.m in Sources */,
 				D85174F015A9A23E003870C1 /* TestSettingIndex.m in Sources */,
 				D8202E66165A4C73003754C6 /* TestSettingParent.m in Sources */,
+				D845C836167C64E700B839A9 /* TestJSONRequest.m in Sources */,
+				D845C837167C971600B839A9 /* NDJSONRequest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

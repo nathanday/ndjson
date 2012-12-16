@@ -64,6 +64,12 @@
 			<key>name</key>
 			<string>JSON Primative Conversion</string>
 		</dict>
+		<dict>
+			<key>class</key>
+			<string>TestJSONRequest</string>
+			<key>name</key>
+			<string>JSON Request</string>
+		</dict>
 	</array>
 </dict>
 </plist>

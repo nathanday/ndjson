@@ -37,35 +37,57 @@ extern const NSUInteger				kNDJSONDefaultPortNumber;
 @property(readonly,nonatomic,copy)		NSURL				* URL;
 @property(readonly,nonatomic,copy)		NSString			* scheme;
 @property(readonly,nonatomic,copy)		NSString			* userInfo;
-@property(readonly,nonatomic,copy)		NSString			* userName;
+@property(readonly,nonatomic,copy)		NSString			* user;
 @property(readonly,nonatomic,copy)		NSString			* password;
-@property(readonly,nonatomic,assign)	NSUInteger			port;
-@property(readonly,nonatomic,copy)		NSString			* domain;
+@property(readonly,nonatomic,copy)		NSNumber			* port;
+@property(readonly,nonatomic,copy)		NSString			* host;
 @property(readonly,nonatomic,copy)		NSString			* path;
 @property(readonly,nonatomic,copy)		NSArray				* pathComponents;
 @property(readonly,nonatomic,copy)		NSString			* query;
 @property(readonly,nonatomic,copy)		NSDictionary		* queryComponents;
 
+@property(readonly,nonatomic,strong)	NSData				* body;
+
 @property(readonly,nonatomic,copy)		NSString			* responseJSONRootPath;
+@property(readonly,nonatomic,copy)		NSString			* errorJSONRootPath;
 
 @property(readonly,nonatomic,strong)	NDJSONDeserializer	* deserializer;
 
-- (id)initWithDeserializer:(NDJSONDeserializer *)deserializer responseCompletionHandler:(void (^)(NDJSONRequest *, NDJSONResponse *))handler;
-- (id)initWithDeserializer:(NDJSONDeserializer *)deserializer responseHandler:(id<NDJSONRequestDelegate>)handler;
-- (id)initWithDeserializer:(NDJSONDeserializer *)deserializer responseHandlingSelector:(SEL)responseHandlingSelector handler:(id)handler;
-- (id)initWithDeserializer:(NDJSONDeserializer *)deserializer invocation:(NSInvocation *)invocation;
+- (id)initWithDeserializer:(NDJSONDeserializer *)deserializer;
+
+- (void)sendAsynchronousWithQueue:(NSOperationQueue *)queue responseCompletionHandler:(void (^)(NDJSONRequest *, NDJSONResponse *))handler;
+- (void)sendAsynchronousWithQueue:(NSOperationQueue *)queue responseHandler:(id<NDJSONRequestDelegate>)handler;
+- (void)sendAsynchronousWithQueue:(NSOperationQueue *)queue responseHandlingSelector:(SEL)responseHandlingSelector handler:(id)handler;
+- (void)sendAsynchronousWithQueue:(NSOperationQueue *)queue invocation:(NSInvocation *)invocation;
 
 @end
 
 @interface NDJSONMutableRequest : NDJSONRequest
 
+@property(readwrite,nonatomic,copy)		NSURL				* URL;
 @property(readwrite,nonatomic,copy)		NSString			* scheme;
-@property(readwrite,nonatomic,copy)		NSString			* userName;
+@property(readwrite,nonatomic,copy)		NSString			* user;
 @property(readwrite,nonatomic,copy)		NSString			* password;
-@property(readwrite,nonatomic,assign)	NSUInteger			port;
-@property(readwrite,nonatomic,copy)		NSString			* domain;
+@property(readwrite,nonatomic,copy)		NSNumber			* port;
+@property(readwrite,nonatomic,copy)		NSString			* host;
 @property(readwrite,nonatomic,copy)		NSArray				* pathComponents;
+@property(readwrite,nonatomic,copy)		NSString			* query;
 @property(readwrite,nonatomic,copy)		NSDictionary		* queryComponents;
+@property(readonly,nonatomic,copy)		NSMutableDictionary * mutableQueryComponents;
+
+@property(readwrite,nonatomic,strong)	NSData				* body;
+
+@property(readwrite,nonatomic,copy)		NSString			* responseJSONRootPath;
+@property(readwrite,nonatomic,copy)		NSString			* errorJSONRootPath;
+
+@end
+
+@interface NDJSONResponse : NSObject
+
+@property(readonly,nonatomic,getter=isSuccessful)	BOOL			successful;
+@property(readonly,nonatomic,strong)				NDJSONRequest	* request;
+@property(readonly,nonatomic,strong)				id				result;
+@property(readonly,nonatomic,strong)				NSError			* error;
 
 @end
 
