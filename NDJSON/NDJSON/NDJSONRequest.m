@@ -57,6 +57,7 @@ static const NSUInteger			kNDJSONDefaultPort = NSUIntegerMax;			// use NDURLRequ
 
 - (NSURL *)URL
 {
+	NSURL				* theResult = nil;
 	NSMutableString		* theURLString = [[NSMutableString alloc] initWithFormat:@"%@://",self.scheme];
 	NSString			* theUserInfo = self.userInfo,
 						* theHost = self.host,
@@ -73,7 +74,11 @@ static const NSUInteger			kNDJSONDefaultPort = NSUIntegerMax;			// use NDURLRequ
 		[theURLString appendFormat:@"/%@", thePath];
 	if( theQuery.length > 0 )
 		[theURLString appendFormat:@"?%@", theQuery];
-	return [NSURL URLWithString:theURLString];
+	theResult = [NSURL URLWithString:theURLString];
+#if !__has_feature(objc_arc)
+	[theURLString release];
+#endif
+	return theResult;
 }
 
 - (NSString *)scheme { return kNDJSONDefaultScheme; }
@@ -288,6 +293,9 @@ static const NSUInteger			kNDJSONDefaultPort = NSUIntegerMax;			// use NDURLRequ
 
 			 self.result = [self.request.deserializer objectForJSON:theParser options:self.request.deserializerOptions error:&theError];
 			 self.error = theError;
+#if !__has_feature(objc_arc)
+			 [theParser release];
+#endif
 		 }
 		 else
 			 self.error = anError;
@@ -312,6 +320,9 @@ static const NSUInteger			kNDJSONDefaultPort = NSUIntegerMax;			// use NDURLRequ
 		 [anInvocation setArgument:(void*)self atIndex:3];
 		 [anInvocation retainArguments];
 		 [anInvocation invoke];
+#if !__has_feature(objc_arc)
+		 [theParser release];
+#endif
 	 }];
 }
 
