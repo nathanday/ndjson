@@ -49,9 +49,6 @@ extern const NSUInteger				kNDJSONDefaultPortNumber;
 
 @property(readonly,nonatomic,strong)	NSData				* body;
 
-@property(readonly,nonatomic,copy)		NSString			* responseJSONRootPath;
-@property(readonly,nonatomic,copy)		NSString			* errorJSONRootPath;
-
 @property(readonly,nonatomic,strong)	NDJSONDeserializer	* deserializer;
 @property(readonly,nonatomic)			NDJSONOptionFlags	deserializerOptions;
 
@@ -79,9 +76,6 @@ extern const NSUInteger				kNDJSONDefaultPortNumber;
 @property(readonly,nonatomic,copy)		NSMutableDictionary * mutableQueryComponents;
 
 @property(readwrite,nonatomic,strong)	NSData				* body;
-
-@property(readwrite,nonatomic,copy)		NSString			* responseJSONRootPath;
-@property(readwrite,nonatomic,copy)		NSString			* errorJSONRootPath;
 
 @property(assign,nonatomic)				NDJSONOptionFlags	deserializerOptions;
 
