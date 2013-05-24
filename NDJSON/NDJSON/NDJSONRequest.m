@@ -21,14 +21,13 @@ static const NSUInteger			kNDJSONDefaultPort = NSUIntegerMax;			// use NDURLRequ
 {
 @protected
 	NDJSONDeserializer		* __strong _deserializer;
+	NDJSONOptionFlags		_deserializerOptions;
 	void (__strong ^_responseCompletionHandler)(NDJSONRequest *, NDJSONResponse *);
 	NSInvocation			* __strong _invocation;
 }
 
 @property(readonly,nonatomic,strong)	void (^responseCompletionHandler)(NDJSONRequest *, NDJSONResponse *);
 @property(readonly,nonatomic,strong)	NSInvocation	* invocation;
-
-- (id)initWithDeserializer:(NDJSONDeserializer *)deserializer;
 
 @end
 
@@ -51,6 +50,7 @@ static const NSUInteger			kNDJSONDefaultPort = NSUIntegerMax;			// use NDURLRequ
 @implementation NDJSONRequest
 
 @synthesize		deserializer = _deserializer,
+				deserializerOptions = _deserializerOptions,
 				invocation = _invocation,
 				responseCompletionHandler = _responseCompletionHandler;
 
@@ -135,8 +135,15 @@ static const NSUInteger			kNDJSONDefaultPort = NSUIntegerMax;			// use NDURLRequ
 
 - (id)initWithDeserializer:(NDJSONDeserializer *)aDeserializer
 {
+	return [self initWithDeserializer:aDeserializer deserializerOptions:NDJSONOptionIgnoreUnknownProperties|NDJSONOptionConvertKeysToMedialCapitals];
+}
+- (id)initWithDeserializer:(NDJSONDeserializer *)aDeserializer deserializerOptions:(NDJSONOptionFlags)anOptions
+{
 	if( (self = [super init]) != nil )
+	{
 		_deserializer = aDeserializer;
+		_deserializerOptions = anOptions;
+	}
 	return self;
 }
 
@@ -253,10 +260,9 @@ static const NSUInteger			kNDJSONDefaultPort = NSUIntegerMax;			// use NDURLRequ
 		 if( aData != nil )
 		 {
 			 NDJSONParser				* theParser = [[NDJSONParser alloc] initWithJSONData:aData encoding:NSUTF8StringEncoding];
-			 NDJSONDeserializer			* theDeserializer = self.request.deserializer;
 			 NSError					* theError = nil;
 
-			 self.result = [theDeserializer objectForJSON:theParser options:NDJSONOptionCovertPrimitiveJSONTypes error:&theError];
+			 self.result = [self.request.deserializer objectForJSON:theParser options:self.request.deserializerOptions error:&theError];
 			 self.error = theError;
 		 }
 		 else
@@ -274,10 +280,9 @@ static const NSUInteger			kNDJSONDefaultPort = NSUIntegerMax;			// use NDURLRequ
 	[NSURLConnection sendAsynchronousRequest:self.request.URLRequest queue:aQueue completionHandler:^(NSURLResponse * aResponse, NSData * aData, NSError * anError)
 	 {
 		 NDJSONParser				* theParser = [[NDJSONParser alloc] initWithJSONData:aData encoding:NSUTF8StringEncoding];
-		 NDJSONDeserializer			* theDeserializer = self.request.deserializer;
 		 NSError					* theError = nil;
 
-		 self.result = [[theDeserializer objectForJSON:theParser options:NDJSONOptionCovertPrimitiveJSONTypes error:&theError] valueForKeyPath:self.request.responseJSONRootPath];
+		 self.result = [[self.request.deserializer objectForJSON:theParser options:self.request.deserializerOptions error:&theError] valueForKeyPath:self.request.responseJSONRootPath];
 		 self.error = theError;
 
 		 [anInvocation setArgument:(void*)self atIndex:3];

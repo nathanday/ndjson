@@ -24,6 +24,7 @@
  */
 
 #import <Foundation/Foundation.h>
+#import "NDJSONDeserializer.h"
 
 @class		NDJSONDeserializer,
 			NDJSONResponse;
@@ -52,7 +53,9 @@ extern const NSUInteger				kNDJSONDefaultPortNumber;
 @property(readonly,nonatomic,copy)		NSString			* errorJSONRootPath;
 
 @property(readonly,nonatomic,strong)	NDJSONDeserializer	* deserializer;
+@property(readonly,nonatomic)			NDJSONOptionFlags	deserializerOptions;
 
+- (id)initWithDeserializer:(NDJSONDeserializer *)deserializer deserializerOptions:(NDJSONOptionFlags)deserializerOptions;
 - (id)initWithDeserializer:(NDJSONDeserializer *)deserializer;
 
 - (void)sendAsynchronousWithQueue:(NSOperationQueue *)queue responseCompletionHandler:(void (^)(NDJSONRequest *, NDJSONResponse *))handler;
@@ -79,6 +82,8 @@ extern const NSUInteger				kNDJSONDefaultPortNumber;
 
 @property(readwrite,nonatomic,copy)		NSString			* responseJSONRootPath;
 @property(readwrite,nonatomic,copy)		NSString			* errorJSONRootPath;
+
+@property(assign,nonatomic)				NDJSONOptionFlags	deserializerOptions;
 
 @end
 
