@@ -99,8 +99,6 @@
 		D85D476C159540F8006785EF /* Utility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utility.m; sourceTree = "<group>"; };
 		D85D476E15954169006785EF /* ChangeParseFromEventToPropertyList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChangeParseFromEventToPropertyList.h; sourceTree = "<group>"; };
 		D85D476F15954169006785EF /* ChangeParseFromEventToPropertyList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChangeParseFromEventToPropertyList.m; sourceTree = "<group>"; };
-		D8996A40165D0C7A00D1DD25 /* NDJSONMeta.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONMeta.h; sourceTree = "<group>"; };
-		D8996A41165D0C7A00D1DD25 /* NDJSONMeta.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONMeta.m; sourceTree = "<group>"; };
 		D89B050B15BAF8890078E320 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		D8B6D9BD154D665200C483CF /* TestCustomObjectsExtended.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestCustomObjectsExtended.h; sourceTree = "<group>"; };
 		D8B6D9BE154D665200C483CF /* TestCustomObjectsExtended.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestCustomObjectsExtended.m; sourceTree = "<group>"; };
@@ -220,8 +218,6 @@
 				D8CCFD011489B06A0015DF1E /* NDJSONDeserializer.m */,
 				D84B47301645F5E000658A39 /* NDJSONRequest.h */,
 				D84B47311645F5E000658A39 /* NDJSONRequest.m */,
-				D8996A40165D0C7A00D1DD25 /* NDJSONMeta.h */,
-				D8996A41165D0C7A00D1DD25 /* NDJSONMeta.m */,
 			);
 			path = NDJSON;
 			sourceTree = "<group>";

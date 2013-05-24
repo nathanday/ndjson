@@ -30,7 +30,6 @@ extern NSString			* const kNDJSONNoInputSourceExpection;
 //#define NDJSONSupportUTF8Only
 //#define NDJSONDebug
 //#define NDJSONPrintStream
-#define NDJSONSupportZippedData
 
 typedef enum
 {
@@ -60,12 +59,11 @@ typedef enum
 	NDJSONBadNumberError
 }		NDJSONErrorCode;
 
-typedef NSUInteger		NDJSONOptionFlags;
-
 typedef NSInteger (*NDJSONDataStreamProc)(uint8_t ** aBuffer, void * aContext );
 typedef NSInteger (^NDJSONDataStreamBlock)(uint8_t ** aBuffer);
 
-enum {
+typedef NS_OPTIONS(NSUInteger, NDJSONOptionFlags)
+{
 	NDJSONOptionNone = 0,
 /**
 	 determines whether the JSON source has to adhere to strict JSON or not.
@@ -76,7 +74,6 @@ enum {
 	 - control characters are allowed in strings (including quoted keys)
  */
 	NDJSONOptionStrict = 1<<0,
-	NDJSONOptionZipCompressed = 1<<1
 };
 
 extern NSString	* const NDJSONErrorDomain;

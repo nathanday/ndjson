@@ -7,7 +7,6 @@
 
 //#define NDJSONDebug
 //#define NDJSONPrintStream
-#define NDJSONSupportZippedData
 
 #import <Foundation/Foundation.h>
 #import "NDJSONParser.h"
@@ -16,9 +15,6 @@
 #include <math.h>
 #include <string.h>
 #include <ctype.h>
-#ifdef NDJSONSupportZippedData
-#include <zlib.h>
-#endif
 
 NSString			* const kNDJSONNoInputSourceExpection = @"NDJSONNoInputSource";
 
@@ -266,7 +262,7 @@ enum JSONInputType
 
 @interface NDJSONParser ()
 {
-	__weak id<NDJSONParserDelegate>		_delegate;
+	id<NDJSONParserDelegate>		__weak _delegate;
 	NSUInteger						_position,
 									_numberOfBytes,
 									_lineNumber;
@@ -294,7 +290,6 @@ enum JSONInputType
 	struct
 	{
 		int								strictJSONOnly		: 1;
-		int								zipJSON				: 1;
 	}								_options;
 	enum JSONInputType				_inputType;
 	union
@@ -307,10 +302,7 @@ enum JSONInputType
 			void						* context;
 		};
 	}								_source;
-#ifdef NDJSONSupportZippedData
-	z_stream						_zipStream;
-#endif
-	NSString						* _currentKey;
+	NSString						* __strong _currentKey;
 	struct
 	{
 		IMP								didStartDocument,
@@ -379,19 +371,6 @@ enum JSONInputType
 		_bytes.word8 = NULL;
 		_bytes.word16 = NULL;
 		_bytes.word32 = NULL;
-#ifdef NDJSONSupportZippedData
-		_zipStream.total_out = 0;
-		_zipStream.zalloc = Z_NULL;
-		_zipStream.zfree = Z_NULL;
-
-		_zipStream.next_in = NULL;
-		_zipStream.avail_in = 0;
-		_zipStream.total_in = 0;
-
-		_zipStream.next_out = NULL;
-		_zipStream.avail_out = 0;
-		_zipStream.total_out = 0;
-#endif
 		_currentKey = nil;
 	}
 	return self;
@@ -558,7 +537,6 @@ enum JSONInputType
 
 	_alreadyParsing = YES;
 	_options.strictJSONOnly = (anOptions&NDJSONOptionStrict) != 0;
-	_options.zipJSON = (anOptions&NDJSONOptionZipCompressed) != 0;
 	if( _delegateMethod.didStartDocument != NULL )
 		_delegateMethod.didStartDocument( _delegate, @selector(jsonParserDidStartDocument:), self );
 
@@ -784,13 +762,6 @@ static uint32_t currentChar( NDJSONParser * self )
 		else
 			self->_complete = YES;
 	}
-
-#ifdef NDJSONSupportZippedData
-	if( self->_options.zipJSON )
-	{
-		
-	}
-#endif
 
 	if( !self->_complete )
 	{
@@ -1461,7 +1432,7 @@ void foundError( NDJSONParser * self, NDJSONErrorCode aCode )
 		break;
 	case NDJSONBadTokenError:
 	{
-		theString = [[NSString alloc] initWithFormat:@"Bad token at pos %lu, %*s", self->_position, (int)theLen, self->_bytes.word8];
+		theString = [[NSString alloc] initWithFormat:@"Bad token at pos %lu, %*s", (unsigned long)self->_position, (int)theLen, self->_bytes.word8];
 		[theUserInfo setObject:theString forKey:NSLocalizedFailureReasonErrorKey];
 		[theString release];
 		break;

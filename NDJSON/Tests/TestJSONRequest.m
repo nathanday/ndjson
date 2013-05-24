@@ -87,6 +87,7 @@
 
 - (id)run
 {
+	id		theResult = nil;
 	NDJSONDeserializer		* theJSONDeserializer = [[NDJSONDeserializer alloc] init];
 	NDJSONMutableRequest	* theRequest = [[NDJSONMutableRequest alloc] initWithDeserializer:theJSONDeserializer];
 	NSConditionLock			* theLock = [[NSConditionLock alloc] initWithCondition:NO];
@@ -98,7 +99,9 @@
 		[theLock unlockWithCondition:YES];
 	}];
 	[theLock lockWhenCondition:YES];
-	return self.lastResult;
+	theResult = self.lastResult;
+	[theLock unlockWithCondition:NO];
+	return theResult;
 }
 
 #pragma mark - NSObject overridden methods
