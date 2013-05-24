@@ -248,15 +248,20 @@ static const NSUInteger			kNDJSONDefaultPort = NSUIntegerMax;			// use NDURLRequ
 
 - (void)loadAsynchronousWithQueue:(NSOperationQueue *)aQueue completionHandler:(void (^)(NDJSONRequest *,NDJSONResponse*))aBlock
 {
-	NSURLRequest		* theURLRequest = [[NSURLRequest alloc] initWithURL:self.request.URL];
-	[NSURLConnection sendAsynchronousRequest:theURLRequest queue:aQueue completionHandler:^(NSURLResponse * aResponse, NSData * aData, NSError * anError)
+	[NSURLConnection sendAsynchronousRequest:self.request.URLRequest queue:aQueue completionHandler:^(NSURLResponse * aResponse, NSData * aData, NSError * anError)
 	 {
-		 NDJSONParser				* theParser = [[NDJSONParser alloc] initWithJSONData:aData encoding:NSUTF8StringEncoding];
-		 NDJSONDeserializer			* theDeserializer = [[NDJSONDeserializer alloc] init]; // WithRootClass:self.request.rootClass];
-		 NSError					* theError = nil;
+		 if( aData != nil )
+		 {
+			 NDJSONParser				* theParser = [[NDJSONParser alloc] initWithJSONData:aData encoding:NSUTF8StringEncoding];
+			 NDJSONDeserializer			* theDeserializer = self.request.deserializer;
+			 NSError					* theError = nil;
 
-		 self.result = [theDeserializer objectForJSON:theParser options:NDJSONOptionNone error:&theError];
-		 self.error = theError;
+			 self.result = [theDeserializer objectForJSON:theParser options:NDJSONOptionCovertPrimitiveJSONTypes error:&theError];
+			 self.error = theError;
+		 }
+		 else
+			 self.error = anError;
+
 		 if( aBlock )
 			 aBlock( self.request, self );
 	 }];
@@ -264,16 +269,15 @@ static const NSUInteger			kNDJSONDefaultPort = NSUIntegerMax;			// use NDURLRequ
 
 - (void)loadAsynchronousWithQueue:(NSOperationQueue *)aQueue invocation:(NSInvocation *)anInvocation
 {
-	NSURLRequest		* theURLRequest = [[NSURLRequest alloc] initWithURL:self.request.URL];
 	[anInvocation retainArguments];
 	[anInvocation setArgument:(void*)self.request atIndex:2];
-	[NSURLConnection sendAsynchronousRequest:theURLRequest queue:aQueue completionHandler:^(NSURLResponse * aResponse, NSData * aData, NSError * anError)
+	[NSURLConnection sendAsynchronousRequest:self.request.URLRequest queue:aQueue completionHandler:^(NSURLResponse * aResponse, NSData * aData, NSError * anError)
 	 {
 		 NDJSONParser				* theParser = [[NDJSONParser alloc] initWithJSONData:aData encoding:NSUTF8StringEncoding];
-		 NDJSONDeserializer			* theDeserializer = [[NDJSONDeserializer alloc] init]; // WithRootClass:self.request.rootClass];
+		 NDJSONDeserializer			* theDeserializer = self.request.deserializer;
 		 NSError					* theError = nil;
 
-		 self.result = [[theDeserializer objectForJSON:theParser options:NDJSONOptionNone error:&theError] valueForKeyPath:self.request.responseJSONRootPath];
+		 self.result = [[theDeserializer objectForJSON:theParser options:NDJSONOptionCovertPrimitiveJSONTypes error:&theError] valueForKeyPath:self.request.responseJSONRootPath];
 		 self.error = theError;
 
 		 [anInvocation setArgument:(void*)self atIndex:3];
