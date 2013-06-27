@@ -61,8 +61,8 @@ static NDJSONValueType getTypeNameFromPropertyAttributes( char * aClassName, siz
 	return theResult;
 }
 
-static void pushContainerForJSONParser( NDJSONDeserializer * self, id container, BOOL isObject );
-static id popCurrentContainerForJSONParser( NDJSONDeserializer * self );
+static void pushContainerForJSONDeserializer( NDJSONDeserializer * self, id container, BOOL isObject );
+static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 
 @interface NDJSONDeserializer () <NDJSONParserDelegate>
 {
@@ -114,12 +114,12 @@ static id popCurrentContainerForJSONParser( NDJSONDeserializer * self );
 
 @end
 
-@interface NDJSONExtendedParser : NDJSONDeserializer
+@interface NDJSONExtendedDeserializer : NDJSONDeserializer
 
 @end
 
-#pragma mark - NDJSONCustomParser interface
-@interface NDJSONCustomParser : NDJSONExtendedParser
+#pragma mark - NDJSONCustomDeserializer interface
+@interface NDJSONCustomDeserializer : NDJSONExtendedDeserializer
 {
 	Class	rootClass,
 			rootCollectionClass;
@@ -131,7 +131,7 @@ static id popCurrentContainerForJSONParser( NDJSONDeserializer * self );
 @end
 
 #pragma mark - NDJSONCoreData interface
-@interface NDJSONCoreData : NDJSONExtendedParser
+@interface NDJSONCoreData : NDJSONExtendedDeserializer
 {
 	NSManagedObjectContext			* managedObjectContext;
 	NSEntityDescription				* rootEntity;
@@ -172,7 +172,7 @@ static id popCurrentContainerForJSONParser( NDJSONDeserializer * self );
 - (id)initWithRootClass:(Class)aRootClass rootCollectionClass:(Class)aRootCollectionClass initialParent:(id)aParent
 {
 	[self release];
-	return [[NDJSONCustomParser alloc] initWithRootClass:aRootClass rootCollectionClass:aRootCollectionClass initialParent:aParent];
+	return [[NDJSONCustomDeserializer alloc] initWithRootClass:aRootClass rootCollectionClass:aRootCollectionClass initialParent:aParent];
 }
 
 - (id)initWithRootEntityName:(NSString *)aRootEntityName inManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext
@@ -259,14 +259,14 @@ static id popCurrentContainerForJSONParser( NDJSONDeserializer * self );
 	NSMutableArray		* theArrayRep = [[NSMutableArray alloc] init];
 	if( self->_delegateMethod.didStartArray != NULL )
 		self->_delegateMethod.didStartArray( self->_delegate, @selector(jsonParserDidStartArray:), self );
-	pushContainerForJSONParser( self, theArrayRep, NO );
+	pushContainerForJSONDeserializer( self, theArrayRep, NO );
 	[_currentProperty release], _currentProperty = nil;
 	[theArrayRep release];
 }
 
 - (void)jsonParserDidEndArray:(NDJSONParser *)aJSON
 {
-	id		theArray = popCurrentContainerForJSONParser(self);
+	id		theArray = popCurrentContainerForJSONDeserializer(self);
 	if( self->_delegateMethod.didEndArray != NULL )
 		self->_delegateMethod.didEndArray( self->_delegate, @selector(jsonParserDidEndArray:), self );
 	[self addValue:theArray type:NDJSONValueArray];
@@ -278,14 +278,14 @@ static id popCurrentContainerForJSONParser( NDJSONDeserializer * self );
 
 	if( self->_delegateMethod.didStartObject != NULL )
 		self->_delegateMethod.didStartObject( self->_delegate, @selector(jsonParserDidStartObject:), self );
-	pushContainerForJSONParser( self, theObjectRep, YES );
+	pushContainerForJSONDeserializer( self, theObjectRep, YES );
 	[_currentProperty release], _currentProperty = nil;
 	[theObjectRep release];
 }
 
 - (void)jsonParserDidEndObject:(NDJSONParser *)aJSON
 {
-	id		theObject = popCurrentContainerForJSONParser(self);
+	id		theObject = popCurrentContainerForJSONDeserializer(self);
 	if( self->_delegateMethod.didEndObject != NULL )
 		self->_delegateMethod.didEndObject( self->_delegate, @selector(jsonParserDidEndObject:), self );
 	[self addValue:theObject type:NDJSONValueObject];
@@ -489,7 +489,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 	return theResult;
 }
 
-static void pushContainerForJSONParser( NDJSONDeserializer * self, id aContainer, BOOL anIsObject )
+static void pushContainerForJSONDeserializer( NDJSONDeserializer * self, id aContainer, BOOL anIsObject )
 {
 	NSCParameterAssert( aContainer != nil );
 	NSCParameterAssert( self->_containerStack.bytes != NULL );
@@ -532,7 +532,7 @@ static void pushContainerForJSONParser( NDJSONDeserializer * self, id aContainer
 		_result = [aValue retain];
 }
 
-id popCurrentContainerForJSONParser( NDJSONDeserializer * self )
+id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self )
 {
 	id		theResult = nil;
 	if( self->_containerStack.count > 0 )
@@ -549,7 +549,7 @@ id popCurrentContainerForJSONParser( NDJSONDeserializer * self )
 
 @end
 
-@implementation NDJSONExtendedParser
+@implementation NDJSONExtendedDeserializer
 
 static SEL conversionSelectorForPropertyAndType( NSString * aProperty, NDJSONValueType aType )
 {
@@ -702,8 +702,6 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 		if( _currentProperty == nil )								// container must be array like
 		{
 			NSCParameterAssert( [theCurrentContainer respondsToSelector:@selector(addObject:)] );
-//			if( [theCurrentContainer respondsToSelector:@selector(count)] && [aValue respondsToSelector:@selector(jsonParser:setIndex:)] )
-//				[aValue jsonParser:self setIndex:[theCurrentContainer count]];
 			if( [theCurrentContainer respondsToSelector:@selector(count)] && [[aValue class] respondsToSelector:@selector(indexPropertyNameWithJSONDeserializer:)] )
 			{
 				[aValue setValue:[NSNumber numberWithUnsignedInteger:[theCurrentContainer count]] forKey:[[aValue class] indexPropertyNameWithJSONDeserializer:self]];
@@ -744,7 +742,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 
 @end
 
-@implementation NDJSONCustomParser
+@implementation NDJSONCustomDeserializer
 
 @synthesize		rootClass,
 				rootCollectionClass;
@@ -757,7 +755,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 		rootClass = aRootClass;
 		rootCollectionClass = aRootCollectionClass;
 		if( aParent != nil )
-			pushContainerForJSONParser( self, aParent, YES );
+			pushContainerForJSONDeserializer( self, aParent, YES );
 	}
 	return self;
 }
@@ -773,7 +771,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 {
 	id		theArrayRep = [[[self collectionClassForPropertyName:_currentProperty class:[self.currentObject class]] alloc] init];
 
-	pushContainerForJSONParser( self, theArrayRep, NO );
+	pushContainerForJSONDeserializer( self, theArrayRep, NO );
 	[_currentProperty release], _currentProperty = nil;
 	[theArrayRep release];
 }
@@ -792,7 +790,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 	if( [[theObjectRep class] respondsToSelector:@selector(parentPropertyNameWithJSONDeserializer:)] )
 		[theObjectRep setValue:self.currentObject forKey:[[theObjectRep class] parentPropertyNameWithJSONDeserializer:self]];
 
-	pushContainerForJSONParser( self, theObjectRep, YES );
+	pushContainerForJSONDeserializer( self, theObjectRep, YES );
 	[_currentProperty release], _currentProperty = nil;
 	[theObjectRep release];
 }
@@ -964,7 +962,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 - (void)jsonParserDidStartArray:(NDJSONParser *)aJSON
 {
 	NSMutableSet		* theSet = [[NSMutableSet alloc] init];
-	pushContainerForJSONParser( self, theSet, NO );
+	pushContainerForJSONDeserializer( self, theSet, NO );
 	[_currentProperty release], _currentProperty = nil;
 	[theSet release];
 }
@@ -984,7 +982,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 
 	theNewObject = [[NSManagedObject alloc] initWithEntity:theEntityDesctipion insertIntoManagedObjectContext:self.managedObjectContext];
 	
-	pushContainerForJSONParser( self, theNewObject, YES );
+	pushContainerForJSONDeserializer( self, theNewObject, YES );
 	[_currentProperty release], _currentProperty = nil;
 	[theNewObject release];
 }
