@@ -61,10 +61,10 @@ static NDJSONValueType getTypeNameFromPropertyAttributes( char * aClassName, siz
 	return theResult;
 }
 
-static void pushContainerForJSONDeserializer( NDJSONDeserializer * self, id container, BOOL isObject );
+void pushContainerForJSONDeserializer( NDJSONDeserializer * self, id container, BOOL isObject );
 static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 
-@interface NDJSONDeserializer () <NDJSONParserDelegate>
+@interface NDJSONDeserializer ()
 {
 @protected
 	struct
@@ -105,16 +105,10 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 	}										_delegateMethod;
 }
 
-@property(readonly,nonatomic)	id			currentObject;
 @property(readonly,nonatomic)	id			currentContainer;
-@property(readonly,nonatomic)	NSString	* currentContainerPropertyName;
 @property(readonly,nonatomic)	NSString	* currentContainerKey;
 
 - (void)addValue:(id)value type:(NDJSONValueType)type;
-
-@end
-
-@interface NDJSONExtendedDeserializer : NDJSONDeserializer
 
 @end
 
@@ -130,24 +124,11 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 
 @end
 
-#pragma mark - NDJSONCoreData interface
-@interface NDJSONCoreData : NDJSONExtendedDeserializer
-{
-	NSManagedObjectContext			* managedObjectContext;
-	NSEntityDescription				* rootEntity;
-	NSManagedObjectModel			* managedObjectModel;
-}
-@property(readonly,nonatomic)	NSManagedObjectModel		* managedObjectModel;
-@property(retain,nonatomic)		NSEntityDescription			* currentEntityDescription;
-
-- (NSEntityDescription *)entityDescriptionForName:(NSString *)name;
-
-@end
-
 #pragma mark - NDJSONDeserializer implementation
 @implementation NDJSONDeserializer
 
-@synthesize			delegate = _delegate;
+@synthesize			delegate = _delegate,
+					currentProperty = _currentProperty;
 
 #pragma mark - manually implemented properties
 
@@ -173,21 +154,6 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 {
 	[self release];
 	return [[NDJSONCustomDeserializer alloc] initWithRootClass:aRootClass rootCollectionClass:aRootCollectionClass initialParent:aParent];
-}
-
-- (id)initWithRootEntityName:(NSString *)aRootEntityName inManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext
-{
-	NSParameterAssert( aRootEntityName != nil );
-	NSParameterAssert( aManagedObjectContext != nil );
-	return [self initWithRootEntity:[[aManagedObjectContext.persistentStoreCoordinator.managedObjectModel entitiesByName] objectForKey:aRootEntityName] inManagedObjectContext:aManagedObjectContext];
-}
-
-- (id)initWithRootEntity:(NSEntityDescription *)aRootEntity inManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext
-{
-	NSParameterAssert( aRootEntity != nil );
-	NSParameterAssert( aManagedObjectContext != nil );
-	[self release];
-	return [[NDJSONCoreData alloc] initWithRootEntity:aRootEntity inManagedObjectContext:aManagedObjectContext];
 }
 
 - (void)dealloc
@@ -489,7 +455,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 	return theResult;
 }
 
-static void pushContainerForJSONDeserializer( NDJSONDeserializer * self, id aContainer, BOOL anIsObject )
+void pushContainerForJSONDeserializer( NDJSONDeserializer * self, id aContainer, BOOL anIsObject )
 {
 	NSCParameterAssert( aContainer != nil );
 	NSCParameterAssert( self->_containerStack.bytes != NULL );
@@ -513,10 +479,10 @@ static void pushContainerForJSONDeserializer( NDJSONDeserializer * self, id aCon
 
 - (void)addValue:(id)aValue type:(NDJSONValueType)aType
 {
-	id			theCurrentContainer = self.currentContainer;;
+	id			theCurrentContainer = self.currentContainer;
 	if( theCurrentContainer != nil )
 	{
-		if( _currentProperty == nil )
+		if( _currentProperty == nil )								// container must be array like
 		{
 			NSCParameterAssert( [theCurrentContainer respondsToSelector:@selector(addObject:)] );
 			if( [theCurrentContainer respondsToSelector:@selector(count)] && [[aValue class] respondsToSelector:@selector(indexPropertyNameWithJSONDeserializer:)] )
@@ -525,7 +491,7 @@ static void pushContainerForJSONDeserializer( NDJSONDeserializer * self, id aCon
 			}
 			[theCurrentContainer addObject:aValue];
 		}
-		else
+		else														// container must be dictionary like
 			[theCurrentContainer setValue:aValue forKey:_currentProperty];
 	}
 	else
@@ -696,7 +662,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 
 - (void)addValue:(id)aValue type:(NDJSONValueType)aType
 {
-	id			theCurrentContainer = self.currentContainer;;
+	id			theCurrentContainer = self.currentContainer;
 	if( theCurrentContainer != nil )
 	{
 		if( _currentProperty == nil )								// container must be array like
@@ -903,94 +869,6 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 		@throw theException;
 	}
 	return theClass;
-}
-
-@end
-
-@implementation NDJSONCoreData
-
-@synthesize		currentEntityDescription,
-				managedObjectContext,
-				rootEntity;
-
-- (NSEntityDescription *)currentEntityDescription
-{
-	NSManagedObject		* theCurrentContainer = self.currentObject;
-	return theCurrentContainer.entity;
-}
-
-- (NSManagedObjectModel *)managedObjectModel
-{
-	if( managedObjectModel == nil )
-		managedObjectModel = [self.managedObjectContext.persistentStoreCoordinator.managedObjectModel retain];
-	return managedObjectModel;
-}
-
-#pragma mark - creation and destruction
-- (id)initWithRootEntity:(NSEntityDescription *)aRootEntity inManagedObjectContext:(NSManagedObjectContext *)aManagedObjectContext
-{
-	if( (self = [super init]) != nil )
-	{
-		managedObjectContext = [aManagedObjectContext retain];
-		rootEntity = [aRootEntity retain];
-	}
-	return self;
-}
-
-- (void)dealloc
-{
-	[managedObjectContext release];
-	[rootEntity release];
-	[managedObjectModel release];
-	[super dealloc];
-}
-
-- (NSEntityDescription *)entityDescriptionForName:(NSString *)aName { return [[self.managedObjectModel entitiesByName] objectForKey:aName]; }
-
-- (void)jsonParserDidStartDocument:(NDJSONParser *)aJSON
-{
-	self.currentEntityDescription = nil;
-	[super jsonParserDidStartDocument:aJSON];
-}
-
-- (void)jsonParserDidEndDocument:(NDJSONParser *)aJSON
-{
-	self.currentEntityDescription = nil;
-	[super jsonParserDidEndDocument:aJSON];
-}
-
-- (void)jsonParserDidStartArray:(NDJSONParser *)aJSON
-{
-	NSMutableSet		* theSet = [[NSMutableSet alloc] init];
-	pushContainerForJSONDeserializer( self, theSet, NO );
-	[_currentProperty release], _currentProperty = nil;
-	[theSet release];
-}
-
-- (void)jsonParserDidStartObject:(NDJSONParser *)aJSON
-{
-	NSEntityDescription			* theEntityDesctipion = nil;
-	NSManagedObject				* theNewObject = nil;
-	NSEntityDescription			* theCurrentEntityDescription = self.currentEntityDescription;
-	if( theCurrentEntityDescription != nil )
-	{
-		NSRelationshipDescription		* theRelationshipDescription = [[theCurrentEntityDescription relationshipsByName] objectForKey:self.currentContainerPropertyName];
-		theEntityDesctipion = theRelationshipDescription.destinationEntity;
-	}
-	else
-		theEntityDesctipion = self.rootEntity;
-
-	theNewObject = [[NSManagedObject alloc] initWithEntity:theEntityDesctipion insertIntoManagedObjectContext:self.managedObjectContext];
-	
-	pushContainerForJSONDeserializer( self, theNewObject, YES );
-	[_currentProperty release], _currentProperty = nil;
-	[theNewObject release];
-}
-
-- (BOOL)sonParser:(NDJSONParser *)aJSON shouldSkipValueForKey:(NSString *)key
-{
-	NSEntityDescription		* theEntityDescription = self.currentEntityDescription;
-	return [theEntityDescription.propertiesByName objectForKey:_currentProperty] != nil;
 }
 
 @end

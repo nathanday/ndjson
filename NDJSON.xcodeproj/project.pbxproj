@@ -59,6 +59,7 @@
 		D8F022741425F44000504B84 /* file4.json in Resources */ = {isa = PBXBuildFile; fileRef = D8F0226E1425F44000504B84 /* file4.json */; };
 		D8F0227A1426283300504B84 /* TestFragementedInput.m in Sources */ = {isa = PBXBuildFile; fileRef = D8F022791426283300504B84 /* TestFragementedInput.m */; };
 		D8F0227D142634B700504B84 /* TestProtocolBase.m in Sources */ = {isa = PBXBuildFile; fileRef = D8F0227C142634B700504B84 /* TestProtocolBase.m */; };
+		D8F2C40C178AF27D003F0FCB /* NDJSONCoreDataDeserializer.m in Sources */ = {isa = PBXBuildFile; fileRef = D8F2C40B178AF27D003F0FCB /* NDJSONCoreDataDeserializer.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		D8FFDFBA1418CDD900F24E54 /* TestOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = D8FFDFB91418CDD900F24E54 /* TestOperation.m */; };
 /* End PBXBuildFile section */
 
@@ -155,6 +156,8 @@
 		D8F022791426283300504B84 /* TestFragementedInput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestFragementedInput.m; sourceTree = "<group>"; };
 		D8F0227B142634B600504B84 /* TestProtocolBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestProtocolBase.h; sourceTree = "<group>"; };
 		D8F0227C142634B700504B84 /* TestProtocolBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestProtocolBase.m; sourceTree = "<group>"; };
+		D8F2C40A178AF27D003F0FCB /* NDJSONCoreDataDeserializer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NDJSONCoreDataDeserializer.h; sourceTree = "<group>"; };
+		D8F2C40B178AF27D003F0FCB /* NDJSONCoreDataDeserializer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NDJSONCoreDataDeserializer.m; sourceTree = "<group>"; };
 		D8FFDFB81418CDD900F24E54 /* TestOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestOperation.h; sourceTree = "<group>"; };
 		D8FFDFB91418CDD900F24E54 /* TestOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestOperation.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -216,6 +219,8 @@
 				D8CCFCFD1489B06A0015DF1E /* NDJSONParser.m */,
 				D8CCFD001489B06A0015DF1E /* NDJSONDeserializer.h */,
 				D8CCFD011489B06A0015DF1E /* NDJSONDeserializer.m */,
+				D8F2C40A178AF27D003F0FCB /* NDJSONCoreDataDeserializer.h */,
+				D8F2C40B178AF27D003F0FCB /* NDJSONCoreDataDeserializer.m */,
 				D84B47301645F5E000658A39 /* NDJSONRequest.h */,
 				D84B47311645F5E000658A39 /* NDJSONRequest.m */,
 			);
@@ -435,6 +440,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				D8D602461414FD91007F8A29 /* main.m in Sources */,
+				D8CCFD021489B06A0015DF1E /* NDJSONParser.m in Sources */,
+				D8CCFD041489B06A0015DF1E /* NDJSONDeserializer.m in Sources */,
+				D8F2C40C178AF27D003F0FCB /* NDJSONCoreDataDeserializer.m in Sources */,
 				D8D6024D1414FD91007F8A29 /* NDAppDelegate.m in Sources */,
 				D81677041416265A0082CEB6 /* TestGroup.m in Sources */,
 				D8FFDFBA1418CDD900F24E54 /* TestOperation.m in Sources */,
@@ -442,8 +450,6 @@
 				D8F0227A1426283300504B84 /* TestFragementedInput.m in Sources */,
 				D8F0227D142634B700504B84 /* TestProtocolBase.m in Sources */,
 				D8CCFCFA1489B0390015DF1E /* TestStringInput.m in Sources */,
-				D8CCFD021489B06A0015DF1E /* NDJSONParser.m in Sources */,
-				D8CCFD041489B06A0015DF1E /* NDJSONDeserializer.m in Sources */,
 				D8E25AE714C0328C001B02DA /* TestUnicharEscapeSquence.m in Sources */,
 				D827A0BC151E0D1A0071645A /* TestCustomObjects.m in Sources */,
 				D811D26A1543088900D7FFBB /* TestCustomObjectsSimple.m in Sources */,

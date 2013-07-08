@@ -16,6 +16,7 @@
 #import "NDCoreDataController.h"
 #import <CoreData/CoreData.h>
 #import "NSObject+TestUtilities.h"
+#import "NDJSONCoreDataDeserializer.h"
 
 @interface TestNDJSONCoreData ()
 {

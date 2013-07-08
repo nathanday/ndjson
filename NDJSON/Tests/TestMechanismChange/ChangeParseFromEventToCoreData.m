@@ -11,6 +11,7 @@
 #import "GenRoot.h"
 #import "GenChild.h"
 #import "NDCoreDataController.h"
+#import "NDJSONCoreDataDeserializer.h"
 
 @implementation ChangeParseFromEventToCoreData
 

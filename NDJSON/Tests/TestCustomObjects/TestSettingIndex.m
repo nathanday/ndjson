@@ -29,7 +29,7 @@
 
 + (void)addTestsToTestGroup:(TestGroup *)aTestGroup
 {
-	NSArray		* theExpectedResult = [NSSet setWithObjects:[IndexClass withName:@"obj-0" index:0],
+	NSSet		* theExpectedResult = [NSSet setWithObjects:[IndexClass withName:@"obj-0" index:0],
 									   [IndexClass withName:@"obj-1" index:1],
 									   [IndexClass withName:@"obj-2" index:2],
 									   [IndexClass withName:@"obj-3" index:3],

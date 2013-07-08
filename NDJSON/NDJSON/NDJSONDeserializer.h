@@ -60,7 +60,9 @@ enum {
  The *NDJSONDeserializer* class provides methods that convert a JSON document into an object tree representation. *NDJSONDeserializer* can either generate property list type objects, *NSDictionary*s, *NSArrays*, *NSStrings* and *NSNumber*s as well as *NSNull* for the JSON value null, or by supplying your own root object and maybe implementing the methods defined in the anyomnous protocol NSObject+NDJSONDeserializer in your own classes, NDJSONDeserializer will generate a tree if your own classes.
  When generating classes of your own type, *NDJSONDeserializer* will determine the correct class type for properties by quering the Objective-C runetime, NSObject+NDJSONDeserializer methods can be used when the information is not avaialable, for example what classes to insert in an array.
  */
-@interface NDJSONDeserializer : NSObject
+@interface NDJSONDeserializer : NSObject <NDJSONParserDelegate>
+
+@property(readonly,nonatomic)	id			currentObject;
 
 /**
 	Class used for root JSON object
@@ -71,14 +73,6 @@ enum {
  */
 @property(readonly,nonatomic)	Class					rootCollectionClass;
 
-/**
- CoreData context used to insert NSManagedObjects into.
- */
-@property(readonly,nonatomic)	NSManagedObjectContext	* managedObjectContext;
-/**
- Entity Description used create the root JSON object
- */
-@property(readonly,nonatomic)	NSEntityDescription		* rootEntity;
 
 @property(assign,nonatomic)		id<NDJSONDeserializerDelegate>	delegate;
 
@@ -93,14 +87,15 @@ enum {
 
 - (id)initWithRootClass:(Class)rootClass rootCollectionClass:(Class)rootCollectionClass initialParent:(id)parent;
 
-- (id)initWithRootEntityName:(NSString *)rootEntityName inManagedObjectContext:(NSManagedObjectContext *)context;
-
-- (id)initWithRootEntity:(NSEntityDescription *)rootEntity inManagedObjectContext:(NSManagedObjectContext *)context;
-
 /**
 	return the root object generted from the parsers output.
  */
 - (id)objectForJSON:(NDJSONParser *)parser options:(NDJSONOptionFlags)options error:(NSError **)error;
+
+#pragma mark - private
+
+@property(copy,nonatomic)		NSString	* currentProperty;
+@property(readonly,nonatomic)	NSString	* currentContainerPropertyName;
 
 @end
 
@@ -149,6 +144,12 @@ enum {
 + (NSString *)parentPropertyNameWithJSONDeserializer:(NDJSONDeserializer *)aParser;
 
 @end
+
+@interface NDJSONExtendedDeserializer : NDJSONDeserializer
+
+@end
+
+void pushContainerForJSONDeserializer( NDJSONDeserializer * self, id container, BOOL isObject );
 
 /**
 	implements the class method `+[NSObject classesForPropertyNamesWithJSONDeserializer:]` returning a dictionary with the supplied arguemnts.
