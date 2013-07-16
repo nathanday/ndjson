@@ -1,8 +1,27 @@
 /*
 	NDJSONParser.m
+	NDJSON
 
-	Created by Nathan Day on 31/08/11.
-	Copyright 2011 Nathan Day. All rights reserved.
+	Created by Nathan Day on 31.02.12 under a MIT-style license.
+	Copyright (c) 2012 Nathan Day
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE.
  */
 
 //#define NDJSONDebug
@@ -1291,7 +1310,7 @@ BOOL parseJSONNumber( NDJSONParser * self )
 		if( theNegative )
 			theIntegerValue = -theIntegerValue;
 		if( self->_delegateMethod.foundNumber != NULL )
-			self->_delegateMethod.foundNumber( self->_delegate, @selector(jsonParser:foundNumber:), self, [NSNumber numberWithInteger:theIntegerValue] );
+			self->_delegateMethod.foundNumber( self->_delegate, @selector(jsonParser:foundNumber:), self, [NSNumber numberWithLongLong:theIntegerValue] );
 		else if( self->_delegateMethod.foundInteger != NULL )
 			self->_delegateMethod.foundInteger( self->_delegate, @selector(jsonParser:foundInteger:), self, theIntegerValue );
 	}
@@ -1433,24 +1452,32 @@ void foundError( NDJSONParser * self, NDJSONErrorCode aCode )
 	case NDJSONBadTokenError:
 	{
 		theString = [[NSString alloc] initWithFormat:@"Bad token at pos %lu, %*s", (unsigned long)self->_position, (int)theLen, self->_bytes.word8];
-		[theUserInfo setObject:theString forKey:NSLocalizedFailureReasonErrorKey];
-		[theString release];
 		break;
 	}
 	case NDJSONBadFormatError:
+		theString = [[NSString alloc] initWithFormat:@"Bad formate at pos %lu, %*s", (unsigned long)self->_position, (int)theLen, self->_bytes.word8];
 		break;
 	case NDJSONBadEscapeSequenceError:
+		theString = [[NSString alloc] initWithFormat:@"Bad escape sequence at pos %lu, %*s", (unsigned long)(self->_position > 0 ? self->_position-1 : self->_position), (int)theLen, self->_bytes.word8];
 		break;
 	case NDJSONTrailingGarbageError:
+		theString = [[NSString alloc] initWithFormat:@"Trailing garbage at pos %lu, %*s", (unsigned long)self->_position, (int)theLen, self->_bytes.word8];
 		break;
 	case NDJSONMemoryErrorError:
+		theString = [[NSString alloc] initWithFormat:@"System failed allocated memory"];
 		break;
 	case NDJSONPrematureEndError:
+		theString = [[NSString alloc] initWithFormat:@"Premature End of data at pos %lu, %*s", (unsigned long)self->_position, (int)theLen, self->_bytes.word8];
 		break;
 	}
+	[theUserInfo setObject:theString forKey:NSLocalizedFailureReasonErrorKey];
 	if( self->_delegateMethod.foundError != NULL )
 		self->_delegateMethod.foundError( self->_delegate, @selector(jsonParser:error:), self, [NSError errorWithDomain:NDJSONErrorDomain code:aCode userInfo:theUserInfo] );
 	[theUserInfo release];
+#ifndef NDJSON_SUPPRESS_ALL_LOGING
+	NSLog( @"Error, code:%u reason: %@", aCode, theString );
+#endif
+	[theString release];
 }
 
 @end

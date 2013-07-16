@@ -194,12 +194,11 @@
 	NSError					* theError = nil;
 	NDJSONParser			* theJSON = [[NDJSONParser alloc] initWithJSONString:self.jsonString];
 	NDJSONDeserializer		* theJSONParser = [[NDJSONDeserializer alloc] initWithRootEntityName:@"Root" inManagedObjectContext:self.managedObjectContext];
-	id					theResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionCovertPrimitiveJSONTypes error:&theError];
-	self.lastResult = theResult;
+	self.lastResult = [theJSONParser objectForJSON:theJSON options:NDJSONOptionCovertPrimitiveJSONTypes error:&theError];
 	self.error = theError;
 	if( ![self.managedObjectContext save:&theError] )
 	{
-		NSLog( @"Failed to context, error: %@", theError );
+		NSLog( @"Failed to save context, error: %@", theError );
 		self.error = theError;
 	}
 	return self.lastResult;

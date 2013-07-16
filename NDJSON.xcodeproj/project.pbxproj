@@ -392,7 +392,7 @@
 		D8D6022C1414FD91007F8A29 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0460;
+				LastUpgradeCheck = 0500;
 				ORGANIZATIONNAME = "Nathan Day";
 			};
 			buildConfigurationList = D8D6022F1414FD91007F8A29 /* Build configuration list for PBXProject "NDJSON" */;
@@ -544,7 +544,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = macosx;
+				SDKROOT = macosx10.8;
+				VALID_ARCHS = x86_64;
 			};
 			name = Debug;
 		};
@@ -575,13 +576,15 @@
 				GCC_WARN_UNUSED_LABEL = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				SDKROOT = macosx;
+				SDKROOT = macosx10.8;
+				VALID_ARCHS = x86_64;
 			};
 			name = Release;
 		};
 		D8D602541414FD92007F8A29 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "NDJSON/NDJSON-Prefix.pch";
 				INFOPLIST_FILE = "NDJSON/NDJSON-Info.plist";
@@ -594,6 +597,7 @@
 		D8D602551414FD92007F8A29 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "NDJSON/NDJSON-Prefix.pch";
 				INFOPLIST_FILE = "NDJSON/NDJSON-Info.plist";

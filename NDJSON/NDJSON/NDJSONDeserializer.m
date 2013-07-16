@@ -2,8 +2,26 @@
 	NDJSONDeserializer.m
 	NDJSON
 
-	Created by Nathan Day on 31/08/11.
-	Copyright 2011 Nathan Day. All rights reserved.
+	Created by Nathan Day on 31.02.12 under a MIT-style license.
+	Copyright (c) 2012 Nathan Day
+
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE.
  */
 
 #import "NDJSONDeserializer.h"
@@ -103,10 +121,12 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 												foundError,
 												objectForClass;
 	}										_delegateMethod;
+	NSError									* _error;
 }
 
-@property(readonly,nonatomic)	id			currentContainer;
-@property(readonly,nonatomic)	NSString	* currentContainerKey;
+@property(readonly,nonatomic)			id			currentContainer;
+@property(readonly,nonatomic)			NSString	* currentContainerKey;
+@property(readwrite,strong,nonatomic)	NSError		* error;
 
 - (void)addValue:(id)value type:(NDJSONValueType)type;
 
@@ -128,7 +148,8 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 @implementation NDJSONDeserializer
 
 @synthesize			delegate = _delegate,
-					currentProperty = _currentProperty;
+					currentProperty = _currentProperty,
+					error = _error;
 
 #pragma mark - manually implemented properties
 
@@ -136,7 +157,6 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 - (Class)rootCollectionClass { return Nil; }
 
 - (NSManagedObjectContext *)managedObjectContext { return nil; }
-- (NSEntityDescription *)rootEntity { return nil; }
 
 - (void)setDelegate:(id<NDJSONDeserializerDelegate>)aDelegate
 {
@@ -184,6 +204,8 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 	_options.convertPrimativeJSONTypes = anOptions&NDJSONOptionCovertPrimitiveJSONTypes ? YES : NO;
 	if( [aJSON parseWithOptions:anOptions] )
 		theResult = _result;
+	else if( anError != NULL )
+		*anError = self.error;
 	aJSON.delegate = theOriginalDelegate;
 	return theResult;
 }
@@ -365,6 +387,10 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 	if( self->_delegateMethod.foundNULL != NULL )
 		self->_delegateMethod.foundNULL( self->_delegate, @selector(jsonParserFoundNULL:), self );
 	[_currentProperty release], _currentProperty = nil;
+}
+- (void)jsonParser:(NDJSONParser *)aJSONParser error:(NSError *)anError
+{
+	self.error = anError;
 }
 
 #pragma mark - private

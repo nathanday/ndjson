@@ -1,5 +1,6 @@
 /*
 	NDJSONParser.h
+	NDJSON
 
 	Created by Nathan Day on 31.02.12 under a MIT-style license. 
 	Copyright (c) 2012 Nathan Day
@@ -62,7 +63,7 @@ typedef enum
 typedef NSInteger (*NDJSONDataStreamProc)(uint8_t ** aBuffer, void * aContext );
 typedef NSInteger (^NDJSONDataStreamBlock)(uint8_t ** aBuffer);
 
-typedef NS_OPTIONS(NSUInteger, NDJSONOptionFlags)
+enum : NSUInteger
 {
 	NDJSONOptionNone = 0,
 /**
@@ -75,6 +76,9 @@ typedef NS_OPTIONS(NSUInteger, NDJSONOptionFlags)
  */
 	NDJSONOptionStrict = 1<<0,
 };
+
+typedef NSUInteger		NDJSONOptionFlags;
+
 
 extern NSString	* const NDJSONErrorDomain;
 

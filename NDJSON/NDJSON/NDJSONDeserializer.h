@@ -1,5 +1,6 @@
 /*
-	NDJSONDeserializer.h 
+	NDJSONDeserializer.h
+	NDJSON
 
 	Created by Nathan Day on 31.02.12 under a MIT-style license. 
 	Copyright (c) 2012 Nathan Day
@@ -75,6 +76,11 @@ enum {
 
 
 @property(assign,nonatomic)		id<NDJSONDeserializerDelegate>	delegate;
+
+/**
+ Resulting error
+ */
+@property(readonly,strong,nonatomic)	NSError		* error;
 
 /**
 	initalize with the classes type to represent the root JSON object, if the root of the JSON document is an array, the the class type is what is used for the objects within the array.

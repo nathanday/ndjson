@@ -1,5 +1,6 @@
 /*
 	NDJSONRequest.h
+	NDJSON
 
 	Created by Nathan Day on 3.11.12 under a MIT-style license.
 	Copyright (c) 2012 Nathan Day
@@ -26,6 +27,20 @@
 #import <Foundation/Foundation.h>
 #import "NDJSONDeserializer.h"
 
+enum NDJSONHTTPMethod
+{
+	NDJSONHTTPMethodDefault,
+	NDJSONHTTPMethodGet,
+	NDJSONHTTPMethodHead,
+	NDJSONHTTPMethodPost,
+	NDJSONHTTPMethodPut,
+	NDJSONHTTPMethodDelete,
+	NDJSONHTTPMethodTrace,
+	NDJSONHTTPMethodOptions,
+	NDJSONHTTPMethodConnect,
+	NDJSONHTTPMethodPatch
+};
+
 @class		NDJSONDeserializer,
 			NDJSONResponse;
 @protocol	NDJSONRequestDelegate;
@@ -48,6 +63,9 @@ extern const NSUInteger				kNDJSONDefaultPortNumber;
 @property(readonly,nonatomic,copy)		NSDictionary		* queryComponents;
 
 @property(readonly,nonatomic,strong)	NSData				* body;
+@property(readonly,nonatomic,strong)	NSInputStream		* bodyStream;
+@property(readonly,nonatomic,strong)	NSString			* HTTPMethodString;
+@property(readonly,nonatomic)	enum NDJSONHTTPMethod		HTTPMethod;
 
 @property(readonly,nonatomic,strong)	NDJSONDeserializer	* deserializer;
 @property(readonly,nonatomic)			NDJSONOptionFlags	deserializerOptions;
@@ -76,6 +94,9 @@ extern const NSUInteger				kNDJSONDefaultPortNumber;
 @property(readonly,nonatomic,copy)		NSMutableDictionary * mutableQueryComponents;
 
 @property(readwrite,nonatomic,strong)	NSData				* body;
+@property(readwrite,nonatomic,strong)	NSInputStream		* bodyStream;
+@property(readwrite,nonatomic,strong)	NSString			* HTTPMethodString;
+@property(assign,nonatomic)		enum NDJSONHTTPMethod		HTTPMethod;
 
 @property(assign,nonatomic)				NDJSONOptionFlags	deserializerOptions;
 
