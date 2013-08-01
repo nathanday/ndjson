@@ -95,10 +95,11 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 	NSString								* _currentKey;
 	struct
 	{
-		int										ignoreUnknownPropertyName	: 1;
-		int										convertKeysToMedialCapital	: 1;
-		int										removeIsAdjective			: 1;
-		int										convertPrimativeJSONTypes	: 1;
+		int										ignoreUnknownPropertyName					: 1;
+		int										convertKeysToMedialCapital					: 1;
+		int										removeIsAdjective							: 1;
+		int										convertPrimativeJSONTypes					: 1;
+		int										dontSendAwakeFromDeserializationMessages	: 1;
 	}										_options;
 	id										_result;
 	__weak id<NDJSONDeserializerDelegate>	_delegate;
@@ -135,8 +136,9 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 #pragma mark - NDJSONCustomDeserializer interface
 @interface NDJSONCustomDeserializer : NDJSONExtendedDeserializer
 {
-	Class	rootClass,
-			rootCollectionClass;
+	Class				rootClass,
+						rootCollectionClass;
+	NSMutableArray		* _objectThatRespondToAwakeFromDeserialization;
 }
 
 - (Class)classForPropertyName:(NSString *)name class:(Class)class;
@@ -202,6 +204,7 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 	_options.convertKeysToMedialCapital = anOptions&NDJSONOptionConvertKeysToMedialCapitals ? YES : NO;
 	_options.removeIsAdjective = anOptions&NDJSONOptionConvertRemoveIsAdjective ? YES : NO;
 	_options.convertPrimativeJSONTypes = anOptions&NDJSONOptionCovertPrimitiveJSONTypes ? YES : NO;
+	_options.dontSendAwakeFromDeserializationMessages = anOptions&NDJSONOptionDontSendAwakeFromDeserializationMessages ? YES : NO;
 	if( [aJSON parseWithOptions:anOptions] )
 		theResult = _result;
 	else if( anError != NULL )
@@ -760,9 +763,26 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 	[super dealloc];
 }
 
+- (void)jsonParserDidEndDocument:(NDJSONParser *)aJSON
+{
+	[super jsonParserDidEndDocument:aJSON];
+	for( id theObject in _objectThatRespondToAwakeFromDeserialization )
+	{
+		NSParameterAssert([theObject respondsToSelector:@selector(awakeFromDeserializationWithJSONDeserializer:)]);
+		[theObject awakeFromDeserializationWithJSONDeserializer:self];
+	}
+}
+
 - (void)jsonParserDidStartArray:(NDJSONParser *)aJSON
 {
 	id		theArrayRep = [[[self collectionClassForPropertyName:_currentProperty class:[self.currentObject class]] alloc] init];
+
+	if( !_options.dontSendAwakeFromDeserializationMessages && [theArrayRep respondsToSelector:@selector(awakeFromDeserializationWithJSONDeserializer:)] )
+	{
+		if( _objectThatRespondToAwakeFromDeserialization == nil )
+			_objectThatRespondToAwakeFromDeserialization = [[NSMutableArray alloc] init];
+		[_objectThatRespondToAwakeFromDeserialization addObject:theArrayRep];
+	}
 
 	pushContainerForJSONDeserializer( self, theArrayRep, NO );
 	[_currentProperty release], _currentProperty = nil;
@@ -782,6 +802,13 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 
 	if( [[theObjectRep class] respondsToSelector:@selector(parentPropertyNameWithJSONDeserializer:)] )
 		[theObjectRep setValue:self.currentObject forKey:[[theObjectRep class] parentPropertyNameWithJSONDeserializer:self]];
+
+	if( !_options.dontSendAwakeFromDeserializationMessages && [theObjectRep respondsToSelector:@selector(awakeFromDeserializationWithJSONDeserializer:)] )
+	{
+		if( _objectThatRespondToAwakeFromDeserialization == nil )
+			_objectThatRespondToAwakeFromDeserialization = [[NSMutableArray alloc] init];
+		[_objectThatRespondToAwakeFromDeserialization addObject:theObjectRep];
+	}
 
 	pushContainerForJSONDeserializer( self, theObjectRep, YES );
 	[_currentProperty release], _currentProperty = nil;

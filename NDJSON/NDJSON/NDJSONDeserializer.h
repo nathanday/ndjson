@@ -50,9 +50,13 @@ enum {
  */
 	NDJSONOptionConvertRemoveIsAdjective = 1<<18,
 /**
- If a parsed JSON primative doesn't match the destination property type, this option tell NDJSONDeserializer to attempt to convert it.
+	If a parsed JSON primative doesn't match the destination property type, this option tell NDJSONDeserializer to attempt to convert it.
  */
-	NDJSONOptionCovertPrimitiveJSONTypes = 1<<19
+	NDJSONOptionCovertPrimitiveJSONTypes = 1<<19,
+/**
+	 If this flag is set, no attempt to call awakeFromDeserializationWithJSONDeserializer: to every created class is made, this ptentially can increase performace.
+ */
+	NDJSONOptionDontSendAwakeFromDeserializationMessages = 1<<20
 };
 
 @protocol NDJSONDeserializerDelegate;
@@ -119,35 +123,40 @@ enum {
 /**
 	implemented by classes to override the default mechanism for determining the class type used for a property, if the property is a collection type (array, set etc), then this method is used to determine the types used in the collection, by default an NSDictionat will be used but any method which implements the method setObject:forKey: method.
  */
-+ (NSDictionary *)classesForPropertyNamesWithJSONDeserializer:(NDJSONDeserializer *)aParser;
++ (NSDictionary *)classesForPropertyNamesWithJSONDeserializer:(NDJSONDeserializer *)aDeserializer;
 /**
 	implemented by classed to override the default mechanism for determining the class type used for a property collection, by default an NSArray will be used but any mehtod which implements the method addObject: method.
  */
-+ (NSDictionary *)collectionClassesForPropertyNamesWithJSONDeserializer:(NDJSONDeserializer *)aParser;
++ (NSDictionary *)collectionClassesForPropertyNamesWithJSONDeserializer:(NDJSONDeserializer *)aDeserializer;
 
 /**
 	return a set of property names to ignore, this can speed up parsing as the parsing will just scan pass the valuing in the JSON.
  */
-+ (NSSet *)keysIgnoreSetWithJSONDeserializer:(NDJSONDeserializer *)aParser;
++ (NSSet *)keysIgnoreSetWithJSONDeserializer:(NDJSONDeserializer *)aDeserializer;
 /**
 	return a set of property names to only consider, this can speed up parsing as the parsing will just scan pass the valuing in the JSON.
  */
-+ (NSSet *)keysConsiderSetWithJSONDeserializer:(NDJSONDeserializer *)aParser;
++ (NSSet *)keysConsiderSetWithJSONDeserializer:(NDJSONDeserializer *)aDeserializer;
 
 /**
 	return a dictionary used to map JSON jeys to property names
  */
-+ (NSDictionary *)propertyNamesWithJSONDeserializer:(NDJSONDeserializer *)aParser;
++ (NSDictionary *)propertyNamesWithJSONDeserializer:(NDJSONDeserializer *)aDeserializer;
 
 /*
 	return the property name for the objects index, this property will be set for obejcts added to collections.
  */
-+ (NSString *)indexPropertyNameWithJSONDeserializer:(NDJSONDeserializer *)aParser;
++ (NSString *)indexPropertyNameWithJSONDeserializer:(NDJSONDeserializer *)aDeserializer;
 
 /*
 	return the property name for the objects parent property, this property will be set if this method is implemented.
  */
-+ (NSString *)parentPropertyNameWithJSONDeserializer:(NDJSONDeserializer *)aParser;
++ (NSString *)parentPropertyNameWithJSONDeserializer:(NDJSONDeserializer *)aDeserializer;
+
+/*
+	if implemented called when deserialization of the JSON is complete.
+ */
+- (void)awakeFromDeserializationWithJSONDeserializer:(NDJSONDeserializer *)aDeserializer;
 
 @end
 

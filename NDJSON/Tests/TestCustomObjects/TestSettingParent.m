@@ -17,11 +17,13 @@
 	NSString		* __strong _name;
 	NSUInteger		_integer;
 	TestSettingParentRoot	* __unsafe_unretained _parent;
+	BOOL			_recieveAwakeFromDeserializationMessage;
 }
 
 @property(copy,nonatomic)     NSString				* name;
 @property(assign,nonatomic)		NSUInteger			integer;
 @property(assign,nonatomic)		TestSettingParentRoot		* parent;
+@property(assign,nonatomic)		BOOL				recieveAwakeFromDeserializationMessage;
 
 
 @end
@@ -97,14 +99,17 @@
 	theTestSettingChild1.integer = 42;
 	theResult.child = theTestSettingChild1;
 	theTestSettingChild1.parent = theResult;
+	theTestSettingChild1.recieveAwakeFromDeserializationMessage = YES;
 
 	theTestSettingChild2.name = @"Child B";
 	theTestSettingChild2.integer = 92;
 	theTestSettingChild2.parent = theResult;
+	theTestSettingChild2.recieveAwakeFromDeserializationMessage = YES;
 
 	theTestSettingChild3.name = @"Child C";
 	theTestSettingChild3.integer = 134;
 	theTestSettingChild3.parent = theResult;
+	theTestSettingChild3.recieveAwakeFromDeserializationMessage = YES;
 
 	theResult.everyChild = [NSArray arrayWithObjects:theTestSettingChild2, theTestSettingChild3, nil];
 
@@ -116,7 +121,8 @@
 @implementation TestSettingChild
 @synthesize		name = _name,
 				integer = _integer,
-				parent = _parent;
+				parent = _parent,
+				recieveAwakeFromDeserializationMessage = _recieveAwakeFromDeserializationMessage;
 
 NDJSONParentPropertyName(@"parent");
 
@@ -128,7 +134,14 @@ NDJSONParentPropertyName(@"parent");
 
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"{name:%@,integer:%lu,parent:%p}", self.name, (unsigned long)self.integer,self.parent];
+	return [NSString stringWithFormat:@"{name:%@,integer:%lu,parent:%p,recieveAwakeFromDeserializationMessage=%s}", self.name, (unsigned long)self.integer,self.parent, self.recieveAwakeFromDeserializationMessage ? "yes" : "no"];
+}
+
+- (void)awakeFromDeserializationWithJSONDeserializer:(NDJSONDeserializer *)aDeserializer
+{
+	NSAssert( aDeserializer != nil, @"Recieved nil Deserializer" );
+	NSAssert( [aDeserializer isKindOfClass:[NDJSONDeserializer class]], @"Recieved Deserializer of class %@ instead of %@", NSStringFromClass([aDeserializer class]), NSStringFromClass([NDJSONDeserializer class]) );
+	self.recieveAwakeFromDeserializationMessage = YES;
 }
 
 - (BOOL)isEqual:(id)anObject
@@ -137,7 +150,8 @@ NDJSONParentPropertyName(@"parent");
 	return [theObject isKindOfClass:[TestSettingChild class]]
 				&& [self.name isEqualToString:theObject.name]
 				&& self.integer == theObject.integer
-				&& [self.parent isShallowEqual:theObject.parent];
+				&& [self.parent isShallowEqual:theObject.parent]
+				&& self.recieveAwakeFromDeserializationMessage == theObject.recieveAwakeFromDeserializationMessage;
 }
 
 @end
