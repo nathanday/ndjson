@@ -45,7 +45,7 @@ NSString				* const NDJSONBadCollectionClassException = @"NDJSONBadCollectionCla
 						* const NDJSONObjectUserInfoKey = @"Object",
 						* const NDJSONPropertyNameUserInfoKey = @"PropertyName";
 
-static const size_t		kMaximumClassNameLenght = 512;
+static const size_t		kMaximumClassNameLength = 512;
 
 /**
  functions used by NDJSONDeserializer to build tree
@@ -485,7 +485,8 @@ void pushContainerForJSONDeserializer( NDJSONDeserializer * self, id aContainer,
 {
 	NSCParameterAssert( aContainer != nil );
 	NSCParameterAssert( self->_containerStack.bytes != NULL );
-	
+	NSCParameterAssert( self->_containerStack.size != 0 );
+
 	if( self->_containerStack.count >= self->_containerStack.size )
 	{
 		void		* theBytes = NULL;
@@ -631,7 +632,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 	if( theProperty != NULL )
 	{
 		const char			* thePropertyAttributes = property_getAttributes(theProperty);
-		char				theClassName[kMaximumClassNameLenght];
+		char				theClassName[kMaximumClassNameLength];
 		NDJSONValueType		theTargetType = getTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes );
 		Class				theTargetClass = Nil;
 		if( jsonParserValueEquivelentObjectTypes(theTargetType, aSourceType) || (jsonParserValueIsNSNumberType(aSourceType) && [(theTargetClass = objc_getClass(theClassName)) isSubclassOfClass:[NSNumber class]]) )
@@ -820,7 +821,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 				objc_property_t		theProperty = class_getProperty(aClass, [aName UTF8String]);
 				if( theProperty != NULL )
 				{
-					char			theClassName[kMaximumClassNameLenght];
+					char			theClassName[kMaximumClassNameLength];
 					const char		* thePropertyAttributes = property_getAttributes(theProperty);
 					
 					if( getTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
@@ -860,7 +861,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 				objc_property_t		theProperty = class_getProperty(aClass, [aName UTF8String]);
 				if( theProperty != NULL )
 				{
-					char			theClassName[kMaximumClassNameLenght];
+					char			theClassName[kMaximumClassNameLength];
 					const char		* thePropertyAttributes = property_getAttributes(theProperty);
 					
 					if( getTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )

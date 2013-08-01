@@ -37,29 +37,33 @@ static const NSUInteger			kNDJSONDefaultPort = NSUIntegerMax;			// use NDURLRequ
 static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST", @"PUT", @"DELETE", @"TRACE", @"OPTIONS", @"CONNECT", @"PATCH" };				// must match enum NDJSONHTTPMethod
 
 #pragma mark - NDJSONRequest
-@interface NDJSONRequest ()
+@interface NDJSONRequest () <NSURLConnectionDataDelegate>
 {
 @protected
-	NDJSONDeserializer		* __strong _deserializer;
-	NDJSONOptionFlags		_deserializerOptions;
-//	NSInvocation			* __strong _invocation;
+	NDJSONDeserializer				* __strong _deserializer;
+	NDJSONOptionFlags				_deserializerOptions;
+	id<NSURLConnectionDelegate>		__weak _delegate;
 }
-
-//@property(nonatomic,strong)	NSInvocation	* invocation;
 
 @end
 
-@interface NDJSONResponse ()
+@interface NDJSONResponse () <NSURLConnectionDataDelegate>
 {
-	NDJSONRequest	* __strong _request;
-	id				__strong _result;
-	NSError			* __strong _error;
+	NDJSONRequest		* __strong _request;
+	id					__strong _result;
+	NSError				* __strong _error;
+	NSURLConnection		* __strong _URLConnection;
 	void (__strong ^_responseCompletionHandler)(NDJSONRequest *, NDJSONResponse *);
+	NSInvocation		* __strong _responseInvocation;
+	NSMutableData		* __strong _responseData;
 }
 
 @property(readwrite,nonatomic,strong)				id				result;
 @property(readwrite,nonatomic,strong)				NSError			* error;
+@property(readwrite,nonatomic,strong)			NSURLConnection		* URLConnection;
 @property(copy,nonatomic)	void (^responseCompletionHandler)(NDJSONRequest *, NDJSONResponse *);
+@property(retain,nonatomic)							NSInvocation	* responseInvocation;
+@property(retain,nonatomic,readonly)				NSMutableData	* responseData;
 
 - (id)initWithRequest:(NDJSONRequest *)request;
 - (void)loadAsynchronousWithQueue:(NSOperationQueue *)queue completionHandler:(void (^)(NDJSONRequest *,NDJSONResponse*))block;
@@ -70,8 +74,9 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 @implementation NDJSONRequest
 
 @synthesize		deserializer = _deserializer,
-				deserializerOptions = _deserializerOptions;
-//				invocation = _invocation;
+				deserializerOptions = _deserializerOptions,
+				delegate = _delegate;
+//				invocation, = _invocation;
 
 - (NSURLRequest *)URLRequest
 {
@@ -80,6 +85,8 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 		[theResult setHTTPBodyStream:self.bodyStream];
 	else if( self.body != nil )
 		[theResult setHTTPBody:self.body];
+	else if( self.bodyHandler != nil )
+		NSAssert( self.bodyHandler != nil, @"bodyHander body source is not supported yet" );
 
 	[theResult setHTTPMethod:self.HTTPMethodString];
 	return theResult;
@@ -165,23 +172,34 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 - (NSDictionary *)queryComponents { return nil; }
 - (NSData *)body { return nil; }
 - (NSInputStream *)bodyStream { return nil; }
+- (NSInteger(^)( uint8_t * buffer,NSUInteger len))bodyHandler { return nil; }
 - (NSString *)HTTPMethodString
 {
 	enum NDJSONHTTPMethod	theMethod = self.HTTPMethod;
 	if( theMethod == NDJSONHTTPMethodDefault )
-		theMethod = ( self.body != nil || self.bodyStream != nil ) ? NDJSONHTTPMethodPost : NDJSONHTTPMethodGet;
+		theMethod = ( self.body != nil || self.bodyStream != nil || self.bodyHandler != nil ) ? NDJSONHTTPMethodPost : NDJSONHTTPMethodGet;
 	return kHTTPMethodStrings[theMethod];
 }
 - (enum NDJSONHTTPMethod)HTTPMethod { return NDJSONHTTPMethodDefault; }
 
+- (id)initWithDeserializer:(NDJSONDeserializer *)aDeserializer deserializerOptions:(NDJSONOptionFlags)aDeserializerOptions
+{
+	return [self initWithDelegate:nil deserializer:aDeserializer deserializerOptions:aDeserializerOptions];
+}
 - (id)initWithDeserializer:(NDJSONDeserializer *)aDeserializer
 {
-	return [self initWithDeserializer:aDeserializer deserializerOptions:NDJSONOptionIgnoreUnknownProperties|NDJSONOptionConvertKeysToMedialCapitals];
+	return [self initWithDelegate:nil deserializer:aDeserializer deserializerOptions:NDJSONOptionIgnoreUnknownProperties|NDJSONOptionConvertKeysToMedialCapitals];
 }
-- (id)initWithDeserializer:(NDJSONDeserializer *)aDeserializer deserializerOptions:(NDJSONOptionFlags)anOptions
+
+- (id)initWithDelegate:(id<NSURLConnectionDelegate>)aDelegate deserializer:(NDJSONDeserializer *)aDeserializer
+{
+	return [self initWithDelegate:(id<NSURLConnectionDelegate>)aDelegate deserializer:aDeserializer deserializerOptions:NDJSONOptionIgnoreUnknownProperties|NDJSONOptionConvertKeysToMedialCapitals];
+}
+- (id)initWithDelegate:(id<NSURLConnectionDelegate>)aDelegate deserializer:(NDJSONDeserializer *)aDeserializer deserializerOptions:(NDJSONOptionFlags)anOptions
 {
 	if( (self = [super init]) != nil )
 	{
+		_delegate = aDelegate;
 #if __has_feature(objc_arc)
 		_deserializer = aDeserializer;
 #else
@@ -249,6 +267,7 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 
 	NSData				* __strong _body;
 	NSInputStream		* __strong _bodyStream;
+	NSInteger(^_bodyHandler)( uint8_t * buffer,NSUInteger len);
 	NSString			* __strong _HTTPMethodString;
 	enum NDJSONHTTPMethod		_HTTPMethod;
 }
@@ -267,6 +286,7 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 				queryComponents = _queryComponents,
 				body = _body,
 				bodyStream = _bodyStream,
+				bodyHandler = _bodyHandler,
 				HTTPMethodString = _HTTPMethodString,
 				HTTPMethod = _HTTPMethod;
 
@@ -300,9 +320,18 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 @synthesize			request = _request,
 					result = _result,
 					error = _error,
-					responseCompletionHandler = _responseCompletionHandler;
+					URLConnection = _URLConnection,
+					responseCompletionHandler = _responseCompletionHandler,
+					responseInvocation = _responseInvocation;
 
 - (BOOL)isSuccessful { return _error != nil; }
+
+- (NSMutableData *)responseData
+{
+	if( _responseData == nil )
+		_responseData = [[NSMutableData alloc] init];
+	return _responseData;
+}
 
 - (id)initWithRequest:(NDJSONRequest *)aRequest
 {
@@ -324,66 +353,138 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 	[_result release];
 	[_error release];
 	[_responseCompletionHandler release];
+	[_responseInvocation release];
+	[_responseData release];
 	[super dealloc];
 }
 #endif
 
 - (void)loadAsynchronousWithQueue:(NSOperationQueue *)aQueue completionHandler:(void (^)(NDJSONRequest *,NDJSONResponse*))aBlock
 {
+	NSParameterAssert( self.request != nil );
+	NSParameterAssert( self.request.URLRequest != nil );
+	NSParameterAssert( aBlock != nil );
+
+	NDJSONRequest		* theRequest = self.request;
 	self.responseCompletionHandler = aBlock;
-	[NSURLConnection sendAsynchronousRequest:self.request.URLRequest queue:aQueue completionHandler:^(NSURLResponse * aResponse, NSData * aData, NSError * anError)
-	 {
-		 if( aData != nil )
-		 {
-			 NDJSONParser				* theParser = [[NDJSONParser alloc] initWithJSONData:aData encoding:NSUTF8StringEncoding];
-			 NSError					* theError = nil;
-
-			 self.result = [self.request.deserializer objectForJSON:theParser options:self.request.deserializerOptions error:&theError];
-			 self.error = theError;
-#if !__has_feature(objc_arc)
-			 [theParser release];
-#endif
-		 }
-		 else
-			 self.error = anError;
-
-		 if( self.responseCompletionHandler )
-			 self.responseCompletionHandler( self.request, self );
-	 }];
+	self.URLConnection = [[NSURLConnection alloc] initWithRequest:theRequest.URLRequest delegate:self startImmediately:NO];
+	if( aQueue == nil )
+		[self.URLConnection setDelegateQueue:[NSOperationQueue mainQueue]];
+	else
+		[self.URLConnection setDelegateQueue:aQueue];
+	[self.URLConnection start];
 }
 
 - (void)loadAsynchronousWithQueue:(NSOperationQueue *)aQueue invocation:(NSInvocation *)anInvocation
 {
-	NDJSONRequest		* theRequest = self.request;
-	[anInvocation retainArguments];
-	[anInvocation setArgument:(void*)&theRequest atIndex:2];
-#if !__has_feature(objc_arc)
-	[anInvocation retain];
-#endif
-	[NSURLConnection sendAsynchronousRequest:self.request.URLRequest queue:aQueue completionHandler:^(NSURLResponse * aResponse, NSData * aData, NSError * anError)
-	 {
-		 NDJSONResponse				* theJSONResponse = self;
-		 NDJSONParser				* theParser = [[NDJSONParser alloc] initWithJSONData:aData encoding:NSUTF8StringEncoding];
-		 NSError					* theError = nil;
+	NSParameterAssert( self.request != nil );
+	NSParameterAssert( self.request.URLRequest != nil );
+	NSParameterAssert( anInvocation != nil );
 
-		 self.result = [self.request.deserializer objectForJSON:theParser options:self.request.deserializerOptions error:&theError];
-		 self.error = theError;
+	NDJSONRequest		* theRequest = self.request;
+	self.responseInvocation = anInvocation;
+	[self.responseInvocation retainArguments];
+	[self.responseInvocation setArgument:(void*)&theRequest atIndex:2];
+	self.URLConnection = [[NSURLConnection alloc] initWithRequest:theRequest.URLRequest delegate:self startImmediately:NO];
+	if( aQueue == nil )
+		[self.URLConnection setDelegateQueue:[NSOperationQueue mainQueue]];
+	else
+		[self.URLConnection setDelegateQueue:aQueue];
+	[self.URLConnection start];
+}
+
+#pragma mark - NSURLConnectionDataDelegate methods
+
+//- (NSURLRequest *)connection:(NSURLConnection *)aConnection willSendRequest:(NSURLRequest *)aRequest redirectResponse:(NSURLResponse *)aResponse
+//{
+//
+//}
+//
+- (void)connection:(NSURLConnection *)aConnection didReceiveResponse:(NSURLResponse *)aResponse
+{
+	NSParameterAssert( aConnection == self.URLConnection );
+	NSParameterAssert( self.responseData.length == 0 );
+}
+
+- (void)connection:(NSURLConnection *)aConnection didReceiveData:(NSData *)aData
+{
+	NSParameterAssert( aConnection == self.URLConnection );
+	[self.responseData appendData:aData];
+}
+
+//- (NSInputStream *)connection:(NSURLConnection *)aConnection needNewBodyStream:(NSURLRequest *)aRequest
+//{
+//
+//}
+
+//- (void)connection:(NSURLConnection *)aConnection didSendBodyData:(NSInteger)aBytesWritten totalBytesWritten:(NSInteger)aTotalBytesWritten totalBytesExpectedToWrite:(NSInteger)aTotalBytesExpectedToWrite
+//{
+//
+//}
+
+//- (NSCachedURLResponse *)connection:(NSURLConnection *)aConnection willCacheResponse:(NSCachedURLResponse *)aCachedResponse
+//{
+//
+//}
+
+- (void)connectionDidFinishLoading:(NSURLConnection *)aConnection
+{
+	NSParameterAssert( aConnection == self.URLConnection );
+	NDJSONResponse				* theJSONResponse = self;
+	if( self.responseData.length > 0 )
+	{
+		NDJSONParser				* theParser = [[NDJSONParser alloc] initWithJSONData:self.responseData encoding:NSUTF8StringEncoding];
+		NSError					* theError = nil;
+
+		self.result = [self.request.deserializer objectForJSON:theParser options:self.request.deserializerOptions error:&theError];
+		self.error = theError;
+#if !__has_feature(objc_arc)
+		[theParser release];
+#endif
+	}
+	else
+		NSLog( @"NDJSON: Received zero length data" );
 
 #ifndef NDJSON_SUPPRESS_ALL_LOGING
-		 if( self.result == nil )
-			 NSLog( @"Failed to result for URLRequest=%@", self.request.URL );
-		 else if( self.error != nil )
-			 NSLog( @"Error with result for URLRequest=%@", self.request.URL );
+	if( self.result == nil )
+		NSLog( @"Failed to result for URLRequest=%@, error=%@", self.request.URL, self.error );
+	else if( self.error != nil )
+		NSLog( @"NDJSON: Error with result for URLRequest=%@, error=%@", self.request.URL, self.error );
 #endif
 
-		 [anInvocation setArgument:&theJSONResponse atIndex:3];
-		 [anInvocation retainArguments];
-		 [anInvocation invoke];
-#if !__has_feature(objc_arc)
-		 [anInvocation release];
-		 [theParser release];
-#endif
-	 }];
+	if( self.responseInvocation != nil )
+	{
+		[self.responseInvocation setArgument:&theJSONResponse atIndex:3];
+		[self.responseInvocation retainArguments];
+		[self.responseInvocation invoke];
+		self.responseInvocation = nil;
+	}
+	else if( self.responseCompletionHandler != nil )
+	{
+		self.responseCompletionHandler( self.request, self );
+		self.responseCompletionHandler = nil;
+	}
+}
+
+#pragma mark - NSURLConnectionDelegate methods
+
+- (void)connection:(NSURLConnection *)aConnection didFailWithError:(NSError *)anError
+{
+	self.error = anError;
+	NSLog( @"NDJSON: Recieved connection error %@", anError );
+	if( [self.request.delegate respondsToSelector:@selector(connection:didFailWithError:)] )
+		[self.request.delegate connection:aConnection didFailWithError:anError];
+}
+- (BOOL)connectionShouldUseCredentialStorage:(NSURLConnection *)aConnection
+{
+	return ![self.request.delegate respondsToSelector:@selector(connectionShouldUseCredentialStorage:)]
+			|| [self.request.delegate connectionShouldUseCredentialStorage:aConnection];
+}
+
+- (void)connection:(NSURLConnection *)aConnection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)aChallenge
+{
+	if( [self.request.delegate respondsToSelector:@selector(connection:willSendRequestForAuthenticationChallenge:)] )
+		[self.request.delegate connection:aConnection willSendRequestForAuthenticationChallenge:aChallenge];
 }
 
 @end

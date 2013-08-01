@@ -64,14 +64,20 @@ extern const NSUInteger				kNDJSONDefaultPortNumber;
 
 @property(readonly,nonatomic,strong)	NSData				* body;
 @property(readonly,nonatomic,strong)	NSInputStream		* bodyStream;
+@property(readonly,nonatomic,strong)	NSInteger(^bodyHandler)( uint8_t * buffer,NSUInteger len);
 @property(readonly,nonatomic,strong)	NSString			* HTTPMethodString;
 @property(readonly,nonatomic)	enum NDJSONHTTPMethod		HTTPMethod;
 
-@property(readonly,nonatomic,strong)	NDJSONDeserializer	* deserializer;
-@property(readonly,nonatomic)			NDJSONOptionFlags	deserializerOptions;
+@property(readonly,nonatomic,strong)	NDJSONDeserializer			* deserializer;
+@property(readonly,nonatomic)			NDJSONOptionFlags			deserializerOptions;
+@property(readonly,nonatomic,weak)	id<NSURLConnectionDelegate>		delegate;
+
 
 - (id)initWithDeserializer:(NDJSONDeserializer *)deserializer deserializerOptions:(NDJSONOptionFlags)deserializerOptions;
 - (id)initWithDeserializer:(NDJSONDeserializer *)deserializer;
+
+- (id)initWithDelegate:(id<NSURLConnectionDelegate>)delegate deserializer:(NDJSONDeserializer *)deserializer deserializerOptions:(NDJSONOptionFlags)deserializerOptions;
+- (id)initWithDelegate:(id<NSURLConnectionDelegate>)delegate deserializer:(NDJSONDeserializer *)deserializer;
 
 - (void)sendAsynchronousWithQueue:(NSOperationQueue *)queue responseCompletionHandler:(void (^)(NDJSONRequest *, NDJSONResponse *))handler;
 - (void)sendAsynchronousWithQueue:(NSOperationQueue *)queue responseHandler:(id<NDJSONRequestDelegate>)handler;

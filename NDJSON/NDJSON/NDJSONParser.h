@@ -63,7 +63,7 @@ typedef enum
 typedef NSInteger (*NDJSONDataStreamProc)(uint8_t ** aBuffer, void * aContext );
 typedef NSInteger (^NDJSONDataStreamBlock)(uint8_t ** aBuffer);
 
-enum : NSUInteger
+typedef NS_OPTIONS(NSUInteger, NDJSONOptionFlags)
 {
 	NDJSONOptionNone = 0,
 /**
@@ -76,9 +76,6 @@ enum : NSUInteger
  */
 	NDJSONOptionStrict = 1<<0,
 };
-
-typedef NSUInteger		NDJSONOptionFlags;
-
 
 extern NSString	* const NDJSONErrorDomain;
 

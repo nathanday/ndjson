@@ -1475,7 +1475,7 @@ void foundError( NDJSONParser * self, NDJSONErrorCode aCode )
 		self->_delegateMethod.foundError( self->_delegate, @selector(jsonParser:error:), self, [NSError errorWithDomain:NDJSONErrorDomain code:aCode userInfo:theUserInfo] );
 	[theUserInfo release];
 #ifndef NDJSON_SUPPRESS_ALL_LOGING
-	NSLog( @"Error, code:%u reason: %@", aCode, theString );
+	NSLog( @"NDJSON: Error, code:%u reason: %@", aCode, theString );
 #endif
 	[theString release];
 }
@@ -1591,7 +1591,7 @@ BOOL appendCharacter( struct NDBytesBuffer * aBuffer, uint32_t aValue, enum NDJS
 	case kNDJSONCharacterWord16:
 		if( aValue > 0x10ffff || (aValue >= 0Xd800 && aValue <= 0xdfff) )
 		{
-			NSLog( @"Bad unicode code point %x", aValue );
+			NSLog( @"NDJSON: Bad unicode code point %x", aValue );
 			return NO;
 		}
 		else if( aValue > 0xffff )
