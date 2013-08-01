@@ -771,6 +771,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 		NSParameterAssert([theObject respondsToSelector:@selector(awakeFromDeserializationWithJSONDeserializer:)]);
 		[theObject awakeFromDeserializationWithJSONDeserializer:self];
 	}
+	[_objectThatRespondToAwakeFromDeserialization release], _objectThatRespondToAwakeFromDeserialization = nil;
 }
 
 - (void)jsonParserDidStartArray:(NDJSONParser *)aJSON
