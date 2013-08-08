@@ -27,12 +27,18 @@
 #import "NDJSONDeserializer.h"
 #import <objc/runtime.h> 
 
-struct ContainerStackStruct
+struct NDContainerStackStruct
 {
 	NSString	* propertyName;
 	NSString	* key;
 	id			container;
 	BOOL		isObject;
+};
+
+struct NDClassesDesc
+{
+	Class	actual,
+			expected;
 };
 
 static const BOOL		kIgnoreUnknownPropertyNameDefaultValue = NO,
@@ -79,6 +85,25 @@ static NDJSONValueType getTypeNameFromPropertyAttributes( char * aClassName, siz
 	return theResult;
 }
 
+
+static Class NDMutableClassForClass( Class aClass )
+{
+	Class		theResult = Nil;
+	struct { Class base, mutable; }		theMaps[] = {
+		{[NSArray class],[NSMutableArray class]},
+		{[NSSet class],[NSMutableSet class]},
+		{[NSOrderedSet class],[NSMutableOrderedSet class]},
+		{[NSIndexSet class],[NSMutableIndexSet class]},
+		{[NSDictionary class],[NSMutableDictionary class]},
+	};
+	for( NSUInteger i = 0; theResult == Nil && i < sizeof(theMaps)/sizeof(*theMaps); i++ )
+	{
+		if( theMaps[i].base == aClass )
+			theResult = theMaps[i].mutable;
+	}
+	return theResult ? theResult : aClass;
+}
+
 void pushContainerForJSONDeserializer( NDJSONDeserializer * self, id container, BOOL isObject );
 static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 
@@ -89,7 +114,7 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 	{
 		NSUInteger								size,
 												count;
-		struct ContainerStackStruct				* bytes;
+		struct NDContainerStackStruct			* bytes;
 	}										_containerStack;
 	NSString								* _currentProperty;
 	NSString								* _currentKey;
@@ -100,6 +125,7 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 		int										removeIsAdjective							: 1;
 		int										convertPrimativeJSONTypes					: 1;
 		int										dontSendAwakeFromDeserializationMessages	: 1;
+		int										convertToArrayTypeIfRequired				: 1;
 	}										_options;
 	id										_result;
 	__weak id<NDJSONDeserializerDelegate>	_delegate;
@@ -141,8 +167,8 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 	NSMutableArray		* _objectThatRespondToAwakeFromDeserialization;
 }
 
-- (Class)classForPropertyName:(NSString *)name class:(Class)class;
-- (Class)collectionClassForPropertyName:(NSString *)name class:(Class)class;
+- (struct NDClassesDesc)classForPropertyName:(NSString *)name class:(Class)class;
+- (struct NDClassesDesc)collectionClassForPropertyName:(NSString *)name class:(Class)class;
 
 @end
 
@@ -205,6 +231,7 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 	_options.removeIsAdjective = anOptions&NDJSONOptionConvertRemoveIsAdjective ? YES : NO;
 	_options.convertPrimativeJSONTypes = anOptions&NDJSONOptionCovertPrimitiveJSONTypes ? YES : NO;
 	_options.dontSendAwakeFromDeserializationMessages = anOptions&NDJSONOptionDontSendAwakeFromDeserializationMessages ? YES : NO;
+	_options.convertToArrayTypeIfRequired = anOptions&NDJSONOptionConvertToArrayTypeIfRequired ? YES : NO;
 	if( [aJSON parseWithOptions:anOptions] )
 		theResult = _result;
 	else if( anError != NULL )
@@ -220,7 +247,7 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 	_containerStack.count = 0;
 	if( _containerStack.bytes != NULL )
 		free( _containerStack.bytes );
-	_containerStack.bytes = calloc(_containerStack.size,sizeof(struct ContainerStackStruct));
+	_containerStack.bytes = calloc(_containerStack.size,sizeof(struct NDContainerStackStruct));
 	[_currentProperty release], _currentProperty = nil;
 	[_currentKey release], _currentKey = nil;
 	[_result autorelease], _result = nil;
@@ -776,7 +803,19 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 
 - (void)jsonParserDidStartArray:(NDJSONParser *)aJSON
 {
-	id		theArrayRep = [[[self collectionClassForPropertyName:_currentProperty class:[self.currentObject class]] alloc] init];
+	struct NDClassesDesc	theClassesDes = [self collectionClassForPropertyName:_currentProperty class:[self.currentObject class]];
+
+	if( ![theClassesDes.actual instancesRespondToSelector:@selector(addObject:)] )
+	{
+		NSString		* theReason = [[NSString alloc] initWithFormat:@"The collection class '%@' for the key '%@' does not respond to the selector 'addObject:'", NSStringFromClass(theClassesDes.actual), _currentProperty];
+		NSDictionary	* theUserInfo = [[NSDictionary alloc] initWithObjectsAndKeys:_currentProperty, NDJSONAttributeNameUserInfoKey, nil];
+		NSException		* theException = [NSException exceptionWithName:NDJSONBadCollectionClassException reason:theReason userInfo:theUserInfo];
+		[theReason release];
+		[theUserInfo release];
+		@throw theException;
+	}
+
+	id		theArrayRep = [[theClassesDes.actual alloc] init];
 
 	if( !_options.dontSendAwakeFromDeserializationMessages && [theArrayRep respondsToSelector:@selector(awakeFromDeserializationWithJSONDeserializer:)] )
 	{
@@ -792,14 +831,14 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 
 - (void)jsonParserDidStartObject:(NDJSONParser *)aJSON
 {
-	Class		theClass = [self classForPropertyName:self.currentContainerPropertyName class:[self.currentObject class]];
-	id			theObjectRep = nil;
+	struct NDClassesDesc		theClassDesc = [self classForPropertyName:self.currentContainerPropertyName class:[self.currentObject class]];
+	id							theObjectRep = nil;
 
 	if( _delegateMethod.objectForClass != NULL )
-		theObjectRep = [_delegateMethod.objectForClass( self.delegate, @selector(jsonDeserializer:objectForClass:propertName:), self, theClass, self.currentContainerPropertyName) retain];
+		theObjectRep = [_delegateMethod.objectForClass( self.delegate, @selector(jsonDeserializer:objectForClass:propertName:), self, theClassDesc.actual, self.currentContainerPropertyName) retain];
 
 	if( theObjectRep == nil )
-		theObjectRep = [[theClass alloc] init];
+		theObjectRep = [[theClassDesc.actual alloc] init];
 
 	if( [[theObjectRep class] respondsToSelector:@selector(parentPropertyNameWithJSONDeserializer:)] )
 		[theObjectRep setValue:self.currentObject forKey:[[theObjectRep class] parentPropertyNameWithJSONDeserializer:self]];
@@ -811,7 +850,15 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 		[_objectThatRespondToAwakeFromDeserialization addObject:theObjectRep];
 	}
 
-	pushContainerForJSONDeserializer( self, theObjectRep, YES );
+	if( _options.convertToArrayTypeIfRequired && theClassDesc.expected != Nil && theClassDesc.actual != theClassDesc.expected && ![theClassDesc.actual isSubclassOfClass:theClassDesc.expected] )
+	{
+		id		theContainer = [[theClassDesc.expected alloc] init];
+		[theContainer addObject:theObjectRep];
+		pushContainerForJSONDeserializer( self, theContainer, YES );
+		[theContainer release];
+	}
+	else
+		pushContainerForJSONDeserializer( self, theObjectRep, YES );
 	[_currentProperty release], _currentProperty = nil;
 	[theObjectRep release];
 }
@@ -832,19 +879,21 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 	return theResult;
 }
 
-- (Class)classForPropertyName:(NSString *)aName class:(Class)aClass
+- (struct NDClassesDesc)classForPropertyName:(NSString *)aName class:(Class)aClass
 {
-	Class		theClass = Nil,
-	theRootClass = self.rootClass;
+	struct NDClassesDesc	theClassesDes = {Nil,Nil};
+	Class					theRootClass = self.rootClass;
 	if( theRootClass != nil )
 	{
 		if( aClass == Nil )
-			theClass = theRootClass;
+		{
+			theClassesDes.actual = theClassesDes.expected = theRootClass;
+		}
 		else
 		{
 			if( [aClass respondsToSelector:@selector(classesForPropertyNamesWithJSONDeserializer:)] )
-				theClass = [[aClass classesForPropertyNamesWithJSONDeserializer:self] objectForKey:aName];
-			if( theClass == Nil )
+				theClassesDes.actual = [[aClass classesForPropertyNamesWithJSONDeserializer:self] objectForKey:aName];
+			if( theClassesDes.actual == Nil || _options.convertToArrayTypeIfRequired )
 			{
 				objc_property_t		theProperty = class_getProperty(aClass, [aName UTF8String]);
 				if( theProperty != NULL )
@@ -853,38 +902,44 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 					const char		* thePropertyAttributes = property_getAttributes(theProperty);
 					
 					if( getTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
-						theClass = objc_getClass( theClassName );
+					{
+						theClassesDes.expected = objc_getClass( theClassName );
+					}
 					else
-						theClass = [NSMutableDictionary class];
+						theClassesDes.expected = [NSMutableDictionary class];
 				}
 				else
-					theClass = [NSMutableDictionary class];
+					theClassesDes.expected = [NSMutableDictionary class];
+				if( theClassesDes.actual == Nil )
+					theClassesDes.actual = theClassesDes.expected;
 			}
 		}
 	}
 	else
-		theClass = [NSMutableDictionary class];
-	return theClass;
+		theClassesDes.actual = theClassesDes.expected = [NSMutableDictionary class];
+	NSParameterAssert(theClassesDes.actual != Nil);
+	theClassesDes.expected = NDMutableClassForClass(theClassesDes.expected);
+	return theClassesDes;
 }
 
-- (Class)collectionClassForPropertyName:(NSString *)aName class:(Class)aClass
+- (struct NDClassesDesc)collectionClassForPropertyName:(NSString *)aName class:(Class)aClass
 {
-	Class		theClass = Nil;
+	struct NDClassesDesc	theClassesDes = {Nil,Nil};
 	if( self.rootClass != nil )
 	{
 		if( aClass == Nil )
 		{
 			Class		theRootCollectionClass = self.rootCollectionClass;
 			if( theRootCollectionClass != nil )
-				theClass = theRootCollectionClass;
+				theClassesDes.actual = theClassesDes.expected = theRootCollectionClass;
 			else
-				theClass = [NSMutableArray class];
+				theClassesDes.actual = theClassesDes.expected = [NSMutableArray class];
 		}
 		else
 		{
 			if( [aClass respondsToSelector:@selector(collectionClassesForPropertyNamesWithJSONDeserializer:)] )
-				theClass = [[aClass collectionClassesForPropertyNamesWithJSONDeserializer:self] objectForKey:aName];
-			if( theClass == Nil )
+				theClassesDes.actual = [[aClass collectionClassesForPropertyNamesWithJSONDeserializer:self] objectForKey:aName];
+			if( theClassesDes.actual == Nil || _options.convertToArrayTypeIfRequired )
 			{
 				objc_property_t		theProperty = class_getProperty(aClass, [aName UTF8String]);
 				if( theProperty != NULL )
@@ -893,37 +948,27 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 					const char		* thePropertyAttributes = property_getAttributes(theProperty);
 					
 					if( getTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
-						theClass = objc_getClass( theClassName );
+					{
+						theClassesDes.expected = objc_getClass( theClassName );
+						if( theClassesDes.actual == Nil )
+						{
+							if( _options.convertToArrayTypeIfRequired && ![theClassesDes.expected instancesRespondToSelector:@selector(addObject:)] )
+								theClassesDes.actual = [NSMutableArray class];
+							else
+								theClassesDes.actual = theClassesDes.expected;
+						}
+					}
 				}
 				else
-					theClass = [NSMutableArray class];
+					theClassesDes.actual = theClassesDes.expected = [NSMutableArray class];
 			}
 		}
-		
-		if( theClass == [NSArray class] )
-			theClass = [NSMutableArray class];
-		else if( theClass == [NSSet class] )
-			theClass = [NSMutableSet class];
-		else if( theClass == [NSOrderedSet class] )
-			theClass = [NSMutableOrderedSet class];
-		else if( theClass == [NSIndexSet class])
-			theClass = [NSMutableIndexSet class];
-		else if( theClass == [NSDictionary class] )
-			theClass = [NSMutableDictionary class];
 	}
 	else
-		theClass = [NSMutableArray class];
-	
-	if( ![theClass instancesRespondToSelector:@selector(addObject:)] )
-	{
-		NSString		* theReason = [[NSString alloc] initWithFormat:@"The collection class '%@' for the key '%@' does not respond to the selector 'addObject:'", NSStringFromClass(theClass), aName];
-		NSDictionary	* theUserInfo = [[NSDictionary alloc] initWithObjectsAndKeys:aName, NDJSONAttributeNameUserInfoKey, nil];
-		NSException		* theException = [NSException exceptionWithName:NDJSONBadCollectionClassException reason:theReason userInfo:theUserInfo];
-		[theReason release];
-		[theUserInfo release];
-		@throw theException;
-	}
-	return theClass;
+		theClassesDes.actual = theClassesDes.expected = [NSMutableArray class];
+	theClassesDes.actual = NDMutableClassForClass(theClassesDes.actual);
+	NSParameterAssert(theClassesDes.actual != Nil);
+	return theClassesDes;
 }
 
 @end

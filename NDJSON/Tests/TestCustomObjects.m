@@ -13,6 +13,7 @@
 #import "TestCustomObjectsExtended.h"
 #import "TestSettingIndex.h"
 #import "TestSettingParent.h"
+#import "TestAutoConversion.h"
 
 @implementation TestCustomObjects
 
@@ -24,6 +25,7 @@
     [TestCustomObjectsExtended addTestsToTestGroup:self];
 	[TestSettingIndex addTestsToTestGroup:self];
 	[TestSettingParent addTestsToTestGroup:self];
+	[TestAutoConversion addTestsToTestGroup:self];
 }
 
 @end

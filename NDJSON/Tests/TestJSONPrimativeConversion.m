@@ -12,6 +12,19 @@
 #import "Utility.h"
 #import "NSObject+TestUtilities.h"
 
+static NSDate * dateWithObjects( id year, id mon, id day, id hr, id min, id sec)
+{
+	NSDateComponents		* theDateComponents = [[NSDateComponents alloc] init];
+	[theDateComponents setCalendar:[NSCalendar currentCalendar]];
+	[theDateComponents setYear:[year integerValue]];
+	[theDateComponents setMonth:[mon integerValue]];
+	[theDateComponents setDay:[day integerValue]];
+	[theDateComponents setHour:[hr integerValue]];
+	[theDateComponents setMinute:[min integerValue]];
+	[theDateComponents setSecond:[sec integerValue]];
+	return [theDateComponents date];
+}
+
 @interface TestConversionTarget : NSObject
 {
 	NSInteger			valueChi[128];
@@ -34,6 +47,7 @@
 
 - (void)setValueDeltaByConvertingString:(NSString *)string;
 - (void)setValueDeltaByConvertingNumber:(NSNumber *)number;
+- (void)setValueDeltaByConvertingArray:(NSArray *)string;
 - (void)setValueAlphaByConvertingString:(NSString *)string;
 - (void)setValueChiByConvertingString:(NSString *)string;
 - (void)setValueChiByConvertingNumber:(NSNumber *)number;
@@ -78,11 +92,50 @@
 																			valueDelta:[NSDate dateWithString:@"1968-01-22 06:30:00 +0600"]
 																			valueAlpha:nil
 																			  valueChi:nil];
-	[self addName:@"String to Date by converting methods" jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:\"1968-01-22 06:30:00 +0600\"}" expectedResult:theTestConversionTarget options:NDJSONOptionCovertPrimitiveJSONTypes targetClass:[TestConversionTargetWithConversion class]];
-	[self addName:@"Number to Date by converting method" jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:-61342200.00}" expectedResult:theTestConversionTarget options:NDJSONOptionCovertPrimitiveJSONTypes targetClass:[TestConversionTargetWithConversion class]];
-	[self addName:@"String to Date by initWithDate" jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:\"1968-01-22 06:30:00 +0600\"}" expectedResult:theTestConversionTarget options:NDJSONOptionCovertPrimitiveJSONTypes targetClass:[TestConversionTarget class]];
-	[self addName:@"String to Array by converting method" jsonString:@"{\"valueAlpha\":\"Alpha,Beta,Gamma,Delta\"}" expectedResult:[TestConversionTarget testConversionTargetWithValueSigma:nil valueIota:0 valueDelta:nil valueAlpha:@[@"Alpha",@"Beta",@"Gamma",@"Delta"] valueChi:nil] options:NDJSONOptionCovertPrimitiveJSONTypes targetClass:[TestConversionTargetWithConversion class]];
-	[self addName:@"String to C array by converting method" jsonString:@"{\"valueChi\":\"1,2,3,5,8,13\"}" expectedResult:[TestConversionTarget testConversionTargetWithValueSigma:nil valueIota:0 valueDelta:nil valueAlpha:nil valueChi:@[@1,@2,@3,@5,@8,@13]] options:NDJSONOptionCovertPrimitiveJSONTypes targetClass:[TestConversionTargetWithConversion class]];
+	[self addName:@"String to Date by converting methods"
+	   jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:\"1968-01-22 06:30:00 +0600\"}"
+   expectedResult:theTestConversionTarget
+		  options:NDJSONOptionCovertPrimitiveJSONTypes
+	  targetClass:[TestConversionTargetWithConversion class]];
+
+	[self addName:@"Number to Date by converting method"
+	   jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:-61342200.00}"
+   expectedResult:theTestConversionTarget
+		  options:NDJSONOptionCovertPrimitiveJSONTypes
+	  targetClass:[TestConversionTargetWithConversion class]];
+
+	[self addName:@"String to Date by initWithDate"
+	   jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:\"1968-01-22 06:30:00 +0600\"}"
+   expectedResult:theTestConversionTarget
+		  options:NDJSONOptionCovertPrimitiveJSONTypes
+	  targetClass:[TestConversionTarget class]];
+
+	[self addName:@"String to Array by converting method"
+	   jsonString:@"{\"valueAlpha\":\"Alpha,Beta,Gamma,Delta\"}"
+   expectedResult:[TestConversionTarget testConversionTargetWithValueSigma:nil
+																 valueIota:0
+																valueDelta:nil
+																valueAlpha:@[@"Alpha",@"Beta",@"Gamma",@"Delta"]
+																  valueChi:nil]
+		  options:NDJSONOptionCovertPrimitiveJSONTypes
+	  targetClass:[TestConversionTargetWithConversion class]];
+
+	[self addName:@"String to C array by converting method"
+	   jsonString:@"{\"valueChi\":\"1,2,3,5,8,13\"}"
+   expectedResult:[TestConversionTarget testConversionTargetWithValueSigma:nil
+																 valueIota:0
+																valueDelta:nil
+																valueAlpha:nil
+																  valueChi:@[@1,@2,@3,@5,@8,@13]]
+		  options:NDJSONOptionCovertPrimitiveJSONTypes
+	  targetClass:[TestConversionTargetWithConversion class]];
+
+	[self addName:@"Array to Date by by calling setXXXByConvertingArray:"
+	   jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:[\"1968\",\"01\",\"22\",\"6\",\"30\",\"00\"]}"
+   expectedResult:theTestConversionTarget
+		  options:NDJSONOptionCovertPrimitiveJSONTypes|NDJSONOptionConvertToArrayTypeIfRequired
+	  targetClass:[TestConversionTargetWithConversion class]];
+
 	[super willLoad];
 }
 
@@ -201,6 +254,10 @@
 
 - (void)setValueDeltaByConvertingString:(NSString *)aString { self.valueDelta = [NSDate dateWithString:aString]; }
 - (void)setValueDeltaByConvertingNumber:(NSNumber *)aNumber { self.valueDelta = [NSDate dateWithTimeIntervalSince1970:aNumber.doubleValue]; }
+- (void)setValueDeltaByConvertingArray:(NSArray *)anArray
+{
+	self.valueDelta = dateWithObjects( anArray[0], anArray[1], anArray[2], anArray[3], anArray[4], anArray[5] );
+}
 - (void)setValueAlphaByConvertingString:(NSString *)aString { self.valueAlpha = [aString componentsSeparatedByString:@","]; }
 - (void)setValueChiByConvertingString:(NSString *)aString
 {

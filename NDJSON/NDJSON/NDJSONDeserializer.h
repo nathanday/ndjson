@@ -56,7 +56,11 @@ enum {
 /**
 	 If this flag is set, no attempt to call awakeFromDeserializationWithJSONDeserializer: to every created class is made, this ptentially can increase performace.
  */
-	NDJSONOptionDontSendAwakeFromDeserializationMessages = 1<<20
+	NDJSONOptionDontSendAwakeFromDeserializationMessages = 1<<20,
+/**
+	If this flag is set, when an none array is generated from the JSON but the recieving property expects an NSArray, NSSet, NSOrderedSet, then the generated object is wrapped in the expected type.
+ */
+	NDJSONOptionConvertToArrayTypeIfRequired = 1<<21
 };
 
 @protocol NDJSONDeserializerDelegate;
