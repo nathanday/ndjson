@@ -68,6 +68,7 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 - (id)initWithRequest:(NDJSONRequest *)request;
 - (void)loadAsynchronousWithQueue:(NSOperationQueue *)queue completionHandler:(void (^)(NDJSONRequest *,NDJSONResponse*))block;
 - (void)loadAsynchronousWithQueue:(NSOperationQueue *)queue invocation:(NSInvocation *)invocation;
+- (void)returnResponse;
 
 @end
 
@@ -393,6 +394,23 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 	[self.URLConnection start];
 }
 
+- (void)returnResponse
+{
+	NDJSONResponse				* theJSONResponse = self;
+	if( self.responseInvocation != nil )
+	{
+		[self.responseInvocation setArgument:&theJSONResponse atIndex:3];
+		[self.responseInvocation retainArguments];
+		[self.responseInvocation invoke];
+		self.responseInvocation = nil;
+	}
+	else if( self.responseCompletionHandler != nil )
+	{
+		self.responseCompletionHandler( self.request, self );
+		self.responseCompletionHandler = nil;
+	}
+}
+
 #pragma mark - NSURLConnectionDataDelegate methods
 
 //- (NSURLRequest *)connection:(NSURLConnection *)aConnection willSendRequest:(NSURLRequest *)aRequest redirectResponse:(NSURLResponse *)aResponse
@@ -430,7 +448,6 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 - (void)connectionDidFinishLoading:(NSURLConnection *)aConnection
 {
 	NSParameterAssert( aConnection == self.URLConnection );
-	NDJSONResponse				* theJSONResponse = self;
 	if( self.responseData.length > 0 )
 	{
 		NDJSONParser				* theParser = [[NDJSONParser alloc] initWithJSONData:self.responseData encoding:NSUTF8StringEncoding];
@@ -451,19 +468,7 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 	else if( self.error != nil )
 		NSLog( @"NDJSON: Error with result for URLRequest=%@, error=%@", self.request.URL, self.error );
 #endif
-
-	if( self.responseInvocation != nil )
-	{
-		[self.responseInvocation setArgument:&theJSONResponse atIndex:3];
-		[self.responseInvocation retainArguments];
-		[self.responseInvocation invoke];
-		self.responseInvocation = nil;
-	}
-	else if( self.responseCompletionHandler != nil )
-	{
-		self.responseCompletionHandler( self.request, self );
-		self.responseCompletionHandler = nil;
-	}
+	[self returnResponse];
 }
 
 #pragma mark - NSURLConnectionDelegate methods
@@ -474,6 +479,8 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 	NSLog( @"NDJSON: Recieved connection error %@", anError );
 	if( [self.request.delegate respondsToSelector:@selector(connection:didFailWithError:)] )
 		[self.request.delegate connection:aConnection didFailWithError:anError];
+	self.error = anError;
+	[self returnResponse];
 }
 - (BOOL)connectionShouldUseCredentialStorage:(NSURLConnection *)aConnection
 {
