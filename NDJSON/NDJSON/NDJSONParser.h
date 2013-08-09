@@ -44,10 +44,6 @@ typedef enum
 	NDJSONValueBoolean
 }		NDJSONValueType;
 
-BOOL jsonParserValueIsPrimativeType( NDJSONValueType type );
-BOOL jsonParserValueIsNSNumberType( NDJSONValueType type );
-BOOL jsonParserValueEquivelentObjectTypes( NDJSONValueType typeA, NDJSONValueType typeB );
-
 typedef enum
 {
 	NDJSONGeneralError,
@@ -212,4 +208,11 @@ extern NSString	* const NDJSONErrorDomain;
 - (void)jsonParser:(NDJSONParser *)parser error:(NSError *)error;
 
 @end
+
+/*
+ Private functions
+ */
+BOOL NDJSONParserValueIsPrimativeType( NDJSONValueType type );
+BOOL NDJSONParserValueIsNSNumberType( NDJSONValueType type );
+BOOL NDJSONParserValueEquivelentObjectTypes( NDJSONValueType typeA, NDJSONValueType typeB );
 

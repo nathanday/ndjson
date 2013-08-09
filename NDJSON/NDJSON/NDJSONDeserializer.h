@@ -76,14 +76,16 @@ enum {
 /**
 	Class used for root JSON object
  */
-@property(readonly,nonatomic)	Class					rootClass;
+@property(readonly,nonatomic)	Class		rootClass;
 /**
  Class used for root JSON arrays
  */
-@property(readonly,nonatomic)	Class					rootCollectionClass;
+@property(readonly,nonatomic)	Class		rootCollectionClass;
 
-
-@property(assign,nonatomic)		id<NDJSONDeserializerDelegate>	delegate;
+/**
+ The delegate object deserializer. The delegate will receive delegate messages as the JSON is parsed. Messages to the delegate will be sent on the thread that calls the method -[NDJSONDeserializer objectForJSON:options:error:
+*/
+@property(assign,nonatomic)		id<NDJSONDeserializerDelegate>		delegate;
 
 /**
  Resulting error
@@ -99,6 +101,9 @@ enum {
  */
 - (id)initWithRootClass:(Class)rootClass rootCollectionClass:(Class)rootCollectionClass;
 
+/**
+ initalize with the classes type to represent the root JSON object and the class type used for root collection type (array, set etc), if the root of the JSON document is an array then the root collection class is used and the class type is what is used for the objects within the array. The initialParent parent is used if used for root object that implement the -[NSObject parentPropertyNameWithJSONDeserializer:] method, this is most usful if their is more than one root object ie the root of the JSON is an array.
+ */
 - (id)initWithRootClass:(Class)rootClass rootCollectionClass:(Class)rootCollectionClass initialParent:(id)parent;
 
 /**
@@ -106,15 +111,27 @@ enum {
  */
 - (id)objectForJSON:(NDJSONParser *)parser options:(NDJSONOptionFlags)options error:(NSError **)error;
 
-#pragma mark - private
-
+/**
+ The current property name for the object neing parsed, this can be thought of as a stack of values for nested objects and this property returns the top one.
+ */
 @property(copy,nonatomic)		NSString	* currentProperty;
+/**
+ Simplar to currentProperty, with will return the property name of the current container object, ie object generated from a JSON object, whereas currentProperty can return this values or the name of the property for the current primate type.
+ */
 @property(readonly,nonatomic)	NSString	* currentContainerPropertyName;
 
 @end
 
+/**
+ The NDJSONDeserializerDelegate protocol defines the optional methods implemented by delegates of NSURLConnection objects.
+ 
+ Implement a delegate gives you anouther way of creating instances for properties as well as letting you listen in of the NDJSONParserDelegate methods that NDJSONDeserializer recieves.
+ */
 @protocol NDJSONDeserializerDelegate <NDJSONParserDelegate>
 @optional
+/**
+ This is the only way you can directly create an instance for a property, in all of the other methods supply the class and NDJSONDeserializer creates and instance for you.
+ */
 - (id)jsonDeserializer:(NDJSONDeserializer *)jsonDeserializer objectForClass:(Class)aClass propertName:(NSString *)property;
 @end
 
@@ -164,11 +181,9 @@ enum {
 
 @end
 
-@interface NDJSONExtendedDeserializer : NDJSONDeserializer
-
-@end
-
-void pushContainerForJSONDeserializer( NDJSONDeserializer * self, id container, BOOL isObject );
+/**
+	@functiongroup These macros make implements some of the delegate methods easier, though they do have the limitation in that they do not inherite values from any super class
+ */
 
 /**
 	implements the class method `+[NSObject classesForPropertyNamesWithJSONDeserializer:]` returning a dictionary with the supplied arguemnts.
@@ -232,3 +247,17 @@ void pushContainerForJSONDeserializer( NDJSONDeserializer * self, id container, 
  */
 #define NDJSONParentPropertyName(_SELECTOR_NAME_) \
 + (NSString *)parentPropertyNameWithJSONDeserializer:(NDJSONDeserializer *)aParser { return _SELECTOR_NAME_; }
+
+
+/*
+ Private subclass of NDJSONDeserializer used for subclassing by NDJSONCoreDataDeserializer
+ */
+@interface NDJSONExtendedDeserializer : NDJSONDeserializer
+
+@end
+
+/*
+ Private function used by the subclass NDJSONCoreDataDeserializer
+ */
+void NDJSONPushContainerForJSONDeserializer( NDJSONDeserializer * self, id container, BOOL isObject );
+

@@ -47,6 +47,11 @@ enum NDJSONHTTPMethod
 
 extern const NSUInteger				kNDJSONDefaultPortNumber;
 
+/**
+ NDJSONRequest handles JSON remotes soruces.
+ 
+ NDJSONRequest is an abstract class, to use NDJSONRequest you either use the supplied subclass NDJSONMutableRequest or you subclass NDJSONRequest yourself and implement NDJSONRequest properties so it can buid the NSURLRequest for you and parse the returned JSON, whether you choose the subclassing route or the NDJSONMutableRequest route depends on how comlicated you request building is, for very simple request, NDJSONMutableRequest is probable the easiest method but for mor comlicated requets subclassing is more likely the better choice. Subclassing is usually the better option when you need to build a post body.
+ */
 @interface NDJSONRequest : NSObject
 
 @property(readonly,nonatomic,copy)		NSURLRequest		* URLRequest;
@@ -86,6 +91,9 @@ extern const NSUInteger				kNDJSONDefaultPortNumber;
 
 @end
 
+/**
+A subclass of abstract class NDJSONRequest that you can set the values for.
+ */
 @interface NDJSONMutableRequest : NDJSONRequest
 
 @property(readwrite,nonatomic,copy)		NSURL				* URL;

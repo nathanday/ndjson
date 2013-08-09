@@ -50,7 +50,7 @@ static uint32_t		k32BitLittleEndianBOM = 0x0000FEFF,
 					k32BitBigEndianBOM = 0xFFFE0000;
 #endif
 
-BOOL jsonParserValueIsPrimativeType( NDJSONValueType aType )
+BOOL NDJSONParserValueIsPrimativeType( NDJSONValueType aType )
 {
 	switch( aType )
 	{
@@ -67,7 +67,7 @@ BOOL jsonParserValueIsPrimativeType( NDJSONValueType aType )
 	}
 }
 
-BOOL jsonParserValueIsNSNumberType( NDJSONValueType aType )
+BOOL NDJSONParserValueIsNSNumberType( NDJSONValueType aType )
 {
 	switch( aType )
 	{
@@ -84,7 +84,7 @@ BOOL jsonParserValueIsNSNumberType( NDJSONValueType aType )
 	}
 }
 
-BOOL jsonParserValueEquivelentObjectTypes( NDJSONValueType aTypeA, NDJSONValueType aTypeB )
+BOOL NDJSONParserValueEquivelentObjectTypes( NDJSONValueType aTypeA, NDJSONValueType aTypeB )
 {
 	BOOL		theResult = NO;
 	switch( aTypeA )

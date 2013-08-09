@@ -95,7 +95,7 @@
 - (void)jsonParserDidStartArray:(NDJSONParser *)aJSON
 {
 	NSMutableSet		* theSet = [[NSMutableSet alloc] init];
-	pushContainerForJSONDeserializer( self, theSet, NO );
+	NDJSONPushContainerForJSONDeserializer( self, theSet, NO );
 	self.currentProperty = nil;
 	[theSet release];
 }
@@ -115,7 +115,7 @@
 
 	theNewObject = [[NSManagedObject alloc] initWithEntity:theEntityDesctipion insertIntoManagedObjectContext:self.managedObjectContext];
 
-	pushContainerForJSONDeserializer( self, theNewObject, YES );
+	NDJSONPushContainerForJSONDeserializer( self, theNewObject, YES );
 	self.currentProperty = nil;
 	[theNewObject release];
 }
