@@ -9,7 +9,6 @@
 #import "TestJSONPrimativeConversion.h"
 #import "NDJSONDeserializer.h"
 #import "TestProtocolBase.h"
-#import "Utility.h"
 #import "NSObject+TestUtilities.h"
 
 static NSDate * dateWithObjects( id year, id mon, id day, id hr, id min, id sec)
@@ -89,23 +88,23 @@ static NSDate * dateWithObjects( id year, id mon, id day, id hr, id min, id sec)
 
 	theTestConversionTarget = [TestConversionTarget testConversionTargetWithValueSigma:@"12"
 																			 valueIota:24
-																			valueDelta:[NSDate dateWithString:@"1968-01-22 06:30:00 +0600"]
+																			valueDelta:[NSDate dateWithString:@"1968-01-22 06:30:00 +1000"]
 																			valueAlpha:nil
 																			  valueChi:nil];
 	[self addName:@"String to Date by converting methods"
-	   jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:\"1968-01-22 06:30:00 +0600\"}"
+	   jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:\"1968-01-22 06:30:00 +1000\"}"
    expectedResult:theTestConversionTarget
 		  options:NDJSONOptionCovertPrimitiveJSONTypes
 	  targetClass:[TestConversionTargetWithConversion class]];
 
 	[self addName:@"Number to Date by converting method"
-	   jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:-61342200.00}"
+	   jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:-61356600}"
    expectedResult:theTestConversionTarget
 		  options:NDJSONOptionCovertPrimitiveJSONTypes
 	  targetClass:[TestConversionTargetWithConversion class]];
 
 	[self addName:@"String to Date by initWithDate"
-	   jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:\"1968-01-22 06:30:00 +0600\"}"
+	   jsonString:@"{\"valueIota\":\"24\",\"valueSigma\":12,valueDelta:\"1968-01-22 06:30:00 +1000\"}"
    expectedResult:theTestConversionTarget
 		  options:NDJSONOptionCovertPrimitiveJSONTypes
 	  targetClass:[TestConversionTarget class]];
@@ -239,6 +238,19 @@ static NSDate * dateWithObjects( id year, id mon, id day, id hr, id min, id sec)
 	for( NSUInteger i = 0; i < valueChiLen; i++ )
 		[theMutableString appendFormat:@"%s%ld", i > 0 ? "," : "", valueChi[i]];
 	return [NSString stringWithFormat:@"valueIota: %lu, valueSigma: %@, valueDelta: %@, valueAlpha: %@, valueChi: [%@]", self.valueIota, self.valueSigma, self.valueDelta, self.valueAlpha, theMutableString];
+}
+
+- (void)setValueDeltaByConvertingArray:(NSArray *)anArray
+{
+	NSAssert( anArray.count > 5, @"Not enaough components, %lu", anArray.count );
+	NSDateComponents		* theComps = [[NSDateComponents alloc] init];
+	[theComps setYear:[anArray[0] integerValue]];
+	[theComps setMonth:[anArray[1] integerValue]];
+	[theComps setDay:[anArray[2] integerValue]];
+	[theComps setHour:[anArray[3] integerValue]];
+	[theComps setMinute:[anArray[4] integerValue]];
+	[theComps setSecond:[anArray[5] integerValue]];
+	self.valueDelta = [theComps date];
 }
 
 - (NSInteger *)valueChi { return valueChi; }

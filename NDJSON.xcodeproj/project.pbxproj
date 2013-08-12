@@ -23,7 +23,6 @@
 		D845C837167C971600B839A9 /* NDJSONRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D84B47311645F5E000658A39 /* NDJSONRequest.m */; };
 		D85174F015A9A23E003870C1 /* TestSettingIndex.m in Sources */ = {isa = PBXBuildFile; fileRef = D85174EF15A9A23E003870C1 /* TestSettingIndex.m */; };
 		D854B626141508000019D7E2 /* TestClassNames.plist in Resources */ = {isa = PBXBuildFile; fileRef = D854B625141508000019D7E2 /* TestClassNames.plist */; };
-		D85D476D159540F9006785EF /* Utility.m in Sources */ = {isa = PBXBuildFile; fileRef = D85D476C159540F8006785EF /* Utility.m */; };
 		D85D477015954169006785EF /* ChangeParseFromEventToPropertyList.m in Sources */ = {isa = PBXBuildFile; fileRef = D85D476F15954169006785EF /* ChangeParseFromEventToPropertyList.m */; };
 		D87046FA17B3C2AC00107FB9 /* TestAutoConversion.m in Sources */ = {isa = PBXBuildFile; fileRef = D87046F917B3C2AC00107FB9 /* TestAutoConversion.m */; };
 		D89B050C15BAF8890078E320 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D89B050B15BAF8890078E320 /* libz.dylib */; };
@@ -97,8 +96,6 @@
 		D85174EE15A9A23E003870C1 /* TestSettingIndex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestSettingIndex.h; sourceTree = "<group>"; };
 		D85174EF15A9A23E003870C1 /* TestSettingIndex.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TestSettingIndex.m; sourceTree = "<group>"; };
 		D854B625141508000019D7E2 /* TestClassNames.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = TestClassNames.plist; sourceTree = "<group>"; };
-		D85D476B159540F8006785EF /* Utility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utility.h; sourceTree = "<group>"; };
-		D85D476C159540F8006785EF /* Utility.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utility.m; sourceTree = "<group>"; };
 		D85D476E15954169006785EF /* ChangeParseFromEventToPropertyList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChangeParseFromEventToPropertyList.h; sourceTree = "<group>"; };
 		D85D476F15954169006785EF /* ChangeParseFromEventToPropertyList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChangeParseFromEventToPropertyList.m; sourceTree = "<group>"; };
 		D87046F817B3C2AC00107FB9 /* TestAutoConversion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestAutoConversion.h; sourceTree = "<group>"; };
@@ -333,8 +330,6 @@
 				D8EA3058159EDD63004B88B5 /* TestJSONPrimativeConversion.m */,
 				D85D47691595402C006785EF /* TestMechanismChange */,
 				D8F0226A1425F44000504B84 /* SampleFiles */,
-				D85D476B159540F8006785EF /* Utility.h */,
-				D85D476C159540F8006785EF /* Utility.m */,
 			);
 			path = Tests;
 			sourceTree = "<group>";
@@ -469,7 +464,6 @@
 				D80F15441585C9CF002FB345 /* JSONRoot+Utilities.m in Sources */,
 				D8C9CDA5158CA4ED0022A137 /* TestFunctionAndBlockInput.m in Sources */,
 				D8D9D284158F590E00D385C5 /* TestMechanismChange.m in Sources */,
-				D85D476D159540F9006785EF /* Utility.m in Sources */,
 				D85D477015954169006785EF /* ChangeParseFromEventToPropertyList.m in Sources */,
 				D8E36BB4159740B800F6610D /* ChangeParseFromEventToCustom.m in Sources */,
 				D8E3D11215995C9800AF1290 /* ChangeParseFromEventToCoreData.m in Sources */,

@@ -56,7 +56,7 @@ static const size_t		kMaximumClassNameLength = 512;
 /**
  functions used by NDJSONDeserializer to build tree
  */
-static NDJSONValueType getTypeNameFromPropertyAttributes( char * aClassName, size_t aLen, const char * aPropertyAttributes )
+static NDJSONValueType NDJSONGetTypeNameFromPropertyAttributes( char * aClassName, size_t aLen, const char * aPropertyAttributes )
 {
 	NSCParameterAssert(*aPropertyAttributes == 'T');
 	NDJSONValueType	theResult = NDJSONValueNone;
@@ -105,7 +105,7 @@ static Class NDMutableClassForClass( Class aClass )
 }
 
 void NDJSONPushContainerForJSONDeserializer( NDJSONDeserializer * self, id container, BOOL isObject );
-static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
+static id NDJSONPopCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 
 @interface NDJSONDeserializer ()
 {
@@ -248,6 +248,7 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 	if( _containerStack.bytes != NULL )
 		free( _containerStack.bytes );
 	_containerStack.bytes = calloc(_containerStack.size,sizeof(struct NDContainerStackStruct));
+	NSAssert( _containerStack.bytes != NULL, @"Malloc failure" );
 	[_currentProperty release], _currentProperty = nil;
 	[_currentKey release], _currentKey = nil;
 	[_result autorelease], _result = nil;
@@ -284,7 +285,7 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 
 - (void)jsonParserDidEndArray:(NDJSONParser *)aJSON
 {
-	id		theArray = popCurrentContainerForJSONDeserializer(self);
+	id		theArray = NDJSONPopCurrentContainerForJSONDeserializer(self);
 	if( self->_delegateMethod.didEndArray != NULL )
 		self->_delegateMethod.didEndArray( self->_delegate, @selector(jsonParserDidEndArray:), self );
 	[self addValue:theArray type:NDJSONValueArray];
@@ -303,13 +304,13 @@ static id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self );
 
 - (void)jsonParserDidEndObject:(NDJSONParser *)aJSON
 {
-	id		theObject = popCurrentContainerForJSONDeserializer(self);
+	id		theObject = NDJSONPopCurrentContainerForJSONDeserializer(self);
 	if( self->_delegateMethod.didEndObject != NULL )
 		self->_delegateMethod.didEndObject( self->_delegate, @selector(jsonParserDidEndObject:), self );
 	[self addValue:theObject type:NDJSONValueObject];
 }
 
-static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemoveIs, BOOL aConvertToCamelCase )
+static NSString * NDJSONStringByConvertingPropertyName( NSString * aString, BOOL aRemoveIs, BOOL aConvertToCamelCase )
 {
 	NSString	* theResult = aString;
 	NSUInteger	theBufferLen = aString.length;
@@ -361,7 +362,7 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 - (void)jsonParser:(NDJSONParser *)aJSON foundKey:(NSString *)aValue
 {
 	NSParameterAssert( _containerStack.count == 0 || _containerStack.bytes[_containerStack.count-1].isObject );
-	NSString	* thePropertyName = stringByConvertingPropertyName( aValue, _options.removeIsAdjective != 0, _options.convertKeysToMedialCapital != 0 );
+	NSString	* thePropertyName = NDJSONStringByConvertingPropertyName( aValue, _options.removeIsAdjective != 0, _options.convertKeysToMedialCapital != 0 );
 	id			theCurrentContainer = self.currentContainer;
 	if( self->_delegateMethod.foundKey != NULL )
 		self->_delegateMethod.foundKey( self->_delegate, @selector(jsonParser:foundKey:), self, aValue );
@@ -514,15 +515,13 @@ static NSString * stringByConvertingPropertyName( NSString * aString, BOOL aRemo
 void NDJSONPushContainerForJSONDeserializer( NDJSONDeserializer * self, id aContainer, BOOL anIsObject )
 {
 	NSCParameterAssert( aContainer != nil );
-	NSCParameterAssert( self->_containerStack.bytes != NULL );
-	NSCParameterAssert( self->_containerStack.size != 0 );
 
 	if( self->_containerStack.count >= self->_containerStack.size )
 	{
 		void		* theBytes = NULL;
 		self->_containerStack.size *= 2;
 		theBytes = realloc(self->_containerStack.bytes, self->_containerStack.size);
-		NSCAssert( theBytes != NULL, @"Memory error" );
+		NSCAssert( theBytes != NULL, @"Memory failure" );
 		self->_containerStack.bytes = theBytes;
 	}
 	self->_containerStack.bytes[self->_containerStack.count].container = [aContainer retain];
@@ -555,7 +554,7 @@ void NDJSONPushContainerForJSONDeserializer( NDJSONDeserializer * self, id aCont
 		_result = [aValue retain];
 }
 
-id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self )
+id NDJSONPopCurrentContainerForJSONDeserializer( NDJSONDeserializer * self )
 {
 	id		theResult = nil;
 	if( self->_containerStack.count > 0 )
@@ -574,7 +573,7 @@ id popCurrentContainerForJSONDeserializer( NDJSONDeserializer * self )
 
 @implementation NDJSONExtendedDeserializer
 
-static SEL conversionSelectorForPropertyAndType( NSString * aProperty, NDJSONValueType aType )
+static SEL NDJSONConversionSelectorForPropertyAndType( NSString * aProperty, NDJSONValueType aType )
 {
 	SEL				theResult = (SEL)0;
 	NSUInteger		theLen = [aProperty lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
@@ -618,7 +617,7 @@ static SEL conversionSelectorForPropertyAndType( NSString * aProperty, NDJSONVal
 	return theResult;
 }
 
-static SEL instanceInitSelectorForType( NDJSONValueType aType )
+static SEL NDJSONInstanceInitSelectorForType( NDJSONValueType aType )
 {
 	SEL				theResult = (SEL)0;
 	char			theSelectorName[sizeof("initWith")+sizeof("Dictionary:")];
@@ -655,7 +654,7 @@ static SEL instanceInitSelectorForType( NDJSONValueType aType )
 	return theResult;
 }
 
-static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSString * aPropertyName, NDJSONValueType aSourceType )
+static BOOL NDJSONSetValueByConvertingPrimativeType( id aContainer, id aValue, NSString * aPropertyName, NDJSONValueType aSourceType )
 {
 	BOOL				theResult = NO;
 	objc_property_t		theProperty = class_getProperty([aContainer class], [aPropertyName UTF8String]);
@@ -663,7 +662,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 	{
 		const char			* thePropertyAttributes = property_getAttributes(theProperty);
 		char				theClassName[kMaximumClassNameLength];
-		NDJSONValueType		theTargetType = getTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes );
+		NDJSONValueType		theTargetType = NDJSONGetTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes );
 		Class				theTargetClass = Nil;
 		if( NDJSONParserValueEquivelentObjectTypes(theTargetType, aSourceType) || (NDJSONParserValueIsNSNumberType(aSourceType) && [(theTargetClass = objc_getClass(theClassName)) isSubclassOfClass:[NSNumber class]]) )
 		{
@@ -671,7 +670,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 		}
 		else
 		{
-			SEL		theSelector = conversionSelectorForPropertyAndType( aPropertyName, aSourceType );
+			SEL		theSelector = NDJSONConversionSelectorForPropertyAndType( aPropertyName, aSourceType );
 			if( [aContainer respondsToSelector:theSelector] )
 			{
 				[aContainer performSelector:theSelector withObject:aValue];
@@ -701,7 +700,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 			}
 			else
 			{
-				theSelector = instanceInitSelectorForType( aSourceType );
+				theSelector = NDJSONInstanceInitSelectorForType( aSourceType );
 				if( theTargetClass == Nil )
 					theTargetClass = objc_getClass(theClassName);
 				if( [theTargetClass instancesRespondToSelector:theSelector] )
@@ -735,8 +734,11 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 		{
 			@try
 			{
-				if( _options.convertPrimativeJSONTypes && NDJSONParserValueIsPrimativeType(aType) )
-					setValueByConvertingPrimativeType( theCurrentContainer, aValue, _currentProperty, aType );
+				if( _options.convertPrimativeJSONTypes && aType != NDJSONValueArray && aType != NDJSONValueNone )
+				{
+					if( !NDJSONSetValueByConvertingPrimativeType( theCurrentContainer, aValue, _currentProperty, aType ) )
+						[theCurrentContainer setValue:aValue forKey:_currentProperty];
+				}
 				else
 					[theCurrentContainer setValue:aValue forKey:_currentProperty];
 			}
@@ -901,7 +903,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 					char			theClassName[kMaximumClassNameLength];
 					const char		* thePropertyAttributes = property_getAttributes(theProperty);
 					
-					if( getTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
+					if( NDJSONGetTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
 					{
 						theClassesDes.expected = objc_getClass( theClassName );
 					}
@@ -947,7 +949,7 @@ static BOOL setValueByConvertingPrimativeType( id aContainer, id aValue, NSStrin
 					char			theClassName[kMaximumClassNameLength];
 					const char		* thePropertyAttributes = property_getAttributes(theProperty);
 					
-					if( getTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
+					if( NDJSONGetTypeNameFromPropertyAttributes( theClassName, sizeof(theClassName)/sizeof(*theClassName), thePropertyAttributes ) )
 					{
 						theClassesDes.expected = objc_getClass( theClassName );
 						if( theClassesDes.actual == Nil )

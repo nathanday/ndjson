@@ -7,7 +7,6 @@
 //
 
 #import "ChangeParseFromEventToPropertyList.h"
-#import "Utility.h"
 
 @implementation ChangeParseFromEventToPropertyList
 

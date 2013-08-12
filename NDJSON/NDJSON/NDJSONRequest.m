@@ -488,11 +488,11 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 			|| [self.request.delegate connectionShouldUseCredentialStorage:aConnection];
 }
 
-- (void)connection:(NSURLConnection *)aConnection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)aChallenge
-{
-	if( [self.request.delegate respondsToSelector:@selector(connection:willSendRequestForAuthenticationChallenge:)] )
-		[self.request.delegate connection:aConnection willSendRequestForAuthenticationChallenge:aChallenge];
-}
+// - (void)connection:(NSURLConnection *)aConnection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)aChallenge
+// {
+// 	if( [self.request.delegate respondsToSelector:@selector(connection:willSendRequestForAuthenticationChallenge:)] )
+// 		[self.request.delegate connection:aConnection willSendRequestForAuthenticationChallenge:aChallenge];
+// }
 
 @end
 

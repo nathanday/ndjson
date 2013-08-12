@@ -9,7 +9,6 @@
 #import "TestStringEncodings.h"
 #import "NDJSONDeserializer.h"
 #import "TestProtocolBase.h"
-#import "Utility.h"
 #import "NSObject+TestUtilities.h"
 
 @interface TestStringEncodings ()

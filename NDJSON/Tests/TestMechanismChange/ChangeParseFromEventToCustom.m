@@ -7,7 +7,6 @@
 //
 
 #import "ChangeParseFromEventToCustom.h"
-#import "Utility.h"
 
 @interface GenObject : NSObject
 

@@ -142,7 +142,7 @@ struct NDBytesBuffer
 					capacity;
 };
 
-typedef BOOL (*_ReturnBoolMethodIMP)( id, SEL, id, ...);
+typedef BOOL (*NDReturnBoolMethodIMP)( id, SEL, id, ...);
 
 static const NSUInteger		kBufferSize = 2048;
 
@@ -1012,7 +1012,7 @@ BOOL parseJSONObject( NDJSONParser * self )
 					self->_delegateMethod.foundKey( self->_delegate, @selector(jsonParser:foundKey:), self, self.currentKey );
 
 				if( self->_delegateMethod.shouldSkipValueForKey != NULL )
-					theSkipParsingValueForCurrentKey = ((_ReturnBoolMethodIMP)self->_delegateMethod.shouldSkipValueForKey)( self->_delegate, @selector(jsonParser:shouldSkipValueForKey:), self, self.currentKey	);
+					theSkipParsingValueForCurrentKey = ((NDReturnBoolMethodIMP)self->_delegateMethod.shouldSkipValueForKey)( self->_delegate, @selector(jsonParser:shouldSkipValueForKey:), self, self.currentKey	);
 
 				if( theSkipParsingValueForCurrentKey )
 					theResult = skipNextValue(self);

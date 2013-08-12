@@ -9,7 +9,6 @@
 #import "TestMechanismChange.h"
 #import "NDJSONDeserializer.h"
 #import "TestProtocolBase.h"
-#import "Utility.h"
 #import "NDCoreDataController.h"
 #import "ChangeParseFromEventToPropertyList.h"
 #import "ChangeParseFromEventToCustom.h"
