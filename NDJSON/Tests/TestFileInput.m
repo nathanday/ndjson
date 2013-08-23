@@ -40,7 +40,7 @@
 
 - (void)willLoad
 {
-	for( NSUInteger i = 1; i <= 4; i++ )
+	for( NSUInteger i = 1; i <= 6; i++ )
 	{
 		NSString	* theTestName = [NSString stringWithFormat:@"File %lu", i],
 					* theFileName = [NSString stringWithFormat:@"file%lu", i];
@@ -63,10 +63,16 @@
 {
 	if( (self = [super initWithName:aName]) != nil )
 	{
-		NSString	* theExpectedResultFilePath = [[NSBundle mainBundle] pathForResource:aFileName ofType:@"plist"];
+		NSError		* theError = nil;
+		NSString	* theExpectedResultFilePath = [[NSBundle mainBundle] pathForResource:aFileName ofType:@"json"];
+		NSData		* theJSONData = [[NSData alloc] initWithContentsOfFile:theExpectedResultFilePath options:0 error:&theError];
+		if( theJSONData == nil )
+			NSLog(@"Read Error: %@", theError);
 		path = [[NSBundle mainBundle] pathForResource:aFileName ofType:@"json"];
-		expectedResult = [[NSDictionary alloc] initWithContentsOfFile:theExpectedResultFilePath];
-	}
+		expectedResult = [NSJSONSerialization JSONObjectWithData:theJSONData options:NSJSONReadingAllowFragments error:&theError];
+		if( expectedResult == nil )
+			NSLog(@"JSON Error: %@", theError);
+}
 	return self;
 }
 

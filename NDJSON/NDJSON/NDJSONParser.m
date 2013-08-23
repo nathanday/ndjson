@@ -185,7 +185,7 @@ static BOOL skipNextValue( NDJSONParser * self );
 static void foundError( NDJSONParser * self, NDJSONErrorCode aCode );
 
 #ifdef NDJSONSupportUTF8Only
-static BOOL is8BitWordSizeForNSStringEncoding( NSStringEncoding anEncoding )
+static BOOL NDJSONIs8BitWordSizeForNSStringEncoding( NSStringEncoding anEncoding )
 {
 	switch( anEncoding )
 	{
@@ -211,7 +211,7 @@ static BOOL is8BitWordSizeForNSStringEncoding( NSStringEncoding anEncoding )
 	}
 }
 #else
-static BOOL getCharacterWordSizeAndEndianFromNSStringEncoding( enum NDJSONCharacterWordSize * aWordSize, enum NDJSONCharacterEndian * anEndian, NSStringEncoding anEncoding )
+static BOOL NDJSONGetCharacterWordSizeAndEndianFromNSStringEncoding( enum NDJSONCharacterWordSize * aWordSize, enum NDJSONCharacterEndian * anEndian, NSStringEncoding anEncoding )
 {
 	BOOL		theResult = YES;
 	NSCParameterAssert( aWordSize != NULL );
@@ -300,12 +300,12 @@ enum JSONInputType
 		enum NDJSONCharacterEndian		endian;
 	}								_character;
 #endif
-	uint32_t						_backUpByte;
+	uint32_t						_backUpByte[2];
 	BOOL							_hasSkippedValueForCurrentKey,
 									_alreadyParsing,
 									_complete,
-									_useBackUpByte,
 									_abort;
+	unsigned short					_useBackUpByte;
 	struct
 	{
 		int								strictJSONOnly		: 1;
@@ -381,7 +381,7 @@ enum JSONInputType
 		_lineNumber = 0;
 		_complete = NO;
 		_abort = NO;
-		_useBackUpByte = NO;
+		_useBackUpByte = 0;
 		_source.object = NULL;
 		_source.function = NULL;
 		_source.context = NULL;
@@ -462,9 +462,9 @@ enum JSONInputType
 		_source.object = [aData retain];
 		_inputType = kJSONDataInputType;
 #ifdef NDJSONSupportUTF8Only
-		NSAssert( is8BitWordSizeForNSStringEncoding(anEncoding), @"with NDJSONSupportUTF8Only set only 8bit character encodings are supported" );
+		NSAssert( NDJSONIs8BitWordSizeForNSStringEncoding(anEncoding), @"with NDJSONSupportUTF8Only set only 8bit character encodings are supported" );
 #else
-		getCharacterWordSizeAndEndianFromNSStringEncoding( &_character.wordSize, &_character.endian, anEncoding );
+		NDJSONGetCharacterWordSizeAndEndianFromNSStringEncoding( &_character.wordSize, &_character.endian, anEncoding );
 #endif
 	}
 	return self;
@@ -508,9 +508,9 @@ enum JSONInputType
 		_source.object = [aStream retain];
 		_inputType = kJSONStreamInputType;
 #ifdef NDJSONSupportUTF8Only
-		NSAssert( is8BitWordSizeForNSStringEncoding(anEncoding), @"with NDJSONSupportUTF8Only set only 8bit character encodings are supported" );
+		NSAssert( NDJSONIs8BitWordSizeForNSStringEncoding(anEncoding), @"with NDJSONSupportUTF8Only set only 8bit character encodings are supported" );
 #else
-		getCharacterWordSizeAndEndianFromNSStringEncoding( &_character.wordSize, &_character.endian, anEncoding );
+		NDJSONGetCharacterWordSizeAndEndianFromNSStringEncoding( &_character.wordSize, &_character.endian, anEncoding );
 #endif
 	}
 	return self;
@@ -525,9 +525,9 @@ enum JSONInputType
 		_source.context = aContext;
 		_inputType = kJSONStreamFunctionType;
 	#ifdef NDJSONSupportUTF8Only
-		NSAssert( is8BitWordSizeForNSStringEncoding(anEncoding), @"with NDJSONSupportUTF8Only set only 8bit character encodings are supported" );
+		NSAssert( NDJSONIs8BitWordSizeForNSStringEncoding(anEncoding), @"with NDJSONSupportUTF8Only set only 8bit character encodings are supported" );
 	#else
-		getCharacterWordSizeAndEndianFromNSStringEncoding( &_character.wordSize, &_character.endian, anEncoding );
+		NDJSONGetCharacterWordSizeAndEndianFromNSStringEncoding( &_character.wordSize, &_character.endian, anEncoding );
 	#endif
 	}
 	return self;
@@ -541,9 +541,9 @@ enum JSONInputType
 		_source.block = [aBlock copy];
 		_inputType = kJSONStreamBlockType;
 #ifdef NDJSONSupportUTF8Only
-		NSAssert( is8BitWordSizeForNSStringEncoding(anEncoding), @"with NDJSONSupportUTF8Only set only 8bit character encodings are supported" );
+		NSAssert( NDJSONIs8BitWordSizeForNSStringEncoding(anEncoding), @"with NDJSONSupportUTF8Only set only 8bit character encodings are supported" );
 #else
-		getCharacterWordSizeAndEndianFromNSStringEncoding( &_character.wordSize, &_character.endian, anEncoding );
+		NDJSONGetCharacterWordSizeAndEndianFromNSStringEncoding( &_character.wordSize, &_character.endian, anEncoding );
 #endif
 	}
 	return self;
@@ -795,22 +795,26 @@ static uint32_t currentChar( NDJSONParser * self )
 
 static uint32_t nextChar( NDJSONParser * self )
 {
-	if( !self->_useBackUpByte )
+	if( self->_useBackUpByte == 0)
 	{
-		self->_backUpByte = currentChar( self );
-		if( self->_backUpByte != '\0' )
+		self->_backUpByte[1] = self->_backUpByte[0];
+		self->_backUpByte[0] = currentChar( self );
+		if( self->_backUpByte[0] != '\0' )
 		{
 			self->_position++;
-			if( self->_backUpByte == '\n' )
+			if( self->_backUpByte[0] == '\n' )
 				self->_lineNumber++;
 		}
 #ifdef NDJSONPrintStream
-		putc((int)self->_backUpByte, stderr);
+		putc((int)self->_backUpByte[0], stderr);
 #endif
 	}
 	else
-		self->_useBackUpByte = NO;
-	return self->_backUpByte;
+	{
+		self->_useBackUpByte--;
+	}
+	NSCParameterAssert( self->_useBackUpByte < sizeof(self->_backUpByte)/sizeof(*self->_backUpByte) );
+	return self->_backUpByte[self->_useBackUpByte];
 }
 static uint32_t nextCharIgnoreWhiteSpace( NDJSONParser * self )
 {
@@ -834,7 +838,7 @@ static uint32_t nextCharIgnoreWhiteSpace( NDJSONParser * self )
 						theResult = nextChar( self );
 					while( theResult != '\n' );
 				}
-				else if( currentChar(self) == '*' )		// multiline commentß
+				else if( currentChar(self) == '*' )		// multiline comment
 				{
 					BOOL		theCommentEnd = NO;
 					theResult = nextChar(self);
@@ -856,7 +860,11 @@ end:
 	return theResult;
 }
 
-static void backUp( NDJSONParser * self ) { self->_useBackUpByte = YES; }
+static void backUp( NDJSONParser * self )
+{
+	NSCAssert( self->_useBackUpByte < 2, @"Can't Backup Twice in a row" );
+	self->_useBackUpByte++;
+}
 
 BOOL parseInputData( NDJSONParser * self )
 {
@@ -1035,6 +1043,13 @@ BOOL parseJSONObject( NDJSONParser * self )
 						theEnd = YES;
 						break;
 					case ',':
+						if( !self->_options.strictJSONOnly )					// allow trailing comma
+						{
+							if( nextCharIgnoreWhiteSpace(self) == '}' )
+								theEnd = YES;
+							else
+								backUp(self);
+						}
 						break;
 					default:
 						foundError( self, NDJSONBadFormatError );

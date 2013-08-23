@@ -1,0 +1,82 @@
+{
+	"masterPaster":"sw",
+	"hint":"You eat these all the time",
+	"ignoredAlphabet":[],
+	"info":{
+		"www.linkedin.com":{
+			"param.username":"myname",
+			"param.password":"xxxxxxx",
+			"param.pin":"123456",
+		},
+		"www.facebook.com":{
+			"param.username":"myname",
+			"param.password":"yyyyyyy",
+		},
+		"www.qantas.com.au":{
+			"param.username":"myname",
+			"param.password":"zzzzzzz",
+		}
+	},
+	"userInfo":{
+		"Albert":{
+			"alpha":{
+				"gender":"male",
+				"salutation":"Mr",
+				"firstname":"Albert",
+				"lastname":"almo",
+				"email":"Albert@abc.com",
+				"day-of-birth":27,
+				"month-of-birth":11,
+				"year-of-birth":1970
+			},
+			"beta":{
+				"street-number":"2",
+				"street-name":"gama beta St",
+				"suburb":"Narroon",
+				"state":"NSW",
+				"postcode":"2000",
+				"country":"Australia",
+				"mobile":"0123 456 789",
+				"phone":"9876 5432"
+			},
+			"gama":{
+				"cardName":"Albert almo",
+				"cardType":"Visa",
+				"cardNumber":"XXXX XXXX XXXX XXXX",
+				"cvv":"XXX",
+				"expiryDay":"02",
+				"expiryMonth":"18"
+			}
+		},
+		"Betty":{
+			"alpha":{
+				"gender":"female",
+				"salutation":"Mrs",
+				"firstname":"Betty",
+				"lastname":"almo",
+				"email":"betty@abc.com",
+				"day-of-birth":12,
+				"month-of-birth":5,
+				"year-of-birth":1950
+			},
+			"beta":{
+				"street-number":"45",
+				"street-name":"Alba Ln",
+				"suburb":"Double Tripple",
+				"state":"NSW",
+				"postcode":"1234",
+				"country":"Alpha",
+				"mobile":"0123 456 789",
+				"phone":"9876 5432"
+			},
+			"gama":{
+				"cardName":"Betty almo",
+				"cardType":"Visa",
+				"cardNumber":"XXXX XXXX XXXX XXXX",
+				"cvv":"XXX",
+				"expiryDay":"02",
+				"expiryMonth":"18"
+			}
+		}
+	}
+}

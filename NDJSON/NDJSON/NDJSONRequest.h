@@ -41,6 +41,8 @@ enum NDJSONHTTPMethod
 	NDJSONHTTPMethodPatch
 };
 
+extern NSString		* const kNDJSONHTTPMethodStrings[];
+
 @class		NDJSONDeserializer,
 			NDJSONResponse;
 @protocol	NDJSONRequestDelegate;
@@ -72,6 +74,7 @@ extern const NSUInteger				kNDJSONDefaultPortNumber;
 @property(readonly,nonatomic,strong)	NSInteger(^bodyHandler)( uint8_t * buffer,NSUInteger len);
 @property(readonly,nonatomic,strong)	NSString			* HTTPMethodString;
 @property(readonly,nonatomic)	enum NDJSONHTTPMethod		HTTPMethod;
+@property(readonly,nonatomic,strong)	NSDictionary		* HTTPHeaders;
 
 @property(readonly,nonatomic,strong)	NDJSONDeserializer			* deserializer;
 @property(readonly,nonatomic)			NDJSONOptionFlags			deserializerOptions;
@@ -111,6 +114,7 @@ A subclass of abstract class NDJSONRequest that you can set the values for.
 @property(readwrite,nonatomic,strong)	NSInputStream		* bodyStream;
 @property(readwrite,nonatomic,strong)	NSString			* HTTPMethodString;
 @property(assign,nonatomic)		enum NDJSONHTTPMethod		HTTPMethod;
+@property(readwrite,nonatomic,strong)	NSDictionary		* HTTPHeaders;
 
 @property(assign,nonatomic)				NDJSONOptionFlags	deserializerOptions;
 

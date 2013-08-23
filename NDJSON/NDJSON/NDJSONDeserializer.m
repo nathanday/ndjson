@@ -189,6 +189,7 @@ static id NDJSONPopCurrentContainerForJSONDeserializer( NDJSONDeserializer * sel
 - (void)setDelegate:(id<NDJSONDeserializerDelegate>)aDelegate
 {
 	_delegate = aDelegate;
+	[self setUpRespondsTo];
 }
 
 #pragma mark - creation and destruction
@@ -734,7 +735,7 @@ static BOOL NDJSONSetValueByConvertingPrimativeType( id aContainer, id aValue, N
 		{
 			@try
 			{
-				if( _options.convertPrimativeJSONTypes && aType != NDJSONValueArray && aType != NDJSONValueNone )
+				if( _options.convertPrimativeJSONTypes && NDJSONParserValueIsPrimativeType(aType) )
 				{
 					if( !NDJSONSetValueByConvertingPrimativeType( theCurrentContainer, aValue, _currentProperty, aType ) )
 						[theCurrentContainer setValue:aValue forKey:_currentProperty];
@@ -856,7 +857,7 @@ static BOOL NDJSONSetValueByConvertingPrimativeType( id aContainer, id aValue, N
 	{
 		id		theContainer = [[theClassDesc.expected alloc] init];
 		[theContainer addObject:theObjectRep];
-		NDJSONPushContainerForJSONDeserializer( self, theContainer, YES );
+		NDJSONPushContainerForJSONDeserializer( self, theObjectRep, YES );
 		[theContainer release];
 	}
 	else

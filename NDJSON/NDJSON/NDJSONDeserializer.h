@@ -60,7 +60,14 @@ enum {
 /**
 	If this flag is set, when an none array is generated from the JSON but the recieving property expects an NSArray, NSSet, NSOrderedSet, then the generated object is wrapped in the expected type.
  */
-	NDJSONOptionConvertToArrayTypeIfRequired = 1<<21
+	NDJSONOptionConvertToArrayTypeIfRequired = 1<<21,
+
+/**
+	All options excluding the options used to deal with problematic JSON, NDJSONOptionIgnoreUnknownProperties, NDJSONOptionConvertToArrayTypeIfRequired
+ */
+	NDJSONOptionsAllGoodJSONFriendly = NDJSONOptionConvertKeysToMedialCapitals|NDJSONOptionConvertRemoveIsAdjective|NDJSONOptionCovertPrimitiveJSONTypes,
+
+	NDJSONOptionsAll = 	NDJSONOptionsAllGoodJSONFriendly|NDJSONOptionIgnoreUnknownProperties|NDJSONOptionConvertToArrayTypeIfRequired
 };
 
 @protocol NDJSONDeserializerDelegate;

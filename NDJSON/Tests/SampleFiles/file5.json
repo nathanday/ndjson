@@ -1,0 +1,237 @@
+{
+	"alphas": {
+		"alphas": [
+			{
+				"attributes": [
+					{
+					"name": "alphaname",
+					"value": "The Union"
+					},
+					{
+					"name": "alphadescription",
+					"value": "Australia's leading news and analysis wherever you are"
+					},
+					{
+					"name": "alphaid",
+					"value": "PTNR00000007"
+					},
+					{
+					"name": "alphalogouri",
+					"value": "https://www.abc.com.au/image/file.JPG"
+					},
+					{
+					"name": "alphaRedirecturi",
+					"value": "http://www.abc.com.au/oauth/return"
+					},
+					{
+					"name": "alphasiteuri",
+					"value": "http://www.abc.com.au/"
+					},
+					{
+					"name": "alphasubtype",
+					"value": "Outer"
+					},
+					{
+					"name": "alphatype",
+					"value": "News"
+					},
+					{
+					"name": "alphastatus",
+					"value": "Available"
+					}
+					],
+					"alpha": "PTNR00000007"
+					},
+					{
+					"attributes": [
+					{
+					"name": "alphaname",
+					"value": "Test merchant @ merchant.van-egmond.com"
+					},
+					{
+					"name": "alphaRedirecturi",
+					"value": "http:/www.abc.com.au/oauth"
+					},
+					{
+					"name": "alphaid",
+					"value": "PTNR00000008"
+					},
+					{
+					"name": "alphatype",
+					"value": "Trusted"
+					},
+					{
+					"name": "alphasubtype",
+					"value": "Outer"
+					},
+					{
+					"name": "alphastatus",
+					"value": "Available"
+					}
+				],
+				"alpha": "PTNR00000008"
+			},
+			{
+				"attributes": [
+					{
+					"name": "alphaname",
+					"value": "abc.com.au"
+					},
+					{
+					"name": "alphadescription",
+					"value": "Australia's No.1 eâ„¢"
+					},
+					{
+					"name": "alphaid",
+					"value": "PTNR00000003"
+					},
+					{
+					"name": "alphalogouri",
+					"value": "https://www.abc.com.au/image/file.JPG"
+					},
+					{
+					"name": "alphaRedirecturi",
+					"value": "http:/www.abc.com.au/oauth/return"
+					},
+					{
+					"name": "alphasiteuri",
+					"value": "http://www.abc.com.au/"
+					},
+					{
+					"name": "alphasubtype",
+					"value": "Outer"
+					},
+					{
+					"name": "alphatype",
+					"value": "Retail"
+					},
+					{
+					"name": "alphastatus",
+					"value": "Available"
+					}
+				],
+				"alpha": "PTNR00000003"
+			},
+			{
+				"attributes": [
+					{
+					"name": "alphaname",
+					"value": "Test alpha @ alpha.abc.com"
+					},
+					{
+					"name": "alphaRedirecturi",
+					"value": "http:/www.abc.com.au/oauth"
+					},
+					{
+					"name": "alphaid",
+					"value": "PTNR00000004"
+					},
+					{
+					"name": "alphatype",
+					"value": "Trusted"
+					},
+					{
+					"name": "alphasubtype",
+					"value": "Outer"
+					},
+					{
+					"name": "alphastatus",
+					"value": "Available"
+					}
+				],
+				"alpha": "PTNR00000004"
+			},
+			{
+				"attributes": [
+					{
+					"name": "alphaname",
+					"value": "Beta Carian V1.0"
+					},
+					{
+					"name": "alphaid",
+					"value": "PTNR00000002"
+					},
+					{
+					"name": "alphatype",
+					"value": "Trusted"
+					},
+					{
+					"name": "alphasubtype",
+					"value": "Inner"
+					},
+					{
+					"name": "alphastatus",
+					"value": "Available"
+					}
+				],
+				"alpha": "PTNR00000002"
+			},
+			{
+				"attributes": [
+					{
+					"name": "alphaname",
+					"value": "Ilisa Companion V1.0"
+					},
+					{
+					"name": "alphaid",
+					"value": "PTNR00000005"
+					},
+					{
+					"name": "alphatype",
+					"value": "Trusted"
+					},
+					{
+					"name": "alphasubtype",
+					"value": "Inner"
+					},
+					{
+					"name": "alphastatus",
+					"value": "Available"
+					}
+				],
+				"alpha": "PTNR00000005"
+			},
+			{
+				"attributes": [
+					{
+					"name": "alphaname",
+					"value": "Myran"
+					},
+					{
+					"name": "alphadescription",
+					"value": "Orded Summer Style"
+					},
+					{
+					"name": "alphaid",
+					"value": "PTNR00000006"
+					},
+					{
+					"name": "alphalogouri",
+					"value": "https://www.abc.com.au/image/file.JPG"
+					},
+					{
+					"name": "alphaRedirecturi",
+					"value": "http://www.abc.com.au/oauth/return"
+					},
+					{
+					"name": "alphasiteuri",
+					"value": "http://www.abc.com.au/"
+					},
+					{
+					"name": "alphasubtype",
+					"value": "Outer"
+					},
+					{
+					"name": "alphatype",
+					"value": "Information"
+					},
+					{
+					"name": "alphastatus",
+					"value": "Available"
+					}
+				],
+				"alpha": "PTNR00000006"
+			}
+		]
+	}
+}

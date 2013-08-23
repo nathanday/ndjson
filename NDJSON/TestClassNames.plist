@@ -12,6 +12,12 @@
 		</dict>
 		<dict>
 			<key>class</key>
+			<string>TestLargeInput</string>
+			<key>name</key>
+			<string>Large Input</string>
+		</dict>
+		<dict>
+			<key>class</key>
 			<string>TestUnicharEscapeSquence</string>
 			<key>name</key>
 			<string>Unichar Escape Squence</string>

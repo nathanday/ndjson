@@ -54,6 +54,8 @@
 	[self addName:@"Scientific Notation Number" jsonString:@"314159265358979e-14" expectedResult:@3.14159265358979 options:NDJSONOptionNone];
 	[self addName:@"Array" jsonString:@"[1,2,\"three\",-4,-5.5,true,false,null]" expectedResult:@[@1,@2,@"three",@-4,@-5.5,@YES,@NO,[NSNull null]] options:NDJSONOptionNone];
 	[self addName:@"Array with trailing comma" jsonString:@"{\"array\":[1,\"two\",],\"number\":2}" expectedResult:@{@"array":@[@1,@"two"],@"number":@2} options:NDJSONOptionNone];
+	[self addName:@"Object with trailing comma" jsonString:@"[{\"a\":1,\"b\":2,},3]" expectedResult:@[@{@"a":@1,@"b":@2},@3] options:NDJSONOptionNone];
+
 	[self addName:@"Nested Array" jsonString:@"[1,[\"array\"]]" expectedResult:@[@1,@[@"array"]] options:NDJSONOptionNone];
 	[self addName:@"Empty Array" jsonString:@"[]" expectedResult:@[] options:NDJSONOptionNone];
 	[self addName:@"Empty Object" jsonString:@"{}" expectedResult:@{} options:NDJSONOptionNone];
@@ -68,13 +70,21 @@
 	[self addName:@"Nested Object" jsonString:@"{ \"alpha\" : { \"beta\" : 2 }}" expectedResult:@{@"alpha":@{@"beta":@2}} options:NDJSONOptionNone];
 	[self addName:@"Nested Object with Array" jsonString:@"{ \"alpha\" : { \"beta\" : 2 }, \"gama\":[3,4]}" expectedResult:@{@"alpha":@{@"beta":@2},@"gama":@[@3,@4]} options:NDJSONOptionNone];
 	[self addName:@"Nested Object with nested Array" jsonString:@"{ \"alpha\" : { \"beta\" : [3,4] }}" expectedResult:@{@"alpha":@{@"beta":@[@3,@4]}} options:NDJSONOptionNone];
+
+	[self addName:@"3 deep array" jsonString:@"[[[1],2],3]" expectedResult:@[@[@[@1],@2],@3] options:NDJSONOptionNone];
+	[self addName:@"3 deep array trailing" jsonString:@"[1,[2,[3]]]" expectedResult:@[@1,@[@2,@[@3]]] options:NDJSONOptionNone];
+
+	[self addName:@"3 deep object" jsonString:@"{\"a\":{\"b\":{\"c\":1},\"d\":2},\"e\":3}" expectedResult:@{@"a":@{@"b":@{@"c":@1},@"d":@2},@"e":@3} options:NDJSONOptionNone];
+	[self addName:@"3 deep object trailing" jsonString:@"{\"a\":1,\"b\":{\"c\":2,\"d\":{\"e\":3}}}" expectedResult:@{@"a":@1,@"b":@{@"c":@2,@"d":@{@"e":@3}}} options:NDJSONOptionNone];
+
+	[self addName:@"4 deep object" jsonString:@"{\"a\":{\"b\":{\"c\":{\"d\":1}},\"e\":2},\"f\":3}" expectedResult:@{@"a":@{@"b":@{@"c":@{@"d":@1}},@"e":@2},@"f":@3} options:NDJSONOptionNone];
+
+	[self addName:@"2 deep array within object" jsonString:@"[{\"a\":{\"b\":1},\"c\":2},3]" expectedResult:@[@{@"a":@{@"b":@1},@"c":@2},@3] options:NDJSONOptionNone];
+
 	[self addName:@"Comments single line" jsonString:@"//\ta\n[//\tbc\n1//\td\n,//\te\n{//ab\n\"two\"//cde\n://fghi\n2//jk\n}//\n,//\tf/gh\n\"three\"//\tij*klm\n//\tsecond in a row\n,//\top\n-4//\tqr\n,-5.5,true,false,null//\tstw\n]//\txyz\n" expectedResult:@[@1,@{@"two":@2},@"three",@-4,@-5.5,@YES,@NO,[NSNull null]] options:NDJSONOptionNone];
 	[self addName:@"Comments multi line" jsonString:@"/*\na\n*/[/*\nbc\n*/1/*\nd\n*/,/*\ne\n*/{/*ab*/\"two\"/*cde*/:/*fghi*/2/*jk*/}/**/,/*\nf/gh\n*/\"three\"/*\nij*klm\n*//*\nsecond in a row\n*/,/*\nop\n*/-4/*\nqr\n*/,-5.5,true,false,null/*\nstw\n*/]/*\nxyz\n*/" expectedResult:@[@1,@{@"two":@2},@"three",@-4,@-5.5,@YES,@NO,[NSNull null]] options:NDJSONOptionNone];
 	[self addName:@"UnBalanced Nested Object, Shallower End" jsonString:@"{\"one\":1,\"two\":2,\"three\":{\"four\":4}" expectedResult:@{@"one":@1,@"two":@2,@"three":@{@"four":@4}} options:NDJSONOptionNone];
 	[self addName:@"UnBalanced Nested Object, Deeper End" jsonString:@"{\"one\":1,\"two\":2},\"three\":3,\"four\":4}" expectedResult:@{@"one":@1,@"two":@2} options:NDJSONOptionNone];
-	NSDictionary	* theDict = [NSDictionary dictionaryWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"file4" ofType:@"plist"]];
-	[self addName:@"Large JSON with no spacing" jsonString:@"{title:\"javascriptkit.com\",link:\"http://www.javascriptkit.com\",description:\"JavaScript tutorials and over 400+ free scripts!\",language:\"en\",items:[{title:\"Document Text Resizer\",link:\"http://www.javascriptkit.com/script/script2/doctextresizer.shtml\",description:\"This script adds the ability for your users to toggle your webpage's font size, with persistent cookies then used to remember the setting\"},{title:\"JavaScript Reference- Keyboard/ Mouse Buttons Events\",link:\"http://www.javascriptkit.com/jsref/eventkeyboardmouse.shtml\",description:\"The latest update to our JS Reference takes a hard look at keyboard and mouse button events in JavaScript, including the unicode value of each key.\"},{title:\"Dynamically loading an external JavaScript or CSS file\",link:\"http://www.javascriptkit.com/javatutors/loadjavascriptcss.shtml\",description:\"External JavaScript or CSS files do not always have to be synchronously loaded as part of the page, but dynamically as well. In this tutorial, see how.\"}]}"  expectedResult:theDict options:NDJSONOptionNone];
-	[self addName:@"Bad Property Names" jsonString:@"{\"NUMBER one\":1,\"number-two\":2,\"number+3\":3,\"number:four\":4,\"numberFive\":5,\"\t\nNumber   \t\tSix  \":6}" expectedResult:@{@"NUMBEROne":@1,@"numberTwo":@2,@"number3":@3,@"numberFour":@4,@"numberFive":@5,@"numberSix":@6} options:NDJSONOptionConvertKeysToMedialCapitals];
 	[super willLoad];
 }
 

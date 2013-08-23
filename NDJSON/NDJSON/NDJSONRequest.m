@@ -34,7 +34,7 @@ static const NSTimeInterval		kNDJSONDefaultTimeoutInterval = 60.0;
 static NSString					* const kNDJSONDefaultScheme = @"http";
 static const NSUInteger			kNDJSONDefaultPort = NSUIntegerMax;			// use NDURLRequests default
 
-static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST", @"PUT", @"DELETE", @"TRACE", @"OPTIONS", @"CONNECT", @"PATCH" };				// must match enum NDJSONHTTPMethod
+NSString		* const kNDJSONHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST", @"PUT", @"DELETE", @"TRACE", @"OPTIONS", @"CONNECT", @"PATCH" };				// must match enum NDJSONHTTPMethod
 
 #pragma mark - NDJSONRequest
 @interface NDJSONRequest () <NSURLConnectionDataDelegate>
@@ -82,12 +82,24 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 - (NSURLRequest *)URLRequest
 {
 	NSMutableURLRequest		* theResult = [NSMutableURLRequest requestWithURL:self.URL];
-	if( self.bodyStream != nil )
-		[theResult setHTTPBodyStream:self.bodyStream];
-	else if( self.body != nil )
-		[theResult setHTTPBody:self.body];
+	NSInputStream			* theBodyStream = self.bodyStream;
+	NSData					* theBodyData = self.body;
+	NSDictionary			* theHTTPHeaders = self.HTTPHeaders;
+	if( theBodyStream != nil )
+	{
+		[theResult setHTTPBodyStream:theBodyStream];
+		[theResult setAllHTTPHeaderFields:theHTTPHeaders];
+	}
+	else if( theBodyData != nil )
+	{
+		[theResult setHTTPBody:theBodyData];
+		[theResult setAllHTTPHeaderFields:theHTTPHeaders];
+	}
 	else if( self.bodyHandler != nil )
+	{
 		NSAssert( self.bodyHandler != nil, @"bodyHander body source is not supported yet" );
+		[theResult setAllHTTPHeaderFields:theHTTPHeaders];
+	}
 
 	[theResult setHTTPMethod:self.HTTPMethodString];
 	return theResult;
@@ -120,6 +132,7 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 }
 
 - (NSString *)scheme { return kNDJSONDefaultScheme; }
+- (NSDictionary *)HTTPHeaders { return nil; }
 
 - (NSString *)userInfo
 {
@@ -159,11 +172,11 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 
 - (NSString *)query
 {
-	__block NSMutableString		* theResult = nil;
+	NSMutableString		* theResult = [NSMutableString string];
 	[self.queryComponents enumerateKeysAndObjectsUsingBlock:^(NSString * aKey, id aValue, BOOL * aStop)
 	{
-		if( theResult == nil )
-			theResult = [NSMutableString stringWithFormat:@"%@=%@", aKey, aValue];
+		if( theResult.length == 0 )
+			[theResult appendFormat:@"%@=%@", aKey, aValue];
 		else
 			[theResult appendFormat:@"&%@=%@", aKey, aValue];
 	}];
@@ -179,7 +192,7 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 	enum NDJSONHTTPMethod	theMethod = self.HTTPMethod;
 	if( theMethod == NDJSONHTTPMethodDefault )
 		theMethod = ( self.body != nil || self.bodyStream != nil || self.bodyHandler != nil ) ? NDJSONHTTPMethodPost : NDJSONHTTPMethodGet;
-	return kHTTPMethodStrings[theMethod];
+	return kNDJSONHTTPMethodStrings[theMethod];
 }
 - (enum NDJSONHTTPMethod)HTTPMethod { return NDJSONHTTPMethodDefault; }
 
@@ -271,6 +284,7 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 	NSInteger(^_bodyHandler)( uint8_t * buffer,NSUInteger len);
 	NSString			* __strong _HTTPMethodString;
 	enum NDJSONHTTPMethod		_HTTPMethod;
+	NSDictionary		* __strong _HTTPHeaders;
 }
 
 @end
@@ -289,7 +303,8 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 				bodyStream = _bodyStream,
 				bodyHandler = _bodyHandler,
 				HTTPMethodString = _HTTPMethodString,
-				HTTPMethod = _HTTPMethod;
+				HTTPMethod = _HTTPMethod,
+				HTTPHeaders = _HTTPHeaders;
 
 - (void)setURL:(NSURL *)aURL
 {
@@ -303,6 +318,7 @@ static NSString		* const kHTTPMethodStrings[] = { nil, @"GET", @"HEAD", @"POST",
 }
 
 - (NSString *)HTTPMethodString { return _HTTPMethodString != nil ? _HTTPMethodString : [super HTTPMethodString]; }
+- (NSDictionary *)HTTPHeaders { return _HTTPHeaders != nil ? _HTTPHeaders : [super HTTPHeaders]; }
 
 - (void)setQueryComponents:(NSDictionary *)aQueryComponents { _queryComponents = [aQueryComponents mutableCopy]; }
 - (NSString *)query { return _query != nil ? _query : [super query]; }
