@@ -97,6 +97,8 @@ extern NSString	* const NDJSONErrorDomain;
  */
 @property(readonly,nonatomic)	NSUInteger			lineNumber;
 
+@property(readonly,nonatomic)	NSUInteger			columnNumber;
+
 /**
  set a JSON string to parse
  */

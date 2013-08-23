@@ -154,7 +154,7 @@ static BOOL appendCharacter( struct NDBytesBuffer * aBuffer, unsigned int aValue
 //static BOOL truncateByte( struct NDBytesBuffer * aBuffer, uint32_t aBytes );
 static void freeByte( struct NDBytesBuffer * aBuffer );
 
-static NSString * const kErrorCodeStrings[] = 
+static NSString * const kErrorCodeStrings[] =
 {
 	@"General",
 	@"BadToken",
@@ -283,8 +283,9 @@ enum JSONInputType
 {
 	id<NDJSONParserDelegate>		__weak _delegate;
 	NSUInteger						_position,
-									_numberOfBytes,
-									_lineNumber;
+									_numberOfBytes;
+	NSUInteger						_lineNumber,
+									_columnNumber;
 	uint8_t							* _inputBytes;
 	union				// may represent the entire JSON document or just a part of
 	{
@@ -353,7 +354,8 @@ enum JSONInputType
 
 @synthesize		delegate = _delegate,
 				currentKey = _currentKey,
-				lineNumber = _lineNumber;
+				lineNumber = _lineNumber,
+				columnNumber = _columnNumber;
 
 #pragma mark - manually implemented properties
 
@@ -379,6 +381,7 @@ enum JSONInputType
 		_position = 0;
 		_numberOfBytes = 0;
 		_lineNumber = 0;
+		_columnNumber = 0;
 		_complete = NO;
 		_abort = NO;
 		_useBackUpByte = 0;
@@ -803,7 +806,12 @@ static uint32_t NDJSONNextChar( NDJSONParser * self )
 		{
 			self->_position++;
 			if( self->_backUpByte[0] == '\n' )
+			{
 				self->_lineNumber++;
+				self->_columnNumber = 0;
+			}
+			else
+				self->_columnNumber++;
 		}
 #ifdef NDJSONPrintStream
 		putc((int)self->_backUpByte[0], stderr);
@@ -846,23 +854,38 @@ static uint32_t NDJSONNextCharIgnoreWhiteSpace( NDJSONParser * self )
 					{
 						if( theResult == '\0' )
 							goto end;
+						self->_columnNumber++;
 						theResult = NDJSONNextChar(self);
 						if( theResult == '*' )
 						{
 							theResult = NDJSONNextChar(self);
 							if(theResult == '/')
+							{
 								theCommentEnd = YES;
+								self->_columnNumber++;
+							}
 							else if( theResult == '\n' )
+							{
 								self->_lineNumber++;
+								self->_columnNumber = 0;
+							}
+							else
+								self->_columnNumber++;
 						}
 						else if( theResult == '\n' )
+						{
 							self->_lineNumber++;
+							self->_columnNumber = 0;
+						}
 					}
 					theResult = NDJSONNextChar(self);
 				}
 			}
 			if( theResult == '\n' )
+			{
 				self->_lineNumber++;
+				self->_columnNumber = 0;
+			}
 		}
 		while( isspace((int)theResult) );
 	}
