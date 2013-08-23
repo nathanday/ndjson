@@ -793,7 +793,7 @@ static uint32_t currentChar( NDJSONParser * self )
 	return theResult;
 }
 
-static uint32_t nextChar( NDJSONParser * self )
+static uint32_t NDJSONNextChar( NDJSONParser * self )
 {
 	if( self->_useBackUpByte == 0)
 	{
@@ -816,43 +816,53 @@ static uint32_t nextChar( NDJSONParser * self )
 	NSCParameterAssert( self->_useBackUpByte < sizeof(self->_backUpByte)/sizeof(*self->_backUpByte) );
 	return self->_backUpByte[self->_useBackUpByte];
 }
-static uint32_t nextCharIgnoreWhiteSpace( NDJSONParser * self )
+static uint32_t NDJSONNextCharIgnoreWhiteSpace( NDJSONParser * self )
 {
 	uint32_t		theResult;
 	if( self->_options.strictJSONOnly )				// skip white space only
 	{
 		do
-			theResult = nextChar( self );
+			theResult = NDJSONNextChar( self );
 		while( isspace((int)theResult) );
 	}
 	else											// skip comments as well
 	{
 		do
 		{
-			theResult = nextChar( self );
+			theResult = NDJSONNextChar( self );
 			while( theResult == '/' )
 			{
 				if( currentChar(self) == '/' )		// single line comment
 				{
 					do
-						theResult = nextChar( self );
+						theResult = NDJSONNextChar( self );
 					while( theResult != '\n' );
 				}
 				else if( currentChar(self) == '*' )		// multiline comment
 				{
 					BOOL		theCommentEnd = NO;
-					theResult = nextChar(self);
+					theResult = NDJSONNextChar(self);
 					while( !theCommentEnd )
 					{
 						if( theResult == '\0' )
 							goto end;
-						theResult = nextChar(self);
-						if( theResult == '*' && (theResult = nextChar(self)) == '/' )
-							theCommentEnd = YES;
+						theResult = NDJSONNextChar(self);
+						if( theResult == '*' )
+						{
+							theResult = NDJSONNextChar(self);
+							if(theResult == '/')
+								theCommentEnd = YES;
+							else if( theResult == '\n' )
+								self->_lineNumber++;
+						}
+						else if( theResult == '\n' )
+							self->_lineNumber++;
 					}
-					theResult = nextChar(self);
+					theResult = NDJSONNextChar(self);
 				}
 			}
+			if( theResult == '\n' )
+				self->_lineNumber++;
 		}
 		while( isspace((int)theResult) );
 	}
@@ -913,7 +923,7 @@ BOOL parseURLRequest( NDJSONParser * self )
 BOOL parseJSONUnknown( NDJSONParser * self )
 {
 	BOOL		theResult = YES;
-	switch( nextCharIgnoreWhiteSpace( self ) )
+	switch( NDJSONNextCharIgnoreWhiteSpace( self ) )
 	{
 	case '{':
 		theResult = parseJSONObject( self );
@@ -955,14 +965,14 @@ BOOL parseJSONArray( NDJSONParser * self )
 	if( self->_delegateMethod.didStartArray != NULL )
 		self->_delegateMethod.didStartArray( self->_delegate, @selector(jsonParserDidStartArray:), self );
 	
-	if( nextCharIgnoreWhiteSpace(self) == ']' )
+	if( NDJSONNextCharIgnoreWhiteSpace(self) == ']' )
 		theEnd = YES;
 	else
 		backUp(self);
 	
 	while( !theEnd && (theResult = parseJSONUnknown( self )) == YES )
 	{
-		uint32_t		theChar = nextCharIgnoreWhiteSpace(self);
+		uint32_t		theChar = NDJSONNextCharIgnoreWhiteSpace(self);
 		theCount++;
 		switch( theChar )
 		{
@@ -972,7 +982,7 @@ BOOL parseJSONArray( NDJSONParser * self )
 		case ',':
 			if( !self->_options.strictJSONOnly )					// allow trailing comma
 			{
-				if( nextCharIgnoreWhiteSpace(self) == ']' )
+				if( NDJSONNextCharIgnoreWhiteSpace(self) == ']' )
 					theEnd = YES;
 				else
 					backUp(self);
@@ -1003,7 +1013,7 @@ BOOL parseJSONObject( NDJSONParser * self )
 	if( self->_delegateMethod.didStartObject != NULL )
 		self->_delegateMethod.didStartObject( self->_delegate, @selector(jsonParserDidStartObject:), self );
 	
-	if( nextCharIgnoreWhiteSpace(self) == '}' )
+	if( NDJSONNextCharIgnoreWhiteSpace(self) == '}' )
 		theEnd = YES;
 	else
 		backUp(self);
@@ -1012,7 +1022,7 @@ BOOL parseJSONObject( NDJSONParser * self )
 	{
 		if( (theResult = parseJSONKey(self)) )
 		{
-			if( (nextCharIgnoreWhiteSpace(self) == ':') == YES )
+			if( (NDJSONNextCharIgnoreWhiteSpace(self) == ':') == YES )
 			{
 				BOOL	theSkipParsingValueForCurrentKey = NO;
 
@@ -1034,7 +1044,7 @@ BOOL parseJSONObject( NDJSONParser * self )
 
 				if( theResult == YES )
 				{
-					uint32_t		theChar = nextCharIgnoreWhiteSpace(self);
+					uint32_t		theChar = NDJSONNextCharIgnoreWhiteSpace(self);
 					theCount++;
 					switch( theChar )
 					{
@@ -1045,7 +1055,7 @@ BOOL parseJSONObject( NDJSONParser * self )
 					case ',':
 						if( !self->_options.strictJSONOnly )					// allow trailing comma
 						{
-							if( nextCharIgnoreWhiteSpace(self) == '}' )
+							if( NDJSONNextCharIgnoreWhiteSpace(self) == '}' )
 								theEnd = YES;
 							else
 								backUp(self);
@@ -1078,7 +1088,7 @@ BOOL parseJSONKey( NDJSONParser * self )
 {
 	struct NDBytesBuffer	theBuffer = NDBytesBufferInit;
 	BOOL					theResult = YES;
-	if( nextCharIgnoreWhiteSpace(self) == '"' )
+	if( NDJSONNextCharIgnoreWhiteSpace(self) == '"' )
 		theResult = parseJSONText( self, &theBuffer, YES, YES );
 	else if( !self->_options.strictJSONOnly )				// keys don't have to be quoted
 	{
@@ -1134,7 +1144,7 @@ BOOL parseJSONText( NDJSONParser * self, struct NDBytesBuffer * aValueBuffer, BO
 	
 	while( theResult  && !theEnd)
 	{
-		uint32_t		theChar = nextChar(self);
+		uint32_t		theChar = NDJSONNextChar(self);
 		switch( theChar )
 		{
 		case '\0':
@@ -1142,7 +1152,7 @@ BOOL parseJSONText( NDJSONParser * self, struct NDBytesBuffer * aValueBuffer, BO
 			break;
 		case '\\':
 		{
-			theChar = nextChar(self);
+			theChar = NDJSONNextChar(self);
 			switch( theChar )
 			{
 			case '\0':
@@ -1179,7 +1189,7 @@ BOOL parseJSONText( NDJSONParser * self, struct NDBytesBuffer * aValueBuffer, BO
 				uint32_t			theCharacterValue = 0;
 				for( int i = 0; i < 4; i++ )
 				{
-					uint32_t		theHexChar = nextChar(self);
+					uint32_t		theHexChar = NDJSONNextChar(self);
 					if( theHexChar == 0 )
 						break;
 					uint32_t		theDigitValue = integerForHexidecimalDigit( theHexChar );
@@ -1239,14 +1249,14 @@ BOOL parseJSONNumber( NDJSONParser * self )
 					theExponentValue = 0;
 	int				theDecimalPlaces = 1;
 	
-	if( nextChar(self) == '-' )
+	if( NDJSONNextChar(self) == '-' )
 		theNegative = YES;
 	else
 		backUp(self);
 	
 	while( !theEnd && theResult )
 	{
-		uint32_t		theChar = nextChar(self);
+		uint32_t		theChar = NDJSONNextChar(self);
 		switch( theChar )
 		{
 		case '\0':
@@ -1265,7 +1275,7 @@ BOOL parseJSONNumber( NDJSONParser * self )
 		case 'E':
 		{
 			BOOL		theExponentNegative = 0;
-			theChar = nextChar(self);
+			theChar = NDJSONNextChar(self);
 			if( theChar == '+' || theChar == '-' )
 				theExponentNegative = (theChar == '-');
 			else if( theChar >= '0' && theChar <= '9' )
@@ -1278,7 +1288,7 @@ BOOL parseJSONNumber( NDJSONParser * self )
 			
 			while( !theEnd && theResult )
 			{
-				theChar = nextChar(self);
+				theChar = NDJSONNextChar(self);
 				switch( theChar )
 				{
 //				case '\0':
@@ -1341,7 +1351,7 @@ BOOL parseJSONTrue( NDJSONParser * self )
 {
 	BOOL		theResult = YES;
 	uint32_t	theChar;
-	if( (theChar = nextChar(self)) == 'r' && (theChar = nextChar(self)) == 'u' && (theChar = nextChar(self)) == 'e' )
+	if( (theChar = NDJSONNextChar(self)) == 'r' && (theChar = NDJSONNextChar(self)) == 'u' && (theChar = NDJSONNextChar(self)) == 'e' )
 	{
 		if( self->_delegateMethod.foundNumber != NULL )
 			self->_delegateMethod.foundNumber( self->_delegate, @selector(jsonParser:foundNumber:), self, [NSNumber numberWithBool:YES] );
@@ -1359,7 +1369,7 @@ BOOL parseJSONFalse( NDJSONParser * self )
 {
 	BOOL		theResult = YES;
 	uint32_t	theChar;
-	if( (theChar = nextChar(self)) == 'a' && (theChar = nextChar(self)) == 'l' && (theChar = nextChar(self)) == 's' && (theChar = nextChar(self)) == 'e' )
+	if( (theChar = NDJSONNextChar(self)) == 'a' && (theChar = NDJSONNextChar(self)) == 'l' && (theChar = NDJSONNextChar(self)) == 's' && (theChar = NDJSONNextChar(self)) == 'e' )
 	{
 		if( self->_delegateMethod.foundNumber != NULL )
 			self->_delegateMethod.foundNumber( self->_delegate, @selector(jsonParser:foundNumber:), self, [NSNumber numberWithBool:NO] );
@@ -1377,7 +1387,7 @@ BOOL parseJSONNull( NDJSONParser * self )
 {
 	BOOL		theResult = YES;
 	uint32_t	theChar;
-	if( (theChar = nextChar(self)) == 'u' && (theChar = nextChar(self)) == 'l' && (theChar = nextChar(self)) == 'l' )
+	if( (theChar = NDJSONNextChar(self)) == 'u' && (theChar = NDJSONNextChar(self)) == 'l' && (theChar = NDJSONNextChar(self)) == 'l' )
 	{
 		if( self->_delegateMethod.foundNULL != NULL )
 			self->_delegateMethod.foundNULL( self->_delegate, @selector(jsonParserFoundNULL:), self );
@@ -1399,7 +1409,7 @@ BOOL skipNextValue( NDJSONParser * self )
 	
 	while( !theEnd )
 	{
-		switch( (theChar = nextCharIgnoreWhiteSpace( self )) )
+		switch( (theChar = NDJSONNextCharIgnoreWhiteSpace( self )) )
 		{
 		case '{':
 			theBracesDepth++;
@@ -1436,11 +1446,11 @@ BOOL skipNextValue( NDJSONParser * self )
 			theEnd = YES;
 			break;
 		case '"':
-			while( (theChar = nextCharIgnoreWhiteSpace( self )) != '"' )
+			while( (theChar = NDJSONNextCharIgnoreWhiteSpace( self )) != '"' )
 			{
 				if( theChar == '\\' )
 				{
-					if( (theChar = nextChar(self)) == '\0' )
+					if( (theChar = NDJSONNextChar(self)) == '\0' )
 						break;
 				}
 			}
