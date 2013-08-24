@@ -50,6 +50,8 @@ static uint32_t		k32BitLittleEndianBOM = 0x0000FEFF,
 					k32BitBigEndianBOM = 0xFFFE0000;
 #endif
 
+static const NSUInteger		kNDJSONCharacterHistorySize = 512;
+
 BOOL NDJSONParserValueIsPrimativeType( NDJSONValueType aType )
 {
 	switch( aType )
@@ -294,6 +296,10 @@ enum JSONInputType
 		uint32_t						* word32;
 	}								_bytes;
 	BOOL							_ownsBytes;
+#ifdef DEBUG
+	uint8_t							_charactersHistory[kNDJSONCharacterHistorySize];
+	NSUInteger						_charactersHistoryLength;
+#endif
 #ifndef NDJSONSupportUTF8Only
 	struct
 	{
@@ -301,12 +307,12 @@ enum JSONInputType
 		enum NDJSONCharacterEndian		endian;
 	}								_character;
 #endif
-	uint32_t						_backUpByte[2];
+	uint32_t						_backUpByte;
 	BOOL							_hasSkippedValueForCurrentKey,
 									_alreadyParsing,
 									_complete,
 									_abort;
-	unsigned short					_useBackUpByte;
+	BOOL							_useBackUpByte;
 	struct
 	{
 		int								strictJSONOnly		: 1;
@@ -384,7 +390,7 @@ enum JSONInputType
 		_columnNumber = 0;
 		_complete = NO;
 		_abort = NO;
-		_useBackUpByte = 0;
+		_useBackUpByte = NO;
 		_source.object = NULL;
 		_source.function = NULL;
 		_source.context = NULL;
@@ -394,6 +400,8 @@ enum JSONInputType
 		_bytes.word16 = NULL;
 		_bytes.word32 = NULL;
 		_currentKey = nil;
+		memset( _charactersHistory, 0, sizeof(_charactersHistory) );
+		_charactersHistoryLength = 0;
 	}
 	return self;
 }
@@ -798,14 +806,13 @@ static uint32_t currentChar( NDJSONParser * self )
 
 static uint32_t NDJSONNextChar( NDJSONParser * self )
 {
-	if( self->_useBackUpByte == 0)
+	if( self->_useBackUpByte == NO)
 	{
-		self->_backUpByte[1] = self->_backUpByte[0];
-		self->_backUpByte[0] = currentChar( self );
-		if( self->_backUpByte[0] != '\0' )
+		self->_backUpByte = currentChar( self );
+		if( self->_backUpByte != '\0' )
 		{
 			self->_position++;
-			if( self->_backUpByte[0] == '\n' )
+			if( self->_backUpByte == '\n' )
 			{
 				self->_lineNumber++;
 				self->_columnNumber = 0;
@@ -813,16 +820,20 @@ static uint32_t NDJSONNextChar( NDJSONParser * self )
 			else
 				self->_columnNumber++;
 		}
+#ifdef DEBUG
+	if( self->_charactersHistoryLength < kNDJSONCharacterHistorySize )
+		self->_charactersHistoryLength++;
+	else
+		memmove( self->_charactersHistory, self->_charactersHistory+1, kNDJSONCharacterHistorySize-1 );
+	self->_charactersHistory[self->_charactersHistoryLength-1] = self->_backUpByte > 255 ? '?' : (uint8_t)self->_backUpByte;
+#endif
 #ifdef NDJSONPrintStream
-		putc((int)self->_backUpByte[0], stderr);
+		putc((int)self->_backUpByte, stderr);
 #endif
 	}
 	else
-	{
-		self->_useBackUpByte--;
-	}
-	NSCParameterAssert( self->_useBackUpByte < sizeof(self->_backUpByte)/sizeof(*self->_backUpByte) );
-	return self->_backUpByte[self->_useBackUpByte];
+		self->_useBackUpByte = NO;
+	return self->_backUpByte;
 }
 static uint32_t NDJSONNextCharIgnoreWhiteSpace( NDJSONParser * self )
 {
@@ -895,8 +906,8 @@ end:
 
 static void backUp( NDJSONParser * self )
 {
-	NSCAssert( self->_useBackUpByte < 2, @"Can't Backup Twice in a row" );
-	self->_useBackUpByte++;
+	NSCAssert( self->_useBackUpByte == NO, @"Can't Backup Twice in a row" );
+	self->_useBackUpByte = YES;
 }
 
 BOOL parseInputData( NDJSONParser * self )
@@ -1489,33 +1500,39 @@ BOOL skipNextValue( NDJSONParser * self )
 void foundError( NDJSONParser * self, NDJSONErrorCode aCode )
 {
 	NSMutableDictionary		* theUserInfo = [[NSMutableDictionary alloc] initWithObjectsAndKeys:kErrorCodeStrings[aCode],NSLocalizedDescriptionKey, nil];
+	NSString				* theString = nil;
+	NSString				* theHistoryString = nil;
+#ifndef DEBUG
 	NSUInteger				thePos = self->_position > 5 ? self->_position - 5 : 5,
 							theLen = self->_numberOfBytes - thePos < 10 ? self->_numberOfBytes - thePos : 10;
-	NSString				* theString = nil;
+#endif
+#ifdef DEBUG
+	theHistoryString = [[NSString alloc] initWithBytes:self->_charactersHistory length:self->_charactersHistoryLength encoding:NSMacOSRomanStringEncoding];
+#else
+	theHistoryString = [[NSString alloc] initWithBytes:self->_bytes.word8 length:theLen*self->_character.wordSize encoding:kNSStringEncodingFromCharacterWordSize[self->_character.wordSize]];
+#endif
 	switch (aCode)
 	{
 	default:
 	case NDJSONGeneralError:
 		break;
 	case NDJSONBadTokenError:
-	{
-		theString = [[NSString alloc] initWithFormat:@"Bad token at pos %lu, %*s", (unsigned long)self->_position, (int)theLen, self->_bytes.word8];
+		theString = [[NSString alloc] initWithFormat:@"Bad token at pos %lu, %@", (unsigned long)self->_position, theHistoryString];
 		break;
-	}
 	case NDJSONBadFormatError:
-		theString = [[NSString alloc] initWithFormat:@"Bad formate at pos %lu, %*s", (unsigned long)self->_position, (int)theLen, self->_bytes.word8];
+		theString = [[NSString alloc] initWithFormat:@"Bad formate at pos %lu, %@", (unsigned long)self->_position, theHistoryString];
 		break;
 	case NDJSONBadEscapeSequenceError:
-		theString = [[NSString alloc] initWithFormat:@"Bad escape sequence at pos %lu, %*s", (unsigned long)(self->_position > 0 ? self->_position-1 : self->_position), (int)theLen, self->_bytes.word8];
+		theString = [[NSString alloc] initWithFormat:@"Bad escape sequence at pos %lu, %@", (unsigned long)(self->_position > 0 ? self->_position-1 : self->_position), theHistoryString];
 		break;
 	case NDJSONTrailingGarbageError:
-		theString = [[NSString alloc] initWithFormat:@"Trailing garbage at pos %lu, %*s", (unsigned long)self->_position, (int)theLen, self->_bytes.word8];
+		theString = [[NSString alloc] initWithFormat:@"Trailing garbage at pos %lu, %@", (unsigned long)self->_position, theHistoryString];
 		break;
 	case NDJSONMemoryErrorError:
 		theString = [[NSString alloc] initWithFormat:@"System failed allocated memory"];
 		break;
 	case NDJSONPrematureEndError:
-		theString = [[NSString alloc] initWithFormat:@"Premature End of data at pos %lu, %*s", (unsigned long)self->_position, (int)theLen, self->_bytes.word8];
+		theString = [[NSString alloc] initWithFormat:@"Premature End of data at pos %lu, %@", (unsigned long)self->_position, theHistoryString];
 		break;
 	}
 	[theUserInfo setObject:theString forKey:NSLocalizedFailureReasonErrorKey];

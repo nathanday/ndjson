@@ -167,8 +167,8 @@ static id NDJSONPopCurrentContainerForJSONDeserializer( NDJSONDeserializer * sel
 	NSMutableArray		* _objectThatRespondToAwakeFromDeserialization;
 }
 
-- (struct NDClassesDesc)classForPropertyName:(NSString *)name class:(Class)class;
-- (struct NDClassesDesc)collectionClassForPropertyName:(NSString *)name class:(Class)class;
+- (struct NDClassesDesc)classForPropertyName:(NSString *)name parentClass:(Class)class;
+- (struct NDClassesDesc)collectionClassForPropertyName:(NSString *)name parentClass:(Class)class;
 
 @end
 
@@ -806,7 +806,7 @@ static BOOL NDJSONSetValueByConvertingPrimativeType( id aContainer, id aValue, N
 
 - (void)jsonParserDidStartArray:(NDJSONParser *)aJSON
 {
-	struct NDClassesDesc	theClassesDes = [self collectionClassForPropertyName:_currentProperty class:[self.currentObject class]];
+	struct NDClassesDesc	theClassesDes = [self collectionClassForPropertyName:_currentProperty parentClass:[self.currentObject class]];
 
 	if( ![theClassesDes.actual instancesRespondToSelector:@selector(addObject:)] )
 	{
@@ -834,7 +834,7 @@ static BOOL NDJSONSetValueByConvertingPrimativeType( id aContainer, id aValue, N
 
 - (void)jsonParserDidStartObject:(NDJSONParser *)aJSON
 {
-	struct NDClassesDesc		theClassDesc = [self classForPropertyName:self.currentContainerPropertyName class:[self.currentObject class]];
+	struct NDClassesDesc		theClassDesc = [self classForPropertyName:self.currentContainerPropertyName parentClass:[self.currentObject class]];
 	id							theObjectRep = nil;
 
 	if( _delegateMethod.objectForClass != NULL )
@@ -882,7 +882,7 @@ static BOOL NDJSONSetValueByConvertingPrimativeType( id aContainer, id aValue, N
 	return theResult;
 }
 
-- (struct NDClassesDesc)classForPropertyName:(NSString *)aName class:(Class)aClass
+- (struct NDClassesDesc)classForPropertyName:(NSString *)aName parentClass:(Class)aClass
 {
 	struct NDClassesDesc	theClassesDes = {Nil,Nil};
 	Class					theRootClass = self.rootClass;
@@ -925,7 +925,7 @@ static BOOL NDJSONSetValueByConvertingPrimativeType( id aContainer, id aValue, N
 	return theClassesDes;
 }
 
-- (struct NDClassesDesc)collectionClassForPropertyName:(NSString *)aName class:(Class)aClass
+- (struct NDClassesDesc)collectionClassForPropertyName:(NSString *)aName parentClass:(Class)aClass
 {
 	struct NDClassesDesc	theClassesDes = {Nil,Nil};
 	if( self.rootClass != nil )
